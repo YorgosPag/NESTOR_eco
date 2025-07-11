@@ -10,7 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { findContextByQuery, updateStageStatus, addFileToStage as addFileToStageData } from '@/lib/data';
+import { findContextByQuery, addFileToStage as addFileToStageData, updateStageStatus } from '@/lib/data';
 import type { StageStatus } from '@/types';
 import {
     ProcessMessageInputSchema,
@@ -179,5 +179,8 @@ const messageProcessorFlow = ai.defineFlow(
 
 
 export async function processMessage(input: ProcessMessageInput): Promise<ProcessMessageOutput> {
-  return messageProcessorFlow(input);
+  return {
+    responseText: "AI προσωρινά απενεργοποιημένο.",
+    actionsTaken: [],
+  };
 }
