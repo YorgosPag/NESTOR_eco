@@ -10,7 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { findContextByQuery, addFileToStage as addFileToStageData, updateStageStatus } from '@/lib/data';
+import { findContextByQuery, updateStageStatus, addFileToStage as addFileToStageData } from '@/lib/data';
 import type { StageStatus } from '@/types';
 import {
     ProcessMessageInputSchema,
@@ -19,7 +19,6 @@ import {
     type ProcessMessageOutput
 } from './schemas';
 import { getAdminDb } from '@/lib/firebase-admin';
-import type { Firestore } from 'firebase-admin/firestore';
 
 // #################################################################
 //  TOOLS DEFINITION
