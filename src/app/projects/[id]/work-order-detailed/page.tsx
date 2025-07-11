@@ -2,14 +2,12 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { getProjectById } from "@/lib/data";
-import { notFound } from "next/navigation";
-import { getContacts } from "@/lib/contacts-data";
-import { getAdminDb } from "@/lib/firebase-admin";
-import { WorkOrderView } from "@/components/projects/work-order-view";
 import { useEffect, useState } from "react";
 import type { Project, Contact } from "@/types";
 import { Loader2 } from "lucide-react";
+import { WorkOrderView } from "@/components/projects/work-order-view";
+import { getBatchWorkOrderData } from "@/app/actions/projects";
+import { notFound } from "next/navigation";
 
 export default function WorkOrderDetailedPage({ params }: { params: { id: string } }) {
     const searchParams = useSearchParams();
@@ -17,33 +15,35 @@ export default function WorkOrderDetailedPage({ params }: { params: { id: string
     const [project, setProject] = useState<Project | null>(null);
     const [contacts, setContacts] = useState<Contact[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true);
-            const db = getAdminDb();
-            const [proj, cont] = await Promise.all([
-                getProjectById(db, params.id),
-                getContacts(db),
-            ]);
+            try {
+                const result = await getBatchWorkOrderData([params.id]);
+                const proj = result.projects[0];
+                if (!proj) {
+                    setError("Project not found.");
+                    setIsLoading(false);
+                    return;
+                }
 
-            if (!proj) {
-                // Handle not found case, maybe redirect or show error
+                if (assigneeId) {
+                    const filteredInterventions = proj.interventions.filter(intervention => 
+                        intervention.stages.some(stage => stage.assigneeContactId === assigneeId)
+                    );
+                    setProject({ ...proj, interventions: filteredInterventions });
+                } else {
+                    setProject(proj);
+                }
+
+                setContacts(result.contacts);
+            } catch (err: any) {
+                setError(err.message || "Failed to load data.");
+            } finally {
                 setIsLoading(false);
-                return;
             }
-
-            if (assigneeId) {
-                const filteredInterventions = proj.interventions.filter(intervention => 
-                    intervention.stages.some(stage => stage.assigneeContactId === assigneeId)
-                );
-                setProject({ ...proj, interventions: filteredInterventions });
-            } else {
-                setProject(proj);
-            }
-
-            setContacts(cont);
-            setIsLoading(false);
         };
         fetchData();
     }, [params.id, assigneeId]);
@@ -55,6 +55,14 @@ export default function WorkOrderDetailedPage({ params }: { params: { id: string
                     <Loader2 className="h-12 w-12 animate-spin text-primary" />
                     <p className="text-muted-foreground">Φόρτωση αναφοράς...</p>
                 </div>
+            </div>
+        )
+    }
+    
+    if (error) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center p-4">
+                <p className="text-destructive text-center">{error}</p>
             </div>
         )
     }

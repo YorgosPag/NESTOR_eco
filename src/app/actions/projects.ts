@@ -5,7 +5,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import { addProject as addProjectData, getProjectById, users, findInterventionAndStage, updateProject as updateProjectData, deleteProject as deleteProjectData, updateStageStatus as updateStageStatusData, getAllProjects, getProjectsByIds } from '@/lib/data';
+import { addProject as addProjectData, getProjectById, users, findInterventionAndStage, updateProject as updateProjectData, deleteProject as deleteProjectData, updateStageStatus as updateStageStatusData, getProjectsByIds } from '@/lib/data';
 import type { Project, ProjectIntervention, Stage, StageStatus, SubIntervention, Contact } from '@/types';
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getContacts } from '@/lib/contacts-data';
