@@ -8,7 +8,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getAllProjects } from '@/lib/data';
+import { getAllProjects } from '@/app/actions/projects';
 import { getContacts } from '@/lib/contacts-data';
 import { getAdminDb } from '@/lib/firebase-admin';
 import { ReportOutputSchema, type ReportOutput } from './reporting-schemas';

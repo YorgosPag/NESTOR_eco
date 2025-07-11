@@ -10,7 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { findContextByQuery, updateStageStatus, addFileToStage as addFileToStageData } from '@/lib/data';
+import { findContextByQuery, updateStageStatus, addFileToStage as addFileToStageData } from '@/app/actions/projects';
 import type { StageStatus } from '@/types';
 import {
     ProcessMessageInputSchema,

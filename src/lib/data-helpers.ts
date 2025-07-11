@@ -1,18 +1,35 @@
 
-'use client';
-
-import type { Project } from "@/types";
+import type { Project, User } from "@/types";
 import { isPast } from 'date-fns';
 
-/**
- * Calculates project metrics on the client-side, including time-sensitive
- * data like 'Delayed' status, which cannot be reliably calculated on the server.
- * @param project The project object from the server.
- * @returns A project object with accurately calculated client-side metrics.
- */
-export function calculateClientProjectMetrics(project: Project, isClient = true): Project {
+export const users: User[] = [
+    {
+      id: "user-1",
+      name: "Alice",
+      email: "alice@example.com",
+      avatar: "https://i.pravatar.cc/150?u=user-1",
+      role: "Admin",
+    },
+    {
+      id: "user-2",
+      name: "Bob",
+      email: "bob@example.com",
+      avatar: "https://i.pravatar.cc/150?u=user-2",
+      role: "Supplier",
+    },
+    {
+      id: "user-3",
+      name: "Charlie",
+      email: "charlie@example.com",
+      avatar: "https://i.pravatar.cc/150?u=user-3",
+      role: "Client",
+    },
+];
+
+// This function can be run on server or client. `isClient` flag handles time-sensitive data.
+export function calculateProjectMetrics(project: Omit<Project, 'progress' | 'alerts' | 'budget'> & { id: string }, isClient: boolean = false): Project {
     if (!project || !project.interventions) {
-        return project;
+        return project as Project;
     }
 
     let totalStages = 0;
@@ -38,7 +55,7 @@ export function calculateClientProjectMetrics(project: Project, isClient = true)
     
     let status = project.status;
     if (status !== 'Quotation' && status !== 'Completed') {
-        if (progress === 100 && totalStages > 0) {
+         if (progress === 100 && totalStages > 0) {
             status = 'Completed';
         } else if (isClient && overdueStages > 0) {
             status = 'Delayed';

@@ -4,7 +4,7 @@
 import { revalidatePath } from 'next/cache';
 import { processMessage } from "@/ai/flows/message-processor";
 import type { ProcessMessageInput } from "@/ai/flows/schemas";
-import { generateReminder, GenerateReminderInput } from "@/ai/flows/ai-smart-reminders";
+import { generateReminder, type GenerateReminderInput } from "@/ai/flows/ai-smart-reminders";
 import { generateReport } from "@/ai/flows/reporting-flow";
 import type { ReportOutput } from '@/ai/flows/reporting-schemas';
 
