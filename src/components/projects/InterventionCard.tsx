@@ -239,7 +239,6 @@ export function InterventionCard({ project, intervention, allProjectIntervention
                           stages={intervention.stages} 
                           project={project}
                           allProjectInterventions={allProjectInterventions}
-                          interventionName={interventionName} 
                           contacts={contacts} 
                           owner={owner} 
                           interventionMasterId={intervention.masterId} 
