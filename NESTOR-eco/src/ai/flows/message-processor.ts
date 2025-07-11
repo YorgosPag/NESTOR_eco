@@ -19,6 +19,7 @@ import {
     type ProcessMessageOutput
 } from './schemas';
 import { getAdminDb } from '@/lib/firebase-admin';
+import type { Firestore } from 'firebase-admin/firestore';
 
 // #################################################################
 //  TOOLS DEFINITION
