@@ -141,7 +141,7 @@ export function SidebarNav() {
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
-        {/* <SidebarMenuItem>
+        <SidebarMenuItem>
           <SidebarMenuButton
             asChild
             isActive={isActive("/supplier-offers")}
@@ -152,7 +152,7 @@ export function SidebarNav() {
               <span>Προσφορές Προμηθευτών</span>
             </Link>
           </SidebarMenuButton>
-        </SidebarMenuItem> */}
+        </SidebarMenuItem>
         <SidebarMenuItem>
           <InstructionsDialog>
             <SidebarMenuButton tooltip="Οδηγίες">
