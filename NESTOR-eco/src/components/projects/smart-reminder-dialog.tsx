@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { generateReminderAction } from "@/app/actions";
+import { generateReminderAction } from "@/app/client-actions";
 import { Loader2, Bot, Wand2, Mail, AlertTriangle, ListTodo, ShieldCheck } from "lucide-react";
 import type { Stage, Contact } from "@/types";
 import type { GenerateReminderOutput } from "@/ai/flows/ai-smart-reminders";
@@ -25,7 +25,7 @@ interface SmartReminderDialogProps {
   projectName: string;
   contacts: Contact[];
   owner?: Contact;
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export function SmartReminderDialog({ stage, projectName, contacts, owner, children }: SmartReminderDialogProps) {

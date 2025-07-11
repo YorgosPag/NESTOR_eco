@@ -1,9 +1,6 @@
 
 "use server";
 
-import { processMessage } from "@/ai/flows/message-processor";
-import type { ProcessMessageInput } from "@/ai/flows/schemas";
-import { generateReminder, GenerateReminderInput } from "@/ai/flows/ai-smart-reminders";
 import { headers } from 'next/headers';
 import axios from 'axios';
 import { revalidatePath } from 'next/cache';
@@ -17,26 +14,6 @@ import { expenseCategories, units } from '@/types';
 import { adminDb } from "@/lib/firebase-admin";
 import { contactsData, masterInterventionsData, projectsMockData } from "@/lib/mock-data";
 
-
-export async function processDocumentAction(input: ProcessMessageInput) {
-  try {
-    const result = await processMessage(input);
-    return { success: true, data: result };
-  } catch (error) {
-    console.error(error);
-    return { success: false, error: "Failed to process document." };
-  }
-}
-
-export async function generateReminderAction(input: GenerateReminderInput) {
-  try {
-    const result = await generateReminder(input);
-    return { success: true, data: result };
-  } catch (error) {
-    console.error(error);
-    return { success: false, error: "Failed to generate reminder." };
-  }
-}
 
 export async function setTelegramWebhookAction() {
     const token = process.env.TELEGRAM_BOT_TOKEN;
