@@ -43,7 +43,6 @@ const findStageTool = ai.defineTool(
         console.log(`[AI Tool] Finding stage with query: "${query}"`);
         const db = getAdminDb();
         const result = await findContextByQuery(db, query);
-        // Ensure result is serializable and not undefined.
         return result || null;
     } catch(e: any) {
         console.error(`[AI Tool findStage] DB Error: ${e.message}`);
@@ -133,23 +132,25 @@ const messageProcessorFlow = ai.defineFlow(
         model: 'googleai/gemini-2.0-flash',
         tools: [findStageTool, updateStageStatusTool, addFileToStageTool],
     });
-    
+
     const toolRequests = llmResponse.toolRequests;
     if (toolRequests.length > 0) {
       const toolResponses = [];
-      for (const toolRequest of toolRequests) {
-        if (toolRequest.name === 'addFileToStage' && input.fileInfo) {
+      for (const tool of toolRequests as Array<{ toolRequest: { name: string; input?: any } }>) {
+        const { toolRequest } = tool;
+
+        if (toolRequest?.name === 'addFileToStage' && input.fileInfo) {
           (toolRequest.input as any).dataUri = input.fileInfo.dataUri;
           (toolRequest.input as any).fileName = (toolRequest.input as any).fileName || input.fileInfo.name;
         }
 
-        if (toolRequest.name === 'findStage') {
+        if (toolRequest?.name === 'findStage') {
           const output = await findStageTool(toolRequest.input);
           toolResponses.push({ toolRequest, output });
-        } else if (toolRequest.name === 'updateStageStatus') {
+        } else if (toolRequest?.name === 'updateStageStatus') {
           const output = await updateStageStatusTool(toolRequest.input);
           toolResponses.push({ toolRequest, output });
-        } else if (toolRequest.name === 'addFileToStage') {
+        } else if (toolRequest?.name === 'addFileToStage') {
           const output = await addFileToStageTool(toolRequest.input);
           toolResponses.push({ toolRequest, output });
         }
@@ -161,6 +162,7 @@ const messageProcessorFlow = ai.defineFlow(
         output: { schema: ProcessMessageOutputSchema },
         model: 'googleai/gemini-2.0-flash',
       });
+
       return finalResponse.output!;
     }
     
@@ -174,7 +176,6 @@ const messageProcessorFlow = ai.defineFlow(
     };
   }
 );
-
 
 export async function processMessage(input: ProcessMessageInput): Promise<ProcessMessageOutput> {
   return messageProcessorFlow(input);

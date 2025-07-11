@@ -1,9 +1,10 @@
 
 import admin from 'firebase-admin';
+import type { Firestore } from 'firebase-admin/firestore';
 import { getApps } from 'firebase-admin/app';
 
 // This acts as a singleton cache for the initialized instance or the initialization error.
-let dbInstance: admin.firestore.Firestore | null = null;
+let dbInstance: Firestore | null = null;
 let initError: Error | null = null;
 
 /**
