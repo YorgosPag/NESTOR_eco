@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -8,8 +9,9 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'zod';
-import { findContextByQuery, updateStageStatus, addFileToStage as addFileToStageData } from '@/lib/data';
+import { z } from 'genkit';
+import { addFileToStage as addFileToStageData, findContextByQuery } from '@/app/actions/projects';
+import { updateStageStatus } from '@/lib/data';
 import type { StageStatus } from '@/types';
 import {
     ProcessMessageInputSchema,
@@ -17,27 +19,38 @@ import {
     ProcessMessageOutputSchema,
     type ProcessMessageOutput
 } from './schemas';
+import { getAdminDb } from '@/lib/firebase-admin';
 
 // #################################################################
 //  TOOLS DEFINITION
 // #################################################################
+
+const findStageOutputSchema = z.object({
+    projectId: z.string(),
+    interventionMasterId: z.string(),
+    stageId: z.string(),
+    stageTitle: z.string(),
+    projectTitle: z.string(),
+});
 
 const findStageTool = ai.defineTool(
   {
     name: 'findStage',
     description: 'Finds a project stage using a natural language query. Use keywords from the user message, like project titles or stage names (e.g., "technical study for the Athens renovation" or "invoice for Papadopoulos"). This is the first step for any action.',
     inputSchema: z.object({ query: z.string() }),
-    outputSchema: z.object({
-        projectId: z.string(),
-        interventionMasterId: z.string(),
-        stageId: z.string(),
-        stageTitle: z.string(),
-        projectTitle: z.string(),
-    }).nullable(),
+    outputSchema: findStageOutputSchema.nullable(),
   },
   async ({ query }) => {
-    console.log(`[AI Tool] Finding stage with query: "${query}"`);
-    return findContextByQuery(query);
+    try {
+        console.log(`[AI Tool] Finding stage with query: "${query}"`);
+        const db = getAdminDb();
+        const result = await findContextByQuery(db, query);
+        // Ensure result is serializable and not undefined.
+        return result || null;
+    } catch(e: any) {
+        console.error(`[AI Tool findStage] DB Error: ${e.message}`);
+        return null;
+    }
   }
 );
 
@@ -53,8 +66,14 @@ const updateStageStatusTool = ai.defineTool(
         outputSchema: z.boolean(),
     },
     async ({ projectId, stageId, status }) => {
-        console.log(`[AI Tool] Updating stage ${stageId} in project ${projectId} to status "${status}"`);
-        return updateStageStatus(projectId, stageId, status as StageStatus);
+        try {
+            console.log(`[AI Tool] Updating stage ${stageId} in project ${projectId} to status "${status}"`);
+            const db = getAdminDb();
+            return await updateStageStatus(db, projectId, stageId, status as StageStatus);
+        } catch(e: any) {
+            console.error(`[AI Tool updateStageStatus] DB Error: ${e.message}`);
+            return false;
+        }
     }
 );
 
@@ -71,9 +90,14 @@ const addFileToStageTool = ai.defineTool(
         outputSchema: z.boolean(),
     },
     async ({ projectId, stageId, fileName, dataUri }) => {
-        console.log(`[AI Tool] Adding file "${fileName}" to stage ${stageId} in project ${projectId}`);
-        // The URL saved in the data store IS the data URI.
-        return addFileToStageData(projectId, stageId, { name: fileName, url: dataUri });
+        try {
+            console.log(`[AI Tool] Adding file "${fileName}" to stage ${stageId} in project ${projectId}`);
+            const db = getAdminDb();
+            return await addFileToStageData(db, projectId, stageId, { name: fileName, url: dataUri });
+        } catch (e: any) {
+            console.error(`[AI Tool addFileToStage] DB Error: ${e.message}`);
+            return false;
+        }
     }
 );
 
@@ -87,67 +111,61 @@ const messageProcessorFlow = ai.defineFlow(
     name: 'messageProcessorFlow',
     inputSchema: ProcessMessageInputSchema,
     outputSchema: ProcessMessageOutputSchema,
-    system: `You are an expert project management assistant for "NESTOR eco", a platform for managing energy-saving projects. Your task is to process incoming messages, understand user intent, and take action using the available tools. You MUST respond and make all suggestions in GREEK.
-    
-    Your process is as follows:
-    1.  Analyze the user's message text to understand the context. Use the 'findStage' tool to locate the relevant project and stage. This is your primary context for all other actions. If you cannot find a stage, inform the user clearly and stop.
-    2.  If the user's message implies a task is finished (e.g., "ολοκληρώθηκε η μελέτη", "έγινε η πληρωμή"), use the 'updateStageStatus' tool to set the stage to 'completed'.
-    3.  If a file is provided in the input, you MUST use the 'addFileToStage' tool to attach it to the context you found in step 1. You must pass the 'dataUri' from the input to the tool.
-    4.  If a file was processed, analyze its likely content (based on its name and the message context) to suggest relevant tags and recommend which department/role it should be forwarded to (e.g., 'Λογιστήριο', 'Τεχνικό Τμήμα').
-    5.  Formulate a final JSON response containing a 'responseText' in GREEK confirming the actions you took, a list of 'actionsTaken', and any 'tags' or 'forwardingRecommendation' you generated. If you couldn't do something, 'responseText' should explain why clearly.`
   },
   async (input) => {
     
-    const promptMessage: any[] = [{ text: input.messageText }];
-    if (input.fileInfo) {
-      // Pass the file to the LLM for context, though the tool will handle the actual saving.
-      promptMessage.push({ media: { url: input.fileInfo.dataUri } });
-    }
-
     const llmResponse = await ai.generate({
-        prompt: {
-            text: input.messageText,
-            media: input.fileInfo ? [{url: input.fileInfo.dataUri}] : undefined,
-        },
-        tools: [findStageTool, updateStageStatusTool, addFileToStageTool],
+        prompt: [
+            { text: `You are an expert project management assistant for "NESTOR eco", a platform for managing energy-saving projects. Your primary task is to process incoming documents, messages, and emails. You must understand user intent, use tools to interact with project data, and generate a clear summary of your actions. You MUST respond and make all suggestions in GREEK.
+
+            Your process is as follows:
+            1.  **Analyze Input**: Examine the user's message text and any provided file. The file might be an invoice, a technical drawing, or a saved email (.pdf, .eml, or text).
+            2.  **Find Context**: Use the 'findStage' tool to locate the relevant project and stage. Use keywords from the message, file name, or file content (like an email subject line: "Re: Ανακαίνιση κατοικίας Παπαδόπουλου"). This is your primary context for all other actions. If you cannot find a stage, inform the user clearly and stop.
+            3.  **Take Action**:
+                *   If the input implies a task is finished (e.g., "ολοκληρώθηκε η μελέτη", "έγινε η πληρωμή"), use the 'updateStageStatus' tool to set the stage to 'completed'.
+                *   If a file is provided, you MUST use the 'addFileToStage' tool to attach it to the context you found. You must pass the 'dataUri' from the input to the tool.
+            4.  **Summarize and Recommend**:
+                *   Formulate a final JSON response.
+                *   In the \`responseText\`, confirm the actions you took. If an email was processed, summarize it by mentioning the sender, subject, and date if possible, before stating what you did. For example: "Καταχώρησα το email από τον 'Sender Name' με θέμα 'Subject' στο έργο 'Project Title'. Το αρχείο επισυνάφθηκε και το στάδιο ενημερώθηκε."
+                *   If a file was processed, analyze its content to suggest relevant \`tags\` and a \`forwardingRecommendation\` (e.g., 'Λογιστήριο', 'Τεχνικό Τμήμα').
+                *   List the tools you used in \`actionsTaken\`.`},
+            ...(input.fileInfo ? [{media: {url: input.fileInfo.dataUri}}, {text: `\n\n--- ATTACHED FILE: ${input.fileInfo.name} ---`}] : []),
+            { text: `\n\n--- USER MESSAGE ---\n${input.messageText}` }
+        ],
         model: 'googleai/gemini-2.0-flash',
-        // Add output schema to guide the final response after tool calls
-        output: { schema: ProcessMessageOutputSchema } 
+        tools: [findStageTool, updateStageStatusTool, addFileToStageTool],
     });
     
-    // Check for tool calls and execute them
-    const toolCalls = llmResponse.toolCalls();
-    if (toolCalls.length > 0) {
-       // IMPORTANT: Pass the file info to tool calls if needed, especially for addFileToStage
-       const populatedToolCalls = toolCalls.map(call => {
-           if (call.name === 'addFileToStage' && input.fileInfo) {
-               return {
-                   ...call,
-                   args: {
-                       ...call.args,
-                       fileName: call.args.fileName || input.fileInfo.name,
-                       dataUri: input.fileInfo.dataUri,
-                   }
-               }
-           }
-           return call;
-       });
+    const toolRequests = llmResponse.toolRequests;
+    if (toolRequests.length > 0) {
+      const toolResponses = [];
+      for (const toolRequest of toolRequests) {
+        if (toolRequest.name === 'addFileToStage' && input.fileInfo) {
+          (toolRequest.input as any).dataUri = input.fileInfo.dataUri;
+          (toolRequest.input as any).fileName = (toolRequest.input as any).fileName || input.fileInfo.name;
+        }
 
-       const toolResponses = await ai.runToolCalls(populatedToolCalls);
+        if (toolRequest.name === 'findStage') {
+          const output = await findStageTool(toolRequest.input);
+          toolResponses.push({ toolRequest, output });
+        } else if (toolRequest.name === 'updateStageStatus') {
+          const output = await updateStageStatusTool(toolRequest.input);
+          toolResponses.push({ toolRequest, output });
+        } else if (toolRequest.name === 'addFileToStage') {
+          const output = await addFileToStageTool(toolRequest.input);
+          toolResponses.push({ toolRequest, output });
+        }
+      }
 
-       // Call the LLM again with the tool responses to get the final, structured output
-       const finalResponse = await ai.generate({
-         history: [llmResponse, ...toolResponses],
-         prompt: 'Based on the tools you used and their results, generate the final response object. Summarize what you did in the `responseText` field. Include any tags or recommendations if a file was processed. Ensure your output conforms to the schema.',
-         output: { schema: ProcessMessageOutputSchema },
-         model: 'googleai/gemini-2.0-flash',
-       });
-       return finalResponse.output!;
+      const finalResponse = await ai.generate({
+        history: [llmResponse, ...toolResponses.map(r => ({ toolResponse: { name: r.toolRequest.name, output: r.output } }))],
+        prompt: [{text: 'Based on the tools you used and their results, generate the final response object. In the `responseText`, summarize what you did. If the original input was an email, start the summary by mentioning its key details (sender, subject, date if available) before describing your actions. Include any tags or recommendations if a file was processed. Ensure your output conforms to the schema.'}],
+        output: { schema: ProcessMessageOutputSchema },
+        model: 'googleai/gemini-2.0-flash',
+      });
+      return finalResponse.output!;
     }
     
-    // If no tools were called, but there's a file, we can still ask for tags.
-    // Or if there are no tools and no file, the LLM might just be chatting.
-    // In this case, we can just return the text response and empty actions.
     if (llmResponse.output) {
         return llmResponse.output;
     }
