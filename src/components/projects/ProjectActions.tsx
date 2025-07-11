@@ -80,7 +80,7 @@ export function ProjectActions({ project, contacts }: ProjectActionsProps) {
                                 </Link>
                             </DropdownMenuItem>
                              <AssigneeReportDialog project={project} contacts={contacts}>
-                                 <div className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+                                 <div className="relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
                                     <FileText className="mr-2 h-4 w-4" />
                                     Αναφορά Εργασιών (Αναδόχων)
                                  </div>
