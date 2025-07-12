@@ -1,24 +1,26 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
-import type { Contact, Project, Offer, OfferItem, CustomList, CustomListItem } from '@/types';
+import type { Contact, Project, OfferItem, CustomList, CustomListItem } from '@/types';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { CreateItemDialog } from '@/components/admin/custom-lists/create-item-dialog';
+import { createOfferAction } from '@/app/actions/offers';
 
 interface CreateOfferFormProps {
     setOpen: (open: boolean) => void;
     contacts: Contact[];
     projects: Project[];
-    onAddOffer: (offer: Omit<Offer, 'id' | 'createdAt'>) => void;
     customLists: CustomList[];
     customListItems: CustomListItem[];
 }
@@ -35,16 +37,41 @@ const DialogChild = ({listId, text}: {listId: string, text: string}) => (
     </>
 );
 
-const initialItemState: Omit<OfferItem, 'id'> = { name: '', unit: '', unitPrice: 0, quantity: 1 };
+const initialState = {
+  message: null,
+  errors: {},
+  success: false,
+};
 
-export function CreateOfferForm({ setOpen, contacts, projects, onAddOffer, customLists, customListItems }: CreateOfferFormProps) {
-    const [supplierId, setSupplierId] = useState('');
-    const [offerType, setOfferType] = useState<'general' | 'perProject'>('general');
-    const [projectId, setProjectId] = useState('');
-    const [description, setDescription] = useState('');
-    const [file, setFile] = useState<File | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [items, setItems] = useState<Omit<OfferItem, 'id'>[]>([initialItemState]);
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending} className="w-full">
+      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Καταχώριση Προσφοράς"}
+    </Button>
+  );
+}
+
+export function CreateOfferForm({ setOpen, contacts, projects, customLists, customListItems }: CreateOfferFormProps) {
+    const [state, formAction] = useFormState(createOfferAction, initialState);
+    const { toast } = useToast();
+
+    const [items, setItems] = useState<OfferItem[]>([{ id: `item-${Date.now()}`, name: '', unit: '', unitPrice: 0, quantity: 1 }]);
+    
+    useEffect(() => {
+        if (state?.success) {
+            toast({ title: 'Επιτυχία!', description: state.message });
+            setOpen(false);
+        } else if (state?.success === false && state.message) {
+            const errorMessages = state.errors ? Object.values(state.errors).flat().join('\n') : '';
+            toast({
+                variant: 'destructive',
+                title: 'Σφάλμα',
+                description: `${state.message}\n${errorMessages}`,
+            });
+        }
+    }, [state, toast, setOpen]);
+
 
     const handleItemChange = (index: number, field: keyof Omit<OfferItem, 'id'>, value: string | number) => {
         const newItems = [...items];
@@ -61,37 +88,11 @@ export function CreateOfferForm({ setOpen, contacts, projects, onAddOffer, custo
     };
 
     const addItem = () => {
-        setItems([...items, initialItemState]);
+        setItems([...items, { id: `item-${Date.now()}`, name: '', unit: '', unitPrice: 0, quantity: 1 }]);
     };
 
     const removeItem = (index: number) => {
         setItems(items.filter((_, i) => i !== index));
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-
-        const offerItems: OfferItem[] = items.map((item, index) => ({
-            ...item,
-            id: `item-${Date.now()}-${index}`
-        }));
-
-        const newOffer: Omit<Offer, 'id' | 'createdAt'> = {
-            supplierId,
-            supplierType: 'vendor', // Placeholder
-            type: offerType,
-            projectId: offerType === 'perProject' ? projectId : undefined,
-            description,
-            items: offerItems,
-            fileUrl: file ? URL.createObjectURL(file) : undefined,
-        };
-        
-        console.log("New Offer Data:", newOffer);
-        onAddOffer(newOffer);
-        
-        setIsLoading(false);
-        setOpen(false);
     };
 
     const contactOptions = contacts.map(contact => ({
@@ -112,22 +113,26 @@ export function CreateOfferForm({ setOpen, contacts, projects, onAddOffer, custo
         : [];
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+        <form action={formAction} className="space-y-4 pt-4">
+             {/* Use a hidden input to pass the stringified items array */}
+            <input type="hidden" name="items" value={JSON.stringify(items)} />
+
             <div className="space-y-2">
-                <Label htmlFor="supplierId-select">Προμηθευτής / Συνεργείο</Label>
+                <Label htmlFor="supplierId">Προμηθευτής / Συνεργείο</Label>
                 <SearchableSelect
-                    value={supplierId}
-                    onValueChange={setSupplierId}
+                    name="supplierId"
+                    onValueChange={(value) => {}} // The name attribute handles this in forms
                     options={contactOptions}
                     placeholder="Επιλέξτε επαφή..."
                     searchPlaceholder="Αναζήτηση επαφής..."
                     emptyMessage="Δεν βρέθηκε επαφή."
                 />
+                 {state.errors?.supplierId && <p className="text-sm font-medium text-destructive mt-1">{state.errors.supplierId[0]}</p>}
             </div>
 
             <div className="space-y-2">
                 <Label>Τύπος Προσφοράς</Label>
-                <RadioGroup value={offerType} onValueChange={(value) => setOfferType(value as 'general' | 'perProject')}>
+                <RadioGroup name="type" defaultValue="general">
                     <div className="flex items-center space-x-2">
                         <RadioGroupItem value="general" id="r-general" />
                         <Label htmlFor="r-general">Γενική</Label>
@@ -138,39 +143,40 @@ export function CreateOfferForm({ setOpen, contacts, projects, onAddOffer, custo
                     </div>
                 </RadioGroup>
             </div>
-
-            {offerType === 'perProject' && (
-                <div className="space-y-2">
-                    <Label htmlFor="projectId-select">Έργο</Label>
-                    <SearchableSelect
-                        value={projectId}
-                        onValueChange={setProjectId}
-                        options={projectOptions}
-                        placeholder="Επιλέξτε έργο..."
-                        searchPlaceholder="Αναζήτηση έργου..."
-                        emptyMessage="Δεν βρέθηκε έργο."
-                    />
-                </div>
-            )}
+            
+            {/* The form needs to react to the radio button state for this to work perfectly, which is complex with server actions.
+                For now, we just include the projectId field and rely on server validation to ignore it if type is 'general'. */}
+            <div className="space-y-2">
+                <Label htmlFor="projectId">Έργο (αν αφορά)</Label>
+                <SearchableSelect
+                    name="projectId"
+                    onValueChange={(value) => {}}
+                    options={projectOptions}
+                    placeholder="Επιλέξτε έργο..."
+                    searchPlaceholder="Αναζήτηση έργου..."
+                    emptyMessage="Δεν βρέθηκε έργο."
+                />
+            </div>
 
             <div className="space-y-2">
                 <Label htmlFor="description">Περιγραφή Προσφοράς</Label>
                 <Textarea 
                     id="description" 
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    name="description"
                     placeholder="π.χ. Τιμοκατάλογος Υλικών Ιουνίου 2024"
                     required 
                 />
+                 {state.errors?.description && <p className="text-sm font-medium text-destructive mt-1">{state.errors.description[0]}</p>}
             </div>
             
             <Separator />
             
             <div className="space-y-4">
                 <Label>Γραμμές Προσφοράς</Label>
+                {state.errors?.items && <p className="text-sm font-medium text-destructive mt-1">{Array.isArray(state.errors.items) ? state.errors.items[0] : state.errors.items}</p>}
                 <div className="space-y-4">
                     {items.map((item, index) => (
-                        <div key={index} className="flex flex-col gap-2 p-3 border rounded-md bg-muted/50">
+                        <div key={item.id} className="flex flex-col gap-2 p-3 border rounded-md bg-muted/50">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 <div className="space-y-1 col-span-2">
                                     <Label htmlFor={`item-name-${index}`} className="text-xs">Περιγραφή</Label>
@@ -248,13 +254,12 @@ export function CreateOfferForm({ setOpen, contacts, projects, onAddOffer, custo
             <Separator />
             
             <div className="space-y-2">
-                <Label htmlFor="file">Επισύναψη (PDF)</Label>
-                <Input id="file" type="file" accept=".pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+                <Label htmlFor="file">Επισύναψη (URL)</Label>
+                <Input name="fileUrl" id="file" type="url" placeholder="https://example.com/offer.pdf" />
+                 {state.errors?.fileUrl && <p className="text-sm font-medium text-destructive mt-1">{state.errors.fileUrl[0]}</p>}
             </div>
 
-            <Button type="submit" disabled={isLoading || !supplierId} className="w-full">
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Καταχώριση Προσφοράς"}
-            </Button>
+            <SubmitButton />
         </form>
     );
 }

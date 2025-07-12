@@ -1,3 +1,4 @@
+
 export type UserRole = "Admin" | "Supplier" | "Client" | "Accounting";
 export type ContactRole = string;
 
@@ -206,7 +207,6 @@ export interface CustomList {
 
 export interface CustomListItem {
   id: string;
-  id: string;
   name: string;
   listId: string;
 }
@@ -226,9 +226,9 @@ export interface Offer {
   type: "general" | "perProject"; // Γενική ή για έργο
   projectId?: string; // Προαιρετικό αν είναι perProject
   description: string;
-  items: OfferItem[];
+  items: Omit<OfferItem, 'id'>[]; // Items don't have their own ID in the database
   fileUrl?: string; // Ανέβασμα PDF
-  createdAt: Date;
+  createdAt: string; // ISO 8601 date string
 }
 
 export interface ChartData {
