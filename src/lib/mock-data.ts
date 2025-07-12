@@ -6,7 +6,9 @@ import type {
     ProjectIntervention,
     Stage,
     Contact,
-    MasterIntervention
+    MasterIntervention,
+    CustomListItem,
+    CustomList
   } from "@/types";
 
 export const users: User[] = [
@@ -130,50 +132,55 @@ export const contactsData: Omit<Contact, 'id'>[] = [
     },
 ];
 
-export const masterInterventionsData: Omit<MasterIntervention, 'id'>[] = [
+export const masterInterventionsData: Omit<MasterIntervention, 'id' | 'code'>[] = [
     {
-        code: "1.A1",
+        info: "Κουφώματα – Υαλοπίνακες – Συστήματα Σκίασης",
         expenseCategory: "Κουφώματα",
         interventionCategory: "Κουφώματα",
         interventionSubcategory: "Αντικατάσταση Κουφωμάτων - Πλαίσιο αλουμινίου με θερμοδιακοπή",
+        unit: "€/m²",
         maxUnitPrice: 320,
+        maxAmount: 10000,
         energySpecsOptions: "U < 1.8",
-        info: "Κουφώματα – Υαλοπίνακες – Συστήματα Σκίασης",
     },
     {
-        code: "1.B1",
+        info: "Θερμομόνωση",
         expenseCategory: "Θερμομόνωση",
         interventionCategory: "Θερμομόνωση",
         interventionSubcategory: "Εξωτερική Θερμομόνωση (Κέλυφος)",
+        unit: "€/m²",
         maxUnitPrice: 65,
+        maxAmount: 8000,
         energySpecsOptions: "Πάχος 10cm",
-        info: "Θερμομόνωση",
     },
     {
-        code: "1.C1",
+        info: "Συστήματα Θέρμανσης - Ψύξης",
         expenseCategory: "Συστήματα Θέρμανσης-Ψύξης",
         interventionCategory: "Συστήματα Θέρμανσης-Ψύξης",
         interventionSubcategory: "Αντλία Θερμότητας - Αέρος-Νερού για θέρμανση/ψύξη",
+        unit: "€/kW",
         maxUnitPrice: 950,
+        maxAmount: 12000,
         energySpecsOptions: "8kW < P ≤ 12kW",
-        info: "Συστήματα Θέρμανσης - Ψύξης",
     },
     {
-        code: "1.D1",
+        info: "Συστήματα Παροχής Ζεστού Νερού Χρήσης (ΖΝΧ)",
         expenseCategory: "ΖΝΧ",
         interventionCategory: "ΖΝΧ",
         interventionSubcategory: "Ηλιακός θερμοσίφωνας - Επιλεκτικός συλλέκτης κενού",
+        unit: "€/μονάδα",
         maxUnitPrice: 1800,
+        maxAmount: 2000,
         energySpecsOptions: "200L",
-        info: "Συστήματα Παροχής Ζεστού Νερού Χρήσης (ΖΝΧ)",
     },
      {
-        code: "1.E1",
+        info: "Λοιπές Παρεμβάσεις Εξοικονόμησης Ενέργειας",
         expenseCategory: "Λοιπές Παρεμβάσεις",
         interventionCategory: "Λοιπές Παρεμβάσεις",
         interventionSubcategory: "Φωτοβολταϊκό Σύστημα - Net metering",
+        unit: "€/kW",
         maxUnitPrice: 1300,
-        info: "Λοιπές Παρεμβάσεις Εξοικονόμησης Ενέργειας",
+        maxAmount: 15000,
     }
 ];
 
@@ -194,8 +201,7 @@ const project1_intervention2_stages: Stage[] = [
 const proj1Interventions: ProjectIntervention[] = [
     { 
         masterId: "dummy-id-1", 
-        code: "1.A1",
-        expenseCategory: "Κουφώματα", 
+        expenseCategory: "Κουφώματα (I)", 
         interventionCategory: "Κουφώματα", 
         interventionSubcategory: "Αντικατάσταση Κουφωμάτων",
         maxUnitPrice: 320,
@@ -203,12 +209,12 @@ const proj1Interventions: ProjectIntervention[] = [
         totalCost: 6400, 
         stages: project1_intervention1_stages,
         subInterventions: [
-            { id: 'sub2', subcategoryCode: '1.Γ2 (II)', description: 'Πλαίσιο PVC με υαλοπίνακα - Εξωστόθυρα (U < 2,0)', cost: 2867.74 },
-            { id: 'sub1', subcategoryCode: '1.Γ1 (II)', description: 'Πλαίσιο PVC με υαλοπίνακα - Παράθυρο (U < 2,0)', cost: 75.00 },
+            { id: 'sub2', subcategoryCode: '1.Γ2', description: 'Πλαίσιο PVC με υαλοπίνακα - Εξωστόθυρα (U < 2,0)', cost: 2867.74 },
+            { id: 'sub1', subcategoryCode: '1.Γ1', description: 'Πλαίσιο PVC με υαλοπίνακα - Παράθυρο (U < 2,0)', cost: 75.00 },
             { id: 'sub3', subcategoryCode: '1.Ε1', description: 'Εξωτερικό προστατευτικό φύλλο (σύστημα Κουτί–Ρολό, ή Εξώφυλλο)', cost: 1638.71 },
         ]
     },
-    { masterId: "dummy-id-2", code: "1.B1", expenseCategory: "Θερμομόνωση", interventionCategory: "Θερμομόνωση", interventionSubcategory: "Εξωτερική Θερμομόνωση (Κέλυφος)", maxUnitPrice: 65, quantity: 120, totalCost: 7800, stages: project1_intervention2_stages },
+    { masterId: "dummy-id-2", expenseCategory: "Θερμομόνωση (II)", interventionCategory: "Θερμομόνωση", interventionSubcategory: "Εξωτερική Θερμομόνωση (Κέλυφος)", maxUnitPrice: 65, quantity: 120, totalCost: 7800, stages: project1_intervention2_stages },
 ];
 
 
@@ -221,7 +227,7 @@ const project2_intervention1_stages: Stage[] = [
 ];
 
 const proj2Interventions: ProjectIntervention[] = [
-    { masterId: "dummy-id-3", code: "1.C1", expenseCategory: "Συστήματα Θέρμανσης-Ψύξης", interventionCategory: "Συστήματα Θέρμανσης-Ψύξης", interventionSubcategory: "Αντλία Θερμότητας", maxUnitPrice: 950, quantity: 10, totalCost: 9500, stages: project2_intervention1_stages },
+    { masterId: "dummy-id-3", expenseCategory: "Συστήματα Θέρμανσης-Ψύξης (III)", interventionCategory: "Συστήματα Θέρμανσης-Ψύξης", interventionSubcategory: "Αντλία Θερμότητας", maxUnitPrice: 950, quantity: 10, totalCost: 9500, stages: project2_intervention1_stages },
 ];
 
 // Stages for Project 3 (Completed)
@@ -232,7 +238,7 @@ const project3_intervention1_stages: Stage[] = [
 ];
 
 const proj3Interventions: ProjectIntervention[] = [
-    { masterId: "dummy-id-5", code: "1.E1", expenseCategory: "Λοιπές Παρεμβάσεις", interventionCategory: "Λοιπές Παρεμβάσεις", interventionSubcategory: "Φωτοβολταϊκό Σύστημα", maxUnitPrice: 1300, quantity: 5, totalCost: 6500, stages: project3_intervention1_stages },
+    { masterId: "dummy-id-5", expenseCategory: "Λοιπές Παρεμβάσεις (V)", interventionCategory: "Λοιπές Παρεμβάσεις", interventionSubcategory: "Φωτοβολταϊκό Σύστημα", maxUnitPrice: 1300, quantity: 5, totalCost: 6500, stages: project3_intervention1_stages },
 ];
 
 
@@ -264,4 +270,29 @@ export const projectsMockData: Omit<Project, 'id' | 'progress' | 'status' | 'ale
       budget: proj3Interventions.reduce((sum, i) => sum + i.totalCost, 0),
       auditLog: [],
     },
+];
+
+// Data for custom lists seeding
+export const customListsSeedData: Omit<CustomList, 'id'>[] = [
+    { name: 'Κωδικός', key: 'CODE' },
+    { name: 'Κατηγορία Παρέμβασης', key: 'INTERVENTION_CATEGORY' },
+    { name: 'Κατηγορία Δαπάνης', key: 'EXPENSE_CATEGORY' },
+    { name: 'Υπο-Κατηγορία Παρέμβασης', key: 'SUB_INTERVENTION_CATEGORY' },
+    { name: 'info', key: 'INFO' },
+    { name: 'Ενεργειακά Χαρακτηριστικά', key: 'ENERGY_SPECS' },
+    { name: 'τίτλοι παρεμβάσεων', key: 'INTERVENTION_TITLES' },
+    { name: 'Ρόλοι Επαφών', key: 'CONTACT_ROLES' },
+    { name: 'Μονάδες Μέτρησης', key: 'UNIT_OF_MEASUREMENT' },
+];
+
+export const customListItemsSeedData: { listKey: string; items: string[] }[] = [
+    { listKey: 'CODE', items: ["1.A1", "1.B1", "1.C1", "1.D1", "1.E1", "1.Γ1", "1.Γ2", "1.Ε1"] },
+    { listKey: 'INTERVENTION_CATEGORY', items: ["Κουφώματα", "Θερμομόνωση", "Συστήματα Θέρμανσης-Ψύξης", "ΖΝΧ", "Λοιπές Παρεμβάσεις"] },
+    { listKey: 'EXPENSE_CATEGORY', items: ["Κουφώματα (I)", "Θερμομόνωση (II)", "Συστήματα Θέρμανσης-Ψύξης (III)", "ΖΝΧ (IV)", "Λοιπές Παρεμβάσεις (V)"] },
+    { listKey: 'SUB_INTERVENTION_CATEGORY', items: ["Πλαίσιο PVC με υαλοπίνακα - Παράθυρο (U < 2,0)", "Πλαίσιο PVC με υαλοπίνακα - Εξωστόθυρα (U < 2,0)", "Εξωτερικό προστατευτικό φύλλο (σύστημα Κουτί–Ρολό, ή Εξώφυλλο)"] },
+    { listKey: 'INFO', items: ["Κουφώματα – Υαλοπίνακες – Συστήματα Σκίασης", "Θερμομόνωση", "Συστήματα Θέρμανσης - Ψύξης", "Συστήματα Παροχής Ζεστού Νερού Χρήσης (ΖΝΧ)", "Λοιπές Παρεμβάσεις Εξοικονόμησης Ενέργειας"] },
+    { listKey: 'ENERGY_SPECS', items: ["U < 1.8", "Πάχος 10cm", "8kW < P ≤ 12kW", "200L"] },
+    { listKey: 'INTERVENTION_TITLES', items: ["Αντικατάσταση Κουφωμάτων", "Εξωτερική Θερμομόνωση (Κέλυφος)", "Αντλία Θερμότητας", "Ηλιακός θερμοσίφωνας", "Φωτοβολταϊκό Σύστημα"] },
+    { listKey: 'CONTACT_ROLES', items: ["Πελάτης", "Προμηθευτής", "Τεχνίτης", "Λογιστήριο", "Μηχανικός", "Συνεργείο", "Άλλο"] },
+    { listKey: 'UNIT_OF_MEASUREMENT', items: ["€/m²", "€/kW", "€/μονάδα", "€/αίτηση", "τεμ.", "m", "m²", "m³", "kW", "kWh"] },
 ];
