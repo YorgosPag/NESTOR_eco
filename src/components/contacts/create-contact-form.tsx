@@ -2,20 +2,31 @@
 
 import { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { createContactAction } from '@/app/actions/contacts';
+import type { Contact, CustomList, CustomListItem } from '@/types';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from '../ui/scroll-area';
+import { updateContactAction } from '@/app/actions/contacts';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, PlusCircle, X, MapPin, Eye, EyeOff } from 'lucide-react';
-import type { CustomList, CustomListItem } from '@/types';
 import { SearchableSelect } from '../ui/searchable-select';
 import { Separator } from '../ui/separator';
 import { CreateItemDialog } from '../admin/custom-lists/create-item-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { cn } from '@/lib/utils';
+
+// --- Form Logic ---
 
 const initialState = {
   message: null,
@@ -39,31 +50,25 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending} className="w-full">
-      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Δημιουργία Επαφής"}
+      {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Αποθήκευση Αλλαγών"}
     </Button>
   );
 }
 
-interface CreateContactFormProps {
-    setOpen: (open: boolean) => void;
-    customLists: CustomList[];
-    customListItems: CustomListItem[];
-}
-
-export function CreateContactForm({ setOpen, customLists, customListItems }: CreateContactFormProps) {
-    const [state, formAction] = useFormState(createContactAction, initialState);
+function EditContactForm({ contact, setOpen, customLists, customListItems }: { contact: Contact, setOpen: (open: boolean) => void, customLists: CustomList[], customListItems: CustomListItem[] }) {
+    const [state, formAction] = useFormState(updateContactAction, initialState);
     const { toast } = useToast();
-    const [role, setRole] = useState('');
-    const [gender, setGender] = useState('');
-    const [avatar, setAvatar] = useState('');
+    const [role, setRole] = useState(contact.role);
+    const [gender, setGender] = useState(contact.gender || '');
+    const [avatar, setAvatar] = useState(contact.avatar || '');
     const [showPassword, setShowPassword] = useState(false);
 
-    const [addressStreet, setAddressStreet] = useState('');
-    const [addressNumber, setAddressNumber] = useState('');
-    const [addressArea, setAddressArea] = useState('');
-    const [addressPostalCode, setAddressPostalCode] = useState('');
-    const [addressCity, setAddressCity] = useState('');
-    const [addressPrefecture, setAddressPrefecture] = useState('');
+    const [addressStreet, setAddressStreet] = useState(contact.addressStreet || '');
+    const [addressNumber, setAddressNumber] = useState(contact.addressNumber || '');
+    const [addressArea, setAddressArea] = useState(contact.addressArea || '');
+    const [addressPostalCode, setAddressPostalCode] = useState(contact.addressPostalCode || '');
+    const [addressCity, setAddressCity] = useState(contact.addressCity || '');
+    const [addressPrefecture, setAddressPrefecture] = useState(contact.addressPrefecture || '');
 
     useEffect(() => {
         if (state?.success === true) {
@@ -78,7 +83,7 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: Cre
             });
         }
     }, [state, toast, setOpen]);
-
+    
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -122,6 +127,15 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: Cre
             .sort((a,b) => a.label.localeCompare(b.label))
         : [];
     
+    const formatDate = (dateString?: string) => {
+        if (!dateString) return '';
+        try {
+            return new Date(dateString).toISOString().substring(0, 10);
+        } catch (e) {
+            return '';
+        }
+    }
+    
     const fullAddress = [
         addressStreet,
         addressNumber,
@@ -135,6 +149,7 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: Cre
 
     return (
         <form action={formAction} className="space-y-4 pt-4">
+            <input type="hidden" name="id" value={contact.id} />
             <input type="hidden" name="role" value={role} />
             <input type="hidden" name="gender" value={gender} />
             <input type="hidden" name="avatar" value={avatar} />
@@ -145,36 +160,36 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: Cre
                     <AccordionContent className="pt-4 px-1">
                         <div className="flex flex-col md:flex-row gap-6 items-start">
                             <div className="flex-1 space-y-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  <div className="space-y-2">
-                                      <Label htmlFor="firstName">Όνομα</Label>
-                                      <Input id="firstName" name="firstName" placeholder="π.χ., Γιάννης" required />
-                                      {state.errors?.firstName && <p className="text-sm font-medium text-destructive mt-1">{state.errors.firstName[0]}</p>}
-                                  </div>
-                                  <div className="space-y-2">
-                                      <Label htmlFor="lastName">Επώνυμο</Label>
-                                      <Input id="lastName" name="lastName" placeholder="π.χ., Παπαδάκης" required />
-                                      {state.errors?.lastName && <p className="text-sm font-medium text-destructive mt-1">{state.errors.lastName[0]}</p>}
-                                  </div>
+                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="firstName">Όνομα</Label>
+                                        <Input id="firstName" name="firstName" defaultValue={contact.firstName} required />
+                                        {state.errors?.firstName && <p className="text-sm font-medium text-destructive mt-1">{state.errors.firstName[0]}</p>}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="lastName">Επώνυμο</Label>
+                                        <Input id="lastName" name="lastName" defaultValue={contact.lastName} required />
+                                        {state.errors?.lastName && <p className="text-sm font-medium text-destructive mt-1">{state.errors.lastName[0]}</p>}
+                                    </div>
                                 </div>
                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                   <div className="space-y-2">
                                       <Label htmlFor="fatherName">Όνομα Πατέρα</Label>
-                                      <Input id="fatherName" name="fatherName" />
+                                      <Input id="fatherName" name="fatherName" defaultValue={contact.fatherName} />
                                   </div>
                                   <div className="space-y-2">
                                       <Label htmlFor="motherName">Όνομα Μητέρας</Label>
-                                      <Input id="motherName" name="motherName" />
+                                      <Input id="motherName" name="motherName" defaultValue={contact.motherName} />
                                   </div>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="dateOfBirth">Ημ/νία Γέννησης</Label>
-                                        <Input id="dateOfBirth" name="dateOfBirth" type="date" />
+                                        <Input id="dateOfBirth" name="dateOfBirth" type="date" defaultValue={formatDate(contact.dateOfBirth)} />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="placeOfBirth">Τόπος Γέννησης</Label>
-                                        <Input id="placeOfBirth" name="placeOfBirth" />
+                                        <Input id="placeOfBirth" name="placeOfBirth" defaultValue={contact.placeOfBirth} />
                                     </div>
                                 </div>
                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -193,7 +208,7 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: Cre
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="nationality">Υπηκοότητα</Label>
-                                        <Input id="nationality" name="nationality" />
+                                        <Input id="nationality" name="nationality" defaultValue={contact.nationality} />
                                     </div>
                                 </div>
                             </div>
@@ -204,12 +219,12 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: Cre
                                      className="mt-2 group aspect-square w-full border-2 border-dashed rounded-lg flex items-center justify-center text-center text-xs p-2 text-muted-foreground relative cursor-pointer hover:border-primary hover:bg-muted/50 transition-colors"
                                      onDrop={handleDrop}
                                      onDragOver={handleDragOver}
-                                     onClick={() => !avatar && document.getElementById('avatar-upload-create')?.click()}
+                                     onClick={() => !avatar && document.getElementById('avatar-upload-edit')?.click()}
                                  >
                                     {avatar ? (
                                         <>
                                             <img src={avatar} alt="Avatar preview" className="absolute inset-0 w-full h-full object-cover rounded-lg" />
-                                             <Button 
+                                            <Button 
                                                 type="button"
                                                 variant="destructive" 
                                                 size="icon" 
@@ -223,7 +238,7 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: Cre
                                     ) : (
                                         <span>Μεταφέρετε ή πατήστε για ανέβασμα</span>
                                     )}
-                                    <input id="avatar-upload-create" type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                                    <input id="avatar-upload-edit" type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
                                  </div>
                             </div>
                         </div>
@@ -234,24 +249,24 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: Cre
                     <AccordionTrigger className="text-md font-semibold bg-muted/50 hover:bg-muted px-4 rounded-md">Στοιχεία Ταυτότητας & ΑΦΜ</AccordionTrigger>
                     <AccordionContent className="pt-4 px-1 space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                             <div className="space-y-2">
+                            <div className="space-y-2">
                                 <Label htmlFor="vatNumber">Α.Φ.Μ.</Label>
-                                <Input id="vatNumber" name="vatNumber" placeholder="π.χ., 123456789" />
+                                <Input id="vatNumber" name="vatNumber" defaultValue={contact.vatNumber || ''} placeholder="π.χ., 123456789" />
                                 {state.errors?.vatNumber && <p className="text-sm font-medium text-destructive mt-1">{state.errors.vatNumber[0]}</p>}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="idNumber">Α.Δ. Ταυτότητας</Label>
-                                <Input id="idNumber" name="idNumber" />
+                                <Input id="idNumber" name="idNumber" defaultValue={contact.idNumber} />
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="idIssueDate">Ημερομηνία Έκδοσης</Label>
-                                <Input id="idIssueDate" name="idIssueDate" type="date" />
+                                <Input id="idIssueDate" name="idIssueDate" type="date" defaultValue={formatDate(contact.idIssueDate)} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="idIssuingAuthority">Αρχή Έκδοσης</Label>
-                                <Input id="idIssuingAuthority" name="idIssuingAuthority" />
+                                <Input id="idIssuingAuthority" name="idIssuingAuthority" defaultValue={contact.idIssuingAuthority} />
                             </div>
                         </div>
                     </AccordionContent>
@@ -260,16 +275,16 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: Cre
                 <AccordionItem value="taxis-info">
                     <AccordionTrigger className="text-md font-semibold bg-muted/50 hover:bg-muted px-4 rounded-md">Στοιχεία Σύνδεσης Taxis</AccordionTrigger>
                     <AccordionContent className="pt-4 px-1">
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="usernameTaxis">Username Taxis</Label>
-                                <Input id="usernameTaxis" name="usernameTaxis" />
+                                <Input id="usernameTaxis" name="usernameTaxis" defaultValue={contact.usernameTaxis || ''} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="passwordTaxis">Password Taxis</Label>
                                 <div className="relative">
-                                    <Input id="passwordTaxis" name="passwordTaxis" type={showPassword ? 'text' : 'password'} />
-                                    <Button
+                                    <Input id="passwordTaxis" name="passwordTaxis" type={showPassword ? 'text' : 'password'} defaultValue={contact.passwordTaxis || ''} />
+                                     <Button
                                         type="button"
                                         variant="ghost"
                                         size="icon"
@@ -288,49 +303,49 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: Cre
                 <AccordionItem value="contact-info">
                     <AccordionTrigger className="text-md font-semibold bg-muted/50 hover:bg-muted px-4 rounded-md">Στοιχεία Επικοινωνίας</AccordionTrigger>
                     <AccordionContent className="pt-4 px-1 space-y-4">
-                         <div className="space-y-2">
+                        <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" name="email" type="email" placeholder="email@example.com" />
+                            <Input id="email" name="email" type="email" defaultValue={contact.email} />
                             {state.errors?.email && <p className="text-sm font-medium text-destructive mt-1">{state.errors.email[0]}</p>}
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="landlinePhone">Σταθερό Τηλέφωνο</Label>
-                                <Input id="landlinePhone" name="landlinePhone" type="tel" placeholder="π.χ., 2101234567" />
+                                <Input id="landlinePhone" name="landlinePhone" type="tel" defaultValue={contact.landlinePhone || ''} />
                                 {state.errors?.landlinePhone && <p className="text-sm font-medium text-destructive mt-1">{state.errors.landlinePhone[0]}</p>}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="mobilePhone">Κινητό Τηλέφωνο</Label>
-                                <Input id="mobilePhone" name="mobilePhone" type="tel" placeholder="π.χ., 6912345678" />
+                                <Input id="mobilePhone" name="mobilePhone" type="tel" defaultValue={contact.mobilePhone || ''} />
                                 {state.errors?.mobilePhone && <p className="text-sm font-medium text-destructive mt-1">{state.errors.mobilePhone[0]}</p>}
                             </div>
                         </div>
                     </AccordionContent>
                 </AccordionItem>
-
+                
                  <AccordionItem value="social-media">
                     <AccordionTrigger className="text-md font-semibold bg-muted/50 hover:bg-muted px-4 rounded-md">Κοινωνικά Δίκτυα</AccordionTrigger>
                     <AccordionContent className="pt-4 px-1 space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="facebookUrl">Facebook</Label>
-                            <Input id="facebookUrl" name="facebookUrl" placeholder="https://www.facebook.com/username" />
+                            <Input id="facebookUrl" name="facebookUrl" defaultValue={contact.facebookUrl || ''} placeholder="https://www.facebook.com/username" />
                             {state.errors?.facebookUrl && <p className="text-sm font-medium text-destructive mt-1">{state.errors.facebookUrl[0]}</p>}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="instagramUrl">Instagram</Label>
-                            <Input id="instagramUrl" name="instagramUrl" placeholder="https://www.instagram.com/username" />
+                            <Input id="instagramUrl" name="instagramUrl" defaultValue={contact.instagramUrl || ''} placeholder="https://www.instagram.com/username" />
                             {state.errors?.instagramUrl && <p className="text-sm font-medium text-destructive mt-1">{state.errors.instagramUrl[0]}</p>}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="tiktokUrl">TikTok</Label>
-                            <Input id="tiktokUrl" name="tiktokUrl" placeholder="https://www.tiktok.com/@username" />
+                            <Input id="tiktokUrl" name="tiktokUrl" defaultValue={contact.tiktokUrl || ''} placeholder="https://www.tiktok.com/@username" />
                             {state.errors?.tiktokUrl && <p className="text-sm font-medium text-destructive mt-1">{state.errors.tiktokUrl[0]}</p>}
                         </div>
                     </AccordionContent>
                 </AccordionItem>
-
-                <AccordionItem value="address-info">
-                    <AccordionTrigger className="text-md font-semibold bg-muted/50 hover:bg-muted px-4 rounded-md">
+                
+                 <AccordionItem value="address-info">
+                     <AccordionTrigger className="text-md font-semibold bg-muted/50 hover:bg-muted px-4 rounded-md">
                         <span className="flex-1 text-left">Στοιχεία Διεύθυνσης</span>
                         <a 
                             href={fullAddress ? mapsUrl : undefined} 
@@ -365,7 +380,7 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: Cre
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="addressPostalCode">Τ.Κ.</Label>
-                                <Input id="addressPostalCode" name="addressPostalCode" value={addressPostalCode} onChange={(e) => setAddressPostalCode(e.target.value)} placeholder="π.χ., 12345" />
+                                <Input id="addressPostalCode" name="addressPostalCode" value={addressPostalCode} onChange={(e) => setAddressPostalCode(e.target.value)} placeholder="π.χ. 12345" />
                                 {state.errors?.addressPostalCode && <p className="text-sm font-medium text-destructive mt-1">{state.errors.addressPostalCode[0]}</p>}
                             </div>
                         </div>
@@ -401,28 +416,55 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: Cre
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="specialty">Επάγγελμα/Ειδικότητα (Προαιρετικό)</Label>
-                            <Input id="specialty" name="specialty" placeholder="π.χ., Υδραυλικός" />
+                            <Input id="specialty" name="specialty" defaultValue={contact.specialty} />
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="company">Επιχείρηση/Οργανισμός (Προαιρετικό)</Label>
-                            <Input id="company" name="company" placeholder="π.χ., Υδραυλικές Εγκαταστάσεις Α.Ε." />
+                            <Input id="company" name="company" defaultValue={contact.company} />
                         </div>
                     </AccordionContent>
                 </AccordionItem>
-                
+
                  <AccordionItem value="other-info">
                     <AccordionTrigger className="text-md font-semibold bg-muted/50 hover:bg-muted px-4 rounded-md">Λοιπά</AccordionTrigger>
                     <AccordionContent className="pt-4 px-1">
                         <div className="space-y-2">
                             <Label htmlFor="notes">Σημειώσεις (Προαιρετικό)</Label>
-                            <Textarea id="notes" name="notes" rows={3} />
+                            <Textarea id="notes" name="notes" defaultValue={contact.notes || ''} rows={3} />
                         </div>
                     </AccordionContent>
                 </AccordionItem>
-
             </Accordion>
-
+            
             <SubmitButton />
         </form>
     );
+}
+
+// --- Dialog Component ---
+
+interface EditContactDialogProps {
+    contact: Contact;
+    children: React.ReactNode;
+    customLists: CustomList[];
+    customListItems: CustomListItem[];
+}
+
+export function EditContactDialog({ contact, children, customLists, customListItems }: EditContactDialogProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Επεξεργασία Επαφής</DialogTitle>
+          <DialogDescription>Ενημερώστε τα στοιχεία της επαφής.</DialogDescription>
+        </DialogHeader>
+        <ScrollArea className="max-h-[70vh] pr-6">
+            <EditContactForm contact={contact} setOpen={setOpen} customLists={customLists} customListItems={customListItems} />
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
 }

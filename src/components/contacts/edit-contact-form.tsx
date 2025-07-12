@@ -2,6 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
+import type { Contact, CustomList, CustomListItem } from '@/types';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { ScrollArea } from '../ui/scroll-area';
 import { updateContactAction } from '@/app/actions/contacts';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -9,7 +19,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, PlusCircle, X, MapPin, Eye, EyeOff } from 'lucide-react';
-import type { Contact, CustomList, CustomListItem } from '@/types';
 import { SearchableSelect } from '../ui/searchable-select';
 import { Separator } from '../ui/separator';
 import { CreateItemDialog } from '../admin/custom-lists/create-item-dialog';
@@ -17,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { cn } from '@/lib/utils';
 
+// --- Form Logic ---
 
 const initialState = {
   message: null,
@@ -45,14 +55,7 @@ function SubmitButton() {
   );
 }
 
-interface EditContactFormProps {
-    contact: Contact;
-    setOpen: (open: boolean) => void;
-    customLists: CustomList[];
-    customListItems: CustomListItem[];
-}
-
-export function EditContactForm({ contact, setOpen, customLists, customListItems }: EditContactFormProps) {
+function EditContactForm({ contact, setOpen, customLists, customListItems }: { contact: Contact, setOpen: (open: boolean) => void, customLists: CustomList[], customListItems: CustomListItem[] }) {
     const [state, formAction] = useFormState(updateContactAction, initialState);
     const { toast } = useToast();
     const [role, setRole] = useState(contact.role);
@@ -436,4 +439,32 @@ export function EditContactForm({ contact, setOpen, customLists, customListItems
             <SubmitButton />
         </form>
     );
+}
+
+// --- Dialog Component ---
+
+interface EditContactDialogProps {
+    contact: Contact;
+    children: React.ReactNode;
+    customLists: CustomList[];
+    customListItems: CustomListItem[];
+}
+
+export function EditContactDialog({ contact, children, customLists, customListItems }: EditContactDialogProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Επεξεργασία Επαφής</DialogTitle>
+          <DialogDescription>Ενημερώστε τα στοιχεία της επαφής.</DialogDescription>
+        </DialogHeader>
+        <ScrollArea className="max-h-[70vh] pr-6">
+            <EditContactForm contact={contact} setOpen={setOpen} customLists={customLists} customListItems={customListItems} />
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
 }
