@@ -86,12 +86,13 @@ export async function createProjectAction(prevState: any, formData: FormData) {
         const { title, applicationNumber, ownerContactId, deadline } = validatedFields.data;
         const db = getAdminDb();
 
-        const newProject: Omit<Project, 'id' | 'progress' | 'alerts' | 'budget'> = {
+        const newProject: Omit<Project, 'id' | 'progress' | 'alerts'> = {
             title,
             applicationNumber,
             ownerContactId,
             deadline: deadline ? new Date(deadline).toISOString() : undefined,
             status: 'Quotation',
+            budget: 0,
             interventions: [],
             auditLog: [
                 {

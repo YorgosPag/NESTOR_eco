@@ -154,7 +154,7 @@ export function ProjectCard({ project: serverProject, contacts, onSelectToggle, 
             <Tooltip>
                 <TooltipTrigger asChild>
                     <div className="text-sm font-semibold cursor-help">
-                        €{project.budget.toLocaleString('el-GR')}
+                        {project.budget !== undefined ? `€${project.budget.toLocaleString('el-GR')}` : '-'}
                     </div>
                 </TooltipTrigger>
                 <TooltipContent>
