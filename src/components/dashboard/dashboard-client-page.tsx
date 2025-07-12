@@ -26,7 +26,7 @@ export function DashboardClientPage({ projects: serverProjects, contacts }: Dash
 
     const onTrackProjects = activeProjects.filter(p => p.status === 'On Track').length;
     const delayedProjects = activeProjects.filter(p => p.status === 'Delayed').length;
-    const totalBudget = activeProjects.reduce((sum, p) => sum + p.budget, 0);
+    const totalBudget = activeProjects.reduce((sum, p) => sum + (p.budget ?? 0), 0);
     const totalQuotations = quotationProjects.length;
 
     const budgetByStatus = activeProjects.reduce((acc, project) => {
@@ -40,7 +40,7 @@ export function DashboardClientPage({ projects: serverProjects, contacts }: Dash
             if (!acc[statusName]) {
                 acc[statusName] = 0;
             }
-            acc[statusName] += project.budget;
+            acc[statusName] += (project.budget ?? 0);
         }
         return acc;
     }, {} as Record<string, number>);
