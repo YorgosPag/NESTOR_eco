@@ -273,8 +273,7 @@ export async function logEmailNotificationAction(prevState: any, formData: FormD
             details: `Εστάλη ειδοποίηση στον/στην ${assigneeName} για το στάδιο "${stage.title}" της παρέμβασης "${intervention.interventionCategory}".`,
         });
         
-        const { progress, alerts, status, ...projectToUpdate } = project;
-        await updateProjectData(db, projectId, projectToUpdate);
+        await updateProjectData(db, projectId, project);
 
     } catch (error: any) {
         console.error("🔥 ERROR in logEmailNotificationAction:", error);
@@ -340,8 +339,7 @@ export async function addStageAction(prevState: any, formData: FormData) {
             details: `Προστέθηκε το στάδιο "${title}" στην παρέμβαση "${intervention.interventionCategory}".`,
         });
         
-        const { progress, alerts, status, ...projectToUpdate } = project;
-        await updateProjectData(db, projectId, projectToUpdate);
+        await updateProjectData(db, projectId, project);
 
     } catch (error: any) {
         console.error("🔥 ERROR in addStageAction:", error);
@@ -396,8 +394,7 @@ export async function updateStageAction(prevState: any, formData: FormData) {
             details: `Επεξεργάστηκε το στάδιο "${title}" στην παρέμβαση "${intervention.interventionCategory}".`,
         });
 
-        const { progress, alerts, status, ...projectToUpdate } = project;
-        await updateProjectData(db, projectId, projectToUpdate);
+        await updateProjectData(db, projectId, project);
 
     } catch (error: any) {
         console.error("🔥 ERROR in updateStageAction:", error);
@@ -444,8 +441,7 @@ export async function deleteStageAction(prevState: any, formData: FormData) {
             details: `Διαγράφηκε το στάδιο "${stage.title}" από την παρέμβαση "${intervention.interventionCategory}".`,
         });
 
-        const { progress, alerts, status, ...projectToUpdate } = project;
-        await updateProjectData(db, projectId, projectToUpdate);
+        await updateProjectData(db, projectId, project);
 
     } catch (error: any) {
         console.error("🔥 ERROR in deleteStageAction:", error);
@@ -490,8 +486,7 @@ export async function moveStageAction(prevState: any, formData: FormData) {
             return { success: true, message: 'Δεν είναι δυνατή η περαιτέρω μετακίνηση.' };
         }
         
-        const { progress, alerts, status, ...projectToUpdate } = project;
-        await updateProjectData(db, projectId, projectToUpdate);
+        await updateProjectData(db, projectId, project);
 
     } catch (error: any) {
         console.error("🔥 ERROR in moveStageAction:", error);

@@ -60,8 +60,7 @@ export async function addInterventionAction(prevState: any, formData: FormData) 
       details: `Προστέθηκε η παρέμβαση: "${interventionName}".`,
     });
 
-    const { progress, alerts, status, budget, ...projectToUpdate } = project;
-    await updateProjectData(db, projectId, projectToUpdate);
+    await updateProjectData(db, projectId, project);
 
   } catch (error: any) {
     console.error("🔥 ERROR in addInterventionAction:", error);
@@ -121,8 +120,7 @@ export async function updateInterventionAction(prevState: any, formData: FormDat
       details: `Άλλαξε το όνομα της παρέμβασης σε: "${interventionSubcategory}".`,
     });
 
-    const { progress, alerts, status, budget, ...projectToUpdate } = project;
-    await updateProjectData(db, projectId, projectToUpdate);
+    await updateProjectData(db, projectId, project);
 
   } catch (error: any) {
     console.error("🔥 ERROR in updateInterventionAction:", error);
@@ -171,8 +169,7 @@ export async function deleteInterventionAction(prevState: any, formData: FormDat
       details: `Διαγράφηκε: "${intervention.interventionCategory}".`,
     });
     
-    const { progress, alerts, status, budget, ...projectToUpdate } = project;
-    await updateProjectData(db, projectId, projectToUpdate);
+    await updateProjectData(db, projectId, project);
   } catch (error: any) {
     console.error("🔥 ERROR in deleteInterventionAction:", error);
     return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
@@ -249,8 +246,7 @@ export async function addSubInterventionAction(prevState: any, formData: FormDat
       details: `Προστέθηκε η υπο-παρέμβαση "${description}" στην παρέμβαση "${intervention.interventionCategory}".`,
     });
     
-    const { progress, alerts, status, budget, ...projectToUpdate } = project;
-    await updateProjectData(db, projectId, projectToUpdate);
+    await updateProjectData(db, projectId, project);
 
   } catch (error: any) {
     console.error("🔥 ERROR in addSubInterventionAction:", error);
@@ -333,8 +329,7 @@ export async function updateSubInterventionAction(prevState: any, formData: Form
       details: `Επεξεργάστηκε η υπο-παρέμβαση "${description}" στην παρέμβαση "${intervention.interventionCategory}".`,
     });
     
-    const { progress, alerts, status, budget, ...projectToUpdate } = project;
-    await updateProjectData(db, projectId, projectToUpdate);
+    await updateProjectData(db, projectId, project);
 
   } catch (error: any) {
     console.error("🔥 ERROR in updateSubInterventionAction:", error);
@@ -387,8 +382,7 @@ export async function deleteSubInterventionAction(prevState: any, formData: Form
       details: `Διαγράφηκε η υπο-παρέμβαση "${deletedSubIntervention.description}" από την παρέμβαση "${intervention.interventionCategory}".`,
     });
     
-    const { progress, alerts, status, budget, ...projectToUpdate } = project;
-    await updateProjectData(db, projectId, projectToUpdate);
+    await updateProjectData(db, projectId, project);
 
   } catch (error: any) {
     console.error("🔥 ERROR in deleteSubInterventionAction:", error);
@@ -435,8 +429,7 @@ export async function updateInterventionCostsAction(prevState: any, formData: Fo
         if (costOfMaterials !== undefined) intervention.costOfMaterials = costOfMaterials;
         if (costOfLabor !== undefined) intervention.costOfLabor = costOfLabor;
 
-        const { progress, alerts, status, budget, ...projectToUpdate } = project;
-        await updateProjectData(db, projectId, projectToUpdate);
+        await updateProjectData(db, projectId, project);
     } catch (error: any) {
         console.error("🔥 ERROR in updateInterventionCostsAction:", error);
         return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
@@ -486,8 +479,7 @@ export async function moveSubInterventionAction(prevState: any, formData: FormDa
         return { success: true, message: 'Δεν είναι δυνατή η περαιτέρω μετακίνηση.' };
     }
     
-    const { progress, alerts, status, budget, ...projectToUpdate } = project;
-    await updateProjectData(db, projectId, projectToUpdate);
+    await updateProjectData(db, projectId, project);
 
   } catch (error: any) {
     console.error("🔥 ERROR in moveSubInterventionAction:", error);

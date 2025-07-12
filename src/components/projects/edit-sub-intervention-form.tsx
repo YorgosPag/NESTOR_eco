@@ -2,8 +2,8 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { updateSubInterventionAction } from '@/app/actions/projects';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -67,7 +67,7 @@ const parseDescription = (fullDescription: string) => {
 
 
 export function EditSubInterventionForm({ interventionMasterId, projectId, subIntervention, setOpen, customLists, customListItems }: EditSubInterventionFormProps) {
-    const [state, formAction] = useFormState(updateSubInterventionAction, initialState);
+    const [state, formAction] = useActionState(updateSubInterventionAction, initialState);
     const { toast } = useToast();
     
     const { description: initialDescription, energySpec: initialEnergySpec } = parseDescription(subIntervention.description);

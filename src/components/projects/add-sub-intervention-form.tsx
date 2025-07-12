@@ -2,8 +2,8 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { addSubInterventionAction } from '@/app/actions/projects';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -55,7 +55,7 @@ const DialogChild = ({listId, text}: {listId: string, text: string}) => (
 );
 
 export function AddSubInterventionForm({ interventionMasterId, projectId, setOpen, customLists, customListItems }: AddSubInterventionFormProps) {
-    const [state, formAction] = useFormState(addSubInterventionAction, initialState);
+    const [state, formAction] = useActionState(addSubInterventionAction, initialState);
     const { toast } = useToast();
     const [subcategoryCode, setSubcategoryCode] = useState('');
     const [description, setDescription] = useState('');

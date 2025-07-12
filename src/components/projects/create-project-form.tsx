@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react';
 import { createProjectAction } from '@/app/actions/projects';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +30,7 @@ function SubmitButton() {
 }
 
 export function CreateProjectForm({ contacts }: { contacts: Contact[] }) {
-  const [state, formAction] = useFormState(createProjectAction, initialState);
+  const [state, formAction] = useActionState(createProjectAction, initialState);
   const { toast } = useToast();
   const [ownerContactId, setOwnerContactId] = useState('');
 
@@ -80,7 +80,7 @@ export function CreateProjectForm({ contacts }: { contacts: Contact[] }) {
             emptyMessage="Δεν βρέθηκε επαφή."
          >
             <Separator className="my-1"/>
-            <CreateContactDialog>
+            <CreateContactDialog customLists={[]} customListItems={[]}>
               <div onMouseDown={(e) => e.preventDefault()} className="flex cursor-pointer select-none items-center gap-2 rounded-sm p-2 text-sm outline-none transition-colors hover:bg-accent focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
                   <PlusCircle className="h-4 w-4 mr-2" />
                   <span>Δημιουργία Νέας Επαφής</span>

@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useFormStatus, useFormState } from 'react-dom';
+import { useEffect, useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { deleteInterventionCategoryAction } from '@/app/actions/admin';
 import {
   AlertDialog,
@@ -43,7 +43,7 @@ interface DeleteCategoryDialogProps {
 
 export function DeleteCategoryDialog({ category, children }: DeleteCategoryDialogProps) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useFormState(deleteInterventionCategoryAction, initialState);
+  const [state, formAction] = useActionState(deleteInterventionCategoryAction, initialState);
   const { toast } = useToast();
 
   useEffect(() => {

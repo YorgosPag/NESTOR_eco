@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useFormStatus, useFormState } from 'react-dom';
+import { useEffect, useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { addStageAction } from '@/app/actions/projects';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,7 @@ interface AddStageFormProps {
 }
 
 export function AddStageForm({ interventionMasterId, projectId, contacts, setOpen }: AddStageFormProps) {
-    const [state, formAction] = useFormState(addStageAction, initialState);
+    const [state, formAction] = useActionState(addStageAction, initialState);
     const { toast } = useToast();
     const [assigneeContactId, setAssigneeContactId] = useState<string | undefined>(undefined);
     const [supervisorContactId, setSupervisorContactId] = useState<string | undefined>(undefined);

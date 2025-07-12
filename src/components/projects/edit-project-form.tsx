@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { updateProjectAction } from '@/app/actions/projects';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,7 @@ interface EditProjectFormProps {
 }
 
 export function EditProjectForm({ project, contacts, setOpen }: EditProjectFormProps) {
-    const [state, formAction] = useFormState(updateProjectAction, initialState);
+    const [state, formAction] = useActionState(updateProjectAction, initialState);
     const { toast } = useToast();
     const [ownerContactId, setOwnerContactId] = useState(project.ownerContactId || '');
 
@@ -88,7 +88,7 @@ export function EditProjectForm({ project, contacts, setOpen }: EditProjectFormP
                     emptyMessage="Δεν βρέθηκε επαφή."
                 >
                     <Separator className="my-1"/>
-                    <CreateContactDialog>
+                    <CreateContactDialog customLists={[]} customListItems={[]}>
                         <div onMouseDown={(e) => e.preventDefault()} className="flex cursor-pointer select-none items-center gap-2 rounded-sm p-2 text-sm outline-none transition-colors hover:bg-accent focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
                             <PlusCircle className="h-4 w-4 mr-2" />
                             <span>Δημιουργία Νέας Επαφής</span>

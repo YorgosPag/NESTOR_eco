@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import {
   Dialog,
   DialogContent,
@@ -57,7 +57,7 @@ function SubmitButton() {
 }
 
 function CreateContactForm({ setOpen, customLists, customListItems }: { setOpen: (open: boolean) => void, customLists: CustomList[], customListItems: CustomListItem[] }) {
-    const [state, formAction] = useFormState(createContactAction, initialState);
+    const [state, formAction] = useActionState(createContactAction, initialState);
     const { toast } = useToast();
     const [role, setRole] = useState('');
     const [gender, setGender] = useState('');

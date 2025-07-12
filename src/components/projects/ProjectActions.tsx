@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EditProjectDialog } from "./edit-project-dialog";
 import { DeleteProjectDialog } from "./delete-project-dialog";
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { activateProjectAction } from '@/app/actions/projects';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
@@ -22,7 +22,7 @@ import { AssigneeReportDialog } from './assignee-report-dialog';
 
 function ActivateProjectButton({ projectId }: { projectId: string }) {
     const { toast } = useToast();
-    const [state, formAction] = useFormState(activateProjectAction, { success: false, message: null });
+    const [state, formAction] = useActionState(activateProjectAction, { success: false, message: null });
 
     useEffect(() => {
         if (state.message) {
