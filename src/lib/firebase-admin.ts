@@ -45,16 +45,19 @@ function initializeFirebaseAdmin() {
 }
 
 export function getAdminDb(): admin.firestore.Firestore {
-  if (!dbInstance && !initError) {
+  // Ensure that initialization is attempted on every call if it hasn't succeeded.
+  if (!dbInstance) {
     initializeFirebaseAdmin();
   }
-
+  
+  // If initialization resulted in an error, throw it every time.
+  // This ensures that any part of the app trying to access the DB will fail predictably.
   if (initError) {
     throw initError;
   }
   
+  // If after all checks, dbInstance is still not available, it's a critical failure.
   if (!dbInstance) {
-    // This case should ideally not be reached if initError is handled correctly.
     throw new Error('FIREBASE_INIT_ERROR: Firebase Admin SDK is not initialized. The initialization process might have failed silently.');
   }
 
