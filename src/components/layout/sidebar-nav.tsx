@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -68,10 +69,15 @@ export function SidebarNav() {
   const pathname = usePathname();
 
   const isActive = (path: string) => {
+    // Exact match for dashboard, startsWith for others
     if (path === '/dashboard') {
-        return pathname === '/dashboard';
+        return pathname === path;
     }
-    return pathname.startsWith(path);
+    // Handle admin routes which are now more nested
+    if (path === '/admin') {
+       return pathname === '/admin';
+    }
+    return pathname.startsWith(path) && path !== '/';
   };
 
   return (
@@ -175,8 +181,8 @@ export function SidebarNav() {
                      </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                     <SidebarMenuButton asChild isActive={isActive("/admin/triggers")} tooltip="Προσαρμοσμένες Λίστες">
-                        <Link href="/admin/triggers">
+                     <SidebarMenuButton asChild isActive={pathname.startsWith("/admin/custom-lists")} tooltip="Προσαρμοσμένες Λίστες">
+                        <Link href="/admin/custom-lists">
                             <ListChecks />
                             <span>Προσαρμοσμένες Λίστες</span>
                         </Link>
