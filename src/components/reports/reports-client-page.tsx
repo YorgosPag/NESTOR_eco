@@ -15,6 +15,9 @@ import { FinancialSummaryReport } from "./financial-summary-report";
 import { AIReportAssistant } from "./ai-report-assistant";
 import { BarChart2 } from "lucide-react";
 import { DynamicReportBuilder } from "./dynamic-report-builder";
+import { getAllProjects } from "@/lib/projects-data";
+import { getAdminDb } from "@/lib/firebase-admin";
+
 
 interface ReportsClientPageProps {
     projects: Project[];

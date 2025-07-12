@@ -1,6 +1,6 @@
 
 import { getContacts } from "@/lib/contacts-data";
-import { getAllProjects } from "@/app/actions/projects";
+import { getAllProjects } from "@/lib/projects-data";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { SupplierOffersClientPage } from "./supplier-offers-client-page";
 import { getCustomLists, getAllCustomListItems } from "@/lib/custom-lists-data";

@@ -9,7 +9,7 @@ import { addMasterIntervention, updateMasterIntervention, deleteMasterInterventi
 import { addTrigger, updateTrigger, deleteTrigger } from "@/lib/triggers-data";
 import { addInterventionCategory as addInterventionCategoryData, updateInterventionCategory as updateInterventionCategoryData, deleteInterventionCategory as deleteInterventionCategoryData } from '@/lib/intervention-category-data';
 import { createCustomList, deleteCustomList, createCustomListItem, updateCustomListItem, deleteCustomListItem, updateCustomList } from '@/lib/custom-lists-data';
-import { getAllProjects } from '@/app/actions/projects';
+import { getAllProjects } from '@/lib/projects-data';
 import type { MasterIntervention, Project, Trigger } from '@/types';
 
 
@@ -42,7 +42,7 @@ export async function createMasterInterventionAction(prevState: any, formData: F
         const db = getAdminDb();
         const success = await addMasterIntervention(db, data as Omit<MasterIntervention, 'id'>);
         if (!success) throw new Error("Firestore operation failed");
-    } catch (error: any)
+    } catch (error: any) {
         console.error("🔥 ERROR in createMasterInterventionAction:", error);
         return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
     }

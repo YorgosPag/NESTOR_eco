@@ -1,5 +1,5 @@
 
-import { getProjectById } from "@/lib/data";
+import { getProjectById } from "@/lib/projects-data";
 import { notFound } from "next/navigation";
 import { getContacts } from "@/lib/contacts-data";
 import { getAdminDb } from "@/lib/firebase-admin";

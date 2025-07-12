@@ -1,4 +1,4 @@
-import { getAllProjects } from "@/lib/data";
+import { getAllProjects } from "@/lib/projects-data";
 import { getContacts } from "@/lib/contacts-data";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { DashboardClientPage } from "@/components/dashboard/dashboard-client-page";

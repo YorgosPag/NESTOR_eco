@@ -20,7 +20,6 @@ import {
   LogOut,
   BookUser,
   Shield,
-  CalendarDays,
   Info,
   ListChecks,
   BarChart,
@@ -119,18 +118,6 @@ export function SidebarNav() {
             <Link href="/contacts">
               <BookUser />
               <span>Λίστα Επαφών</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-         <SidebarMenuItem>
-          <SidebarMenuButton
-            asChild
-            isActive={isActive("/calendar")}
-            tooltip="Ημερολόγιο"
-          >
-            <Link href="/calendar">
-              <CalendarDays />
-              <span>Ημερολόγιο</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

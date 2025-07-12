@@ -1,5 +1,5 @@
 import { ReportsClientPage } from "@/components/reports/reports-client-page";
-import { getAllProjects } from "@/app/actions/projects";
+import { getAllProjects } from "@/lib/projects-data";
 import { getContacts } from "@/lib/contacts-data";
 import { getAdminDb } from "@/lib/firebase-admin";
 

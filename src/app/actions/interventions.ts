@@ -3,7 +3,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { getProjectById, updateProjectData } from '@/app/actions/projects';
+import { getProjectById, updateProjectData } from '@/lib/projects-data';
 import { getAdminDb } from "@/lib/firebase-admin";
 import type { ProjectIntervention, SubIntervention } from '@/types';
 import { users } from '@/lib/data-helpers';

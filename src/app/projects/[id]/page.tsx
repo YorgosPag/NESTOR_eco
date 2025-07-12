@@ -1,5 +1,5 @@
 
-import { getProjectById, getAllProjects } from "@/lib/data";
+import { getProjectById, getAllProjects } from "@/lib/projects-data";
 import { notFound } from "next/navigation";
 import { ProjectDetails } from "@/components/projects/project-details";
 import type { Project } from "@/types";
