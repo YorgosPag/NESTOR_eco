@@ -1,3 +1,4 @@
+
 import type { Trigger, ExpenseCategory } from '@/types';
 import type { Firestore } from 'firebase-admin/firestore';
 
