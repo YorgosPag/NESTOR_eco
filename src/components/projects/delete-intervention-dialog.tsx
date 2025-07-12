@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { deleteInterventionAction } from '@/app/actions/projects';
+import { deleteInterventionAction } from '@/app/actions/interventions';
 import type { Project, ProjectIntervention } from '@/types';
 
 const initialState = {
