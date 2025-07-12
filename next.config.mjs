@@ -22,7 +22,7 @@ const nextConfig = {
       },
     ],
   },
-  turbo: {
+  experimental: {
     serverComponentsExternalPackages: ['handlebars'],
   },
 };
