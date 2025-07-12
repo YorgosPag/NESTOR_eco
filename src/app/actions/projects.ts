@@ -272,7 +272,7 @@ export async function logEmailNotificationAction(prevState: any, formData: FormD
             details: `Εστάλη ειδοποίηση στον/στην ${assigneeName} για το στάδιο "${stage.title}" της παρέμβασης "${intervention.interventionCategory}".`,
         });
         
-        const { progress, alerts, status, budget, ...projectToUpdate } = project;
+        const { progress, alerts, status, ...projectToUpdate } = project;
         await updateProjectData(db, projectId, projectToUpdate);
 
     } catch (error: any) {
@@ -339,7 +339,7 @@ export async function addStageAction(prevState: any, formData: FormData) {
             details: `Προστέθηκε το στάδιο "${title}" στην παρέμβαση "${intervention.interventionCategory}".`,
         });
         
-        const { progress, alerts, status, budget, ...projectToUpdate } = project;
+        const { progress, alerts, status, ...projectToUpdate } = project;
         await updateProjectData(db, projectId, projectToUpdate);
 
     } catch (error: any) {
@@ -395,7 +395,7 @@ export async function updateStageAction(prevState: any, formData: FormData) {
             details: `Επεξεργάστηκε το στάδιο "${title}" στην παρέμβαση "${intervention.interventionCategory}".`,
         });
 
-        const { progress, alerts, status, budget, ...projectToUpdate } = project;
+        const { progress, alerts, status, ...projectToUpdate } = project;
         await updateProjectData(db, projectId, projectToUpdate);
 
     } catch (error: any) {
@@ -443,7 +443,7 @@ export async function deleteStageAction(prevState: any, formData: FormData) {
             details: `Διαγράφηκε το στάδιο "${stage.title}" από την παρέμβαση "${intervention.interventionCategory}".`,
         });
 
-        const { progress, alerts, status, budget, ...projectToUpdate } = project;
+        const { progress, alerts, status, ...projectToUpdate } = project;
         await updateProjectData(db, projectId, projectToUpdate);
 
     } catch (error: any) {
@@ -489,7 +489,7 @@ export async function moveStageAction(prevState: any, formData: FormData) {
             return { success: true, message: 'Δεν είναι δυνατή η περαιτέρω μετακίνηση.' };
         }
         
-        const { progress, alerts, status, budget, ...projectToUpdate } = project;
+        const { progress, alerts, status, ...projectToUpdate } = project;
         await updateProjectData(db, projectId, projectToUpdate);
 
     } catch (error: any) {
