@@ -66,6 +66,7 @@ export function DashboardClientPage({ projects: serverProjects, contacts }: Dash
         .map(stage => ({
             projectId: stage.projectId,
             projectTitle: stage.projectTitle,
+            stageId: stage.id, // Pass stageId for unique key
             stageTitle: stage.title,
             deadline: stage.deadline,
             assigneeContactId: stage.assigneeContactId

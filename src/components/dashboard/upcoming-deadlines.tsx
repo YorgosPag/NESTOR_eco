@@ -14,6 +14,7 @@ import type { Contact } from "@/types";
 interface Deadline {
     projectId: string;
     projectTitle: string;
+    stageId: string; // Add stageId to ensure a unique key
     stageTitle: string;
     deadline: string;
     assigneeContactId?: string;
@@ -48,7 +49,7 @@ export function UpcomingDeadlines({ deadlines, contacts }: UpcomingDeadlinesProp
             {deadlines.map((item) => {
                 const assignee = contacts.find(c => c.id === item.assigneeContactId);
                 return (
-                    <div key={`${item.projectId}-${item.stageTitle}`} className="flex items-center">
+                    <div key={item.stageId} className="flex items-center">
                         {assignee && (
                              <Avatar className="h-9 w-9">
                                 <AvatarImage src={assignee.avatar} alt={assignee.firstName} />
