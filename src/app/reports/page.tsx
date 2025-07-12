@@ -1,5 +1,5 @@
 import { ReportsClientPage } from "@/components/reports/reports-client-page";
-import { getAllProjects } from "@/lib/data";
+import { getAllProjects } from "@/app/actions/projects";
 import { getContacts } from "@/lib/contacts-data";
 import { getAdminDb } from "@/lib/firebase-admin";
 
@@ -7,6 +7,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function ReportsPage() {
     const db = getAdminDb();
+    // Fetch data that is needed by the Financial and Dynamic reports.
+    // The AI assistant will fetch its own data on-demand via server actions.
     const [projects, contacts] = await Promise.all([
         getAllProjects(db),
         getContacts(db),

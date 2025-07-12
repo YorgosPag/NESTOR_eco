@@ -49,11 +49,11 @@ export function ReportsClientPage({ projects, contacts }: ReportsClientPageProps
             </div>
 
             <div>
+                {selectedReport === 'report_builder' && (
+                    <DynamicReportBuilder projects={projects} contacts={contacts} />
+                )}
                 {selectedReport === 'ai_assistant' && (
                     <AIReportAssistant />
-                )}
-                 {selectedReport === 'report_builder' && (
-                    <DynamicReportBuilder projects={projects} contacts={contacts} />
                 )}
                 {selectedReport === 'financial_summary' && (
                     <FinancialSummaryReport projects={projects.filter(p => p.status !== 'Quotation')} />
