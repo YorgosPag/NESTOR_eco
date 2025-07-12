@@ -1,4 +1,3 @@
-
 "use server";
 
 import { revalidatePath } from 'next/cache';
@@ -19,7 +18,6 @@ import {
     updateStageStatus as updateStageStatusData
 } from '@/lib/projects-data';
 
-
 export async function getProjectById(id: string) {
     const db = getAdminDb();
     return getProjectDataById(db, id);
@@ -38,6 +36,43 @@ export async function findInterventionAndStage(projectId: string, stageId: strin
 export async function updateStageStatus(projectId: string, stageId: string, status: StageStatus) {
     const db = getAdminDb();
     return updateStageStatusData(db, projectId, stageId, status);
+}
+
+const UpdateStageStatusSchema = z.object({
+  projectId: z.string(),
+  stageId: z.string(),
+  status: z.enum(['pending', 'inProgress', 'completed', 'delayed', 'cancelled']),
+});
+
+export async function updateStageStatusAction(prevState: any, formData: FormData) {
+  const validated = UpdateStageStatusSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!validated.success) {
+    return {
+      success: false,
+      message: 'Μη έγκυρα δεδομένα για ενημέρωση κατάστασης.',
+      errors: validated.error.flatten().fieldErrors,
+    };
+  }
+
+  const { projectId, stageId, status } = validated.data;
+
+  try {
+    const db = getAdminDb();
+    await updateStageStatus(db, projectId, stageId, status);
+    revalidatePath(`/projects/${projectId}`);
+
+    return {
+      success: true,
+      message: 'Η κατάσταση του σταδίου ενημερώθηκε.',
+    };
+  } catch (err: any) {
+    console.error('🔥 ERROR in updateStageStatusAction:', err);
+    return {
+      success: false,
+      message: `Σφάλμα ενημέρωσης κατάστασης: ${err.message}`,
+    };
+  }
 }
 
 // =================================================================
