@@ -7,11 +7,11 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 import { getAllProjects } from '@/lib/projects-data';
 import { getContacts } from '@/lib/contacts-data';
 import { getAdminDb } from '@/lib/firebase-admin';
-import { ReportOutputSchema, type ReportOutput } from './reporting-schemas';
+import { ReportOutputSchema, type ReportOutput } from './schemas';
 
 // #################################################################
 //  TOOLS DEFINITION
