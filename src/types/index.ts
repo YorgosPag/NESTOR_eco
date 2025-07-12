@@ -104,7 +104,9 @@ export interface MasterIntervention {
   expenseCategory: ExpenseCategory;
   interventionCategory: InterventionCategory;
   interventionSubcategory?: string;
+  unit: Unit;
   maxUnitPrice: number;
+  maxAmount: number;
 }
 
 export interface Attachment {

@@ -57,6 +57,7 @@ export function CreateInterventionForm({ setOpen, customLists, customListItems }
     const [interventionCategory, setInterventionCategory] = useState('');
     const [code, setCode] = useState('');
     const [interventionSubcategory, setInterventionSubcategory] = useState('');
+    const [unit, setUnit] = useState('');
 
 
     useEffect(() => {
@@ -89,6 +90,8 @@ export function CreateInterventionForm({ setOpen, customLists, customListItems }
     const { list: interventionCategoryList, options: interventionCategoryOptions } = getListAndOptions('INTERVENTION_CATEGORY', 'Κατηγορία Παρέμβασης');
     const { list: codeList, options: codeOptions } = getListAndOptions('CODE', 'Κωδικός');
     const { list: subcategoryList, options: interventionSubcategoryOptions } = getListAndOptions('SUB_INTERVENTION_CATEGORY', 'Υπο-Κατηγορία Παρέμβασης');
+    const { list: unitList, options: unitOptions } = getListAndOptions('UNIT_OF_MEASUREMENT', 'Μονάδες Μέτρησης');
+
 
     return (
         <form action={formAction} className="space-y-4 pt-4">
@@ -98,6 +101,7 @@ export function CreateInterventionForm({ setOpen, customLists, customListItems }
              <input type="hidden" name="interventionCategory" value={interventionCategory} />
              <input type="hidden" name="code" value={code} />
              <input type="hidden" name="interventionSubcategory" value={interventionSubcategory} />
+             <input type="hidden" name="unit" value={unit} />
             
             <div className="space-y-2">
                 <Label htmlFor="info-select">Info</Label>
@@ -174,10 +178,31 @@ export function CreateInterventionForm({ setOpen, customLists, customListItems }
                 {state.errors?.code && <p className="text-sm font-medium text-destructive mt-1">{state.errors.code[0]}</p>}
             </div>
             
+             <div className="space-y-2">
+                <Label htmlFor="unit-select">Μονάδα Μέτρησης</Label>
+                <SearchableSelect
+                    value={unit}
+                    onValueChange={setUnit}
+                    options={unitOptions}
+                    placeholder="Επιλέξτε μονάδα..."
+                    searchPlaceholder="Αναζήτηση..."
+                    emptyMessage='Η λίστα "Μονάδες Μέτρησης" είναι κενή.'
+                >
+                    {unitList && <DialogChild listId={unitList.id} text="Προσθήκη Νέας Μονάδας..."/>}
+                </SearchableSelect>
+                {state.errors?.unit && <p className="text-sm font-medium text-destructive mt-1">{state.errors.unit[0]}</p>}
+            </div>
+
             <div className="space-y-2">
-                <Label htmlFor="maxUnitPrice">Κόστος Ανά Μονάδα</Label>
+                <Label htmlFor="maxUnitPrice">Μέγιστο Κόστος/Μονάδα</Label>
                 <Input id="maxUnitPrice" name="maxUnitPrice" type="number" step="0.01" placeholder="π.χ., 320.50" required />
                 {state.errors?.maxUnitPrice && <p className="text-sm font-medium text-destructive mt-1">{state.errors.maxUnitPrice[0]}</p>}
+            </div>
+
+             <div className="space-y-2">
+                <Label htmlFor="maxAmount">Μέγιστο Ποσό Παρέμβασης</Label>
+                <Input id="maxAmount" name="maxAmount" type="number" step="0.01" placeholder="π.χ., 10000.00" required />
+                {state.errors?.maxAmount && <p className="text-sm font-medium text-destructive mt-1">{state.errors.maxAmount[0]}</p>}
             </div>
 
             <div className="space-y-2">

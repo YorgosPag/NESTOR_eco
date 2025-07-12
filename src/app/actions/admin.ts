@@ -9,7 +9,7 @@ import { addMasterIntervention, updateMasterIntervention, deleteMasterInterventi
 import { addTrigger, updateTrigger, deleteTrigger } from "@/lib/triggers-data";
 import { addInterventionCategory as addInterventionCategoryData, updateInterventionCategory as updateInterventionCategoryData, deleteInterventionCategory as deleteInterventionCategoryData } from '@/lib/intervention-category-data';
 import { createCustomList, deleteCustomList, createCustomListItem, updateCustomListItem, deleteCustomListItem, updateCustomList } from '@/lib/custom-lists-data';
-import { getAllProjects } from '@/lib/data';
+import { getAllProjects } from '@/app/actions/projects';
 import type { MasterIntervention, Project, Trigger } from '@/types';
 
 
@@ -21,7 +21,9 @@ const MasterInterventionSchema = z.object({
     expenseCategory: z.string().min(1, "Επιλέξτε μια έγκυρη κατηγορία δαπάνης."),
     interventionCategory: z.string().min(1, "Επιλέξτε μια έγκυρη κατηγορία παρέμβασης."),
     interventionSubcategory: z.string().optional(),
+    unit: z.string().min(1, "Η μονάδα μέτρησης είναι υποχρεωτική."),
     maxUnitPrice: z.coerce.number().positive("Το κόστος/μονάδα πρέπει να είναι θετικός αριθμός."),
+    maxAmount: z.coerce.number().positive("Το μέγιστο ποσό πρέπει να είναι θετικός αριθμός."),
 });
 
 
@@ -40,7 +42,7 @@ export async function createMasterInterventionAction(prevState: any, formData: F
         const db = getAdminDb();
         const success = await addMasterIntervention(db, data as Omit<MasterIntervention, 'id'>);
         if (!success) throw new Error("Firestore operation failed");
-    } catch (error: any) {
+    } catch (error: any)
         console.error("🔥 ERROR in createMasterInterventionAction:", error);
         return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
     }
