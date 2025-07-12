@@ -1,5 +1,5 @@
 
-import { CustomListsClientPage } from "./client-page";
+import { CustomListsManager } from "./client-page";
 import { getCustomLists, getAllCustomListItems } from "@/lib/custom-lists-data";
 import { getAdminDb } from "@/lib/firebase-admin";
 
@@ -14,9 +14,9 @@ export default async function CustomListsPage() {
 
     return (
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-            <CustomListsClientPage 
-                customLists={customLists}
-                customListItems={customListItems}
+            <CustomListsManager
+                lists={customLists}
+                items={customListItems}
             />
         </main>
     );
