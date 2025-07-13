@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useActionState } from 'react';
 import * as React from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import { deleteCustomListAction } from '@/app/actions/admin';
 import {
   AlertDialog,
@@ -51,7 +51,7 @@ interface DeleteListDialogProps {
 
 export function DeleteListDialog({ list, children }: DeleteListDialogProps) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useFormState(deleteCustomListAction, initialState);
+  const [state, formAction] = useActionState(deleteCustomListAction, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -61,7 +61,6 @@ export function DeleteListDialog({ list, children }: DeleteListDialogProps) {
       toast({ title: 'Επιτυχία!', description: state.message });
       setOpen(false);
     } else if (state?.success === false && state.message) {
-      // If there are usage errors, don't show toast, the dialog will show them.
       if (!state.errors?.usage) {
         toast({
           variant: 'destructive',
@@ -75,8 +74,9 @@ export function DeleteListDialog({ list, children }: DeleteListDialogProps) {
   
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
-      // Reset state when dialog is closed
-      formAction(new FormData()); // A bit of a hack to reset the form state
+      const form = new FormData();
+      // @ts-ignore - a way to reset the form state
+      formAction(form)
     }
     setOpen(isOpen);
   };

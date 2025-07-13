@@ -1,7 +1,8 @@
+
 "use client";
 
-import { useEffect, useState, type ReactNode } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useState, type ReactNode, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,7 +44,7 @@ interface DeleteStageDialogProps {
 
 export function DeleteStageDialog({ stage, projectId, children }: DeleteStageDialogProps) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useFormState(deleteStageAction, initialState);
+  const [state, formAction] = useActionState(deleteStageAction, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
