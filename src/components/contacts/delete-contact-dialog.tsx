@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useState, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect, useState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { deleteContactAction } from '@/app/actions/contacts';
 import {
   AlertDialog,
@@ -43,7 +43,7 @@ interface DeleteContactDialogProps {
 
 export function DeleteContactDialog({ contact, children }: DeleteContactDialogProps) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useActionState(deleteContactAction, initialState);
+  const [state, formAction] = useFormState(deleteContactAction, initialState);
   const { toast } = useToast();
 
   useEffect(() => {

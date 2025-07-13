@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useState, type ReactNode, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect, useState, type ReactNode } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,7 +45,7 @@ interface DeleteSubInterventionDialogProps {
 
 export function DeleteSubInterventionDialog({ projectId, interventionMasterId, subIntervention, children }: DeleteSubInterventionDialogProps) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useActionState(deleteSubInterventionAction, initialState);
+  const [state, formAction] = useFormState(deleteSubInterventionAction, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
