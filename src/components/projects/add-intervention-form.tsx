@@ -1,17 +1,16 @@
 
 "use client";
 
-import { useEffect, useState, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect } from 'react';
+import { useActionState, useFormStatus } from 'react-dom';
 import { addInterventionAction } from '@/app/actions/interventions';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, PlusCircle } from 'lucide-react';
-import { SearchableSelect } from '../ui/searchable-select';
-import type { CustomList, CustomListItem } from '@/types';
-import { Separator } from '../ui/separator';
-import { CreateItemDialog } from '../admin/custom-lists/create-item-dialog';
+import { Loader2 } from 'lucide-react';
+import { masterInterventionsData } from '@/lib/mock-data';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '../ui/select';
 
 const initialState = {
   message: null,
@@ -31,14 +30,11 @@ function SubmitButton() {
 interface AddInterventionFormProps {
     projectId: string;
     setOpen: (open: boolean) => void;
-    customLists: CustomList[];
-    customListItems: CustomListItem[];
 }
 
-export function AddInterventionForm({ projectId, setOpen, customLists, customListItems }: AddInterventionFormProps) {
+export function AddInterventionForm({ projectId, setOpen }: AddInterventionFormProps) {
   const [state, formAction] = useActionState(addInterventionAction, initialState);
   const { toast } = useToast();
-  const [interventionName, setInterventionName] = useState('');
 
   useEffect(() => {
     if (state?.success === true) {
@@ -54,38 +50,35 @@ export function AddInterventionForm({ projectId, setOpen, customLists, customLis
     }
   }, [state, toast, setOpen]);
   
-  const interventionTitlesList = customLists.find(l => l.key === 'INTERVENTION_TITLES' || l.name?.toLowerCase() === 'τίτλοι παρεμβάσεων'.toLowerCase());
-  const interventionTitleOptions = interventionTitlesList ? customListItems.filter(item => item.listId === interventionTitlesList.id).map(item => ({ value: item.name, label: item.name })).sort((a, b) => a.label.localeCompare(b.label)) : [];
-
   return (
     <form action={formAction} className="space-y-4 pt-4">
       <input type="hidden" name="projectId" value={projectId} />
-      <input type="hidden" name="interventionName" value={interventionName} />
       
       <div className="space-y-2">
-          <Label htmlFor="interventionName-select">Τίτλος Παρέμβασης</Label>
-          <SearchableSelect
-            value={interventionName}
-            onValueChange={setInterventionName}
-            options={interventionTitleOptions}
-            placeholder="Επιλέξτε τίτλο..."
-            searchPlaceholder="Αναζήτηση τίτλου..."
-            emptyMessage='Η λίστα "τίτλοι παρεμβάσεων" είναι κενή.'
-          >
-            {interventionTitlesList && (
-              <>
-                <Separator className="my-1"/>
-                <CreateItemDialog listId={interventionTitlesList.id}>
-                    <div onMouseDown={(e) => e.preventDefault()} className="flex cursor-pointer select-none items-center gap-2 rounded-sm p-2 text-sm outline-none transition-colors hover:bg-accent focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
-                        <PlusCircle className="h-4 w-4 mr-2" />
-                        <span>Προσθήκη Νέου Τίτλου...</span>
-                    </div>
-                </CreateItemDialog>
-              </>
-            )}
-          </SearchableSelect>
-          {state.errors?.interventionName && <p className="text-sm font-medium text-destructive mt-1">{state.errors.interventionName[0]}</p>}
+          <Label htmlFor="masterId">Παρέμβαση</Label>
+          <Select name="masterId" required>
+            <SelectTrigger>
+                <SelectValue placeholder="Επιλέξτε από τον κατάλογο παρεμβάσεων..." />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectGroup>
+                    <SelectLabel>Master Παρεμβάσεις</SelectLabel>
+                    {masterInterventionsData.map((intervention) => (
+                        <SelectItem key={intervention.code} value={intervention.code}>
+                            {intervention.interventionSubcategory || intervention.interventionCategory}
+                        </SelectItem>
+                    ))}
+                </SelectGroup>
+            </SelectContent>
+          </Select>
+          {state.errors?.masterId && <p className="text-sm font-medium text-destructive mt-1">{state.errors.masterId[0]}</p>}
       </div>
+
+       <div className="space-y-2">
+            <Label htmlFor="quantity">Ποσότητα</Label>
+            <Input id="quantity" name="quantity" type="number" step="0.01" placeholder="π.χ., 25.5" required />
+            {state.errors?.quantity && <p className="text-sm font-medium text-destructive mt-1">{state.errors.quantity[0]}</p>}
+        </div>
       
       <SubmitButton />
     </form>

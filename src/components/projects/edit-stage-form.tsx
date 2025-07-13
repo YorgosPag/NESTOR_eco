@@ -1,19 +1,17 @@
 
 "use client";
 
-import { useEffect, useState, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect } from 'react';
+import { useActionState, useFormStatus } from 'react-dom';
 import { updateStageAction } from '@/app/actions/projects';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { Stage, Contact } from '@/types';
-import { Separator } from '../ui/separator';
-import { CreateContactDialog } from '../contacts/create-contact-dialog';
-import { SearchableSelect } from '../ui/searchable-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const initialState = {
   message: null,
@@ -40,9 +38,6 @@ interface EditStageFormProps {
 export function EditStageForm({ stage, projectId, contacts, setOpen }: EditStageFormProps) {
     const [state, formAction] = useActionState(updateStageAction, initialState);
     const { toast } = useToast();
-    const [assigneeContactId, setAssigneeContactId] = useState(stage.assigneeContactId);
-    const [supervisorContactId, setSupervisorContactId] = useState(stage.supervisorContactId);
-
 
     useEffect(() => {
         if (state?.success === true) {
@@ -60,21 +55,10 @@ export function EditStageForm({ stage, projectId, contacts, setOpen }: EditStage
 
     const formattedDeadline = stage.deadline.substring(0, 10);
 
-     const contactOptions = [
-        { value: 'none', label: 'Καμία ανάθεση' },
-        ...contacts.map(contact => ({
-            value: contact.id,
-            label: `${contact.firstName} ${contact.lastName} (${contact.role})`
-        })).sort((a,b) => a.label.localeCompare(b.label))
-    ];
-
     return (
         <form action={formAction} className="space-y-4 pt-4">
             <input type="hidden" name="projectId" value={projectId} />
             <input type="hidden" name="stageId" value={stage.id} />
-             <input type="hidden" name="assigneeContactId" value={assigneeContactId} />
-             <input type="hidden" name="supervisorContactId" value={supervisorContactId} />
-
 
             <div className="space-y-2">
                 <Label htmlFor="title">Τίτλος Σταδίου</Label>
@@ -89,43 +73,20 @@ export function EditStageForm({ stage, projectId, contacts, setOpen }: EditStage
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="assigneeContactId-select">Ανάδοχος Εργασίας (Εργολάβος/Συνεργείο)</Label>
-                <SearchableSelect
-                    value={assigneeContactId}
-                    onValueChange={setAssigneeContactId}
-                    options={contactOptions}
-                    placeholder="Επιλέξτε ανάδοχο..."
-                    searchPlaceholder="Αναζήτηση επαφής..."
-                    emptyMessage="Δεν βρέθηκε επαφή."
-                >
-                    <Separator className="my-1"/>
-                    <CreateContactDialog customLists={[]} customListItems={[]}>
-                        <div onMouseDown={(e) => e.preventDefault()} className="flex cursor-pointer select-none items-center gap-2 rounded-sm p-2 text-sm outline-none transition-colors hover:bg-accent focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
-                            <PlusCircle className="h-4 w-4 mr-2" />
-                            <span>Δημιουργία Νέας Επαφής</span>
-                        </div>
-                    </CreateContactDialog>
-                </SearchableSelect>
-            </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="supervisorContactId-select">Επιβλέπων (Μηχανικός Εταιρείας)</Label>
-                <SearchableSelect
-                    value={supervisorContactId}
-                    onValueChange={setSupervisorContactId}
-                    options={contactOptions}
-                    placeholder="Επιλέξτε επιβλέποντα..."
-                    searchPlaceholder="Αναζήτηση επαφής..."
-                    emptyMessage="Δεν βρέθηκε επαφή."
-                >
-                    <Separator className="my-1"/>
-                    <CreateContactDialog customLists={[]} customListItems={[]}>
-                        <div onMouseDown={(e) => e.preventDefault()} className="flex cursor-pointer select-none items-center gap-2 rounded-sm p-2 text-sm outline-none transition-colors hover:bg-accent focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
-                            <PlusCircle className="h-4 w-4 mr-2" />
-                            <span>Δημιουργία Νέας Επαφής</span>
-                        </div>
-                    </CreateContactDialog>
-                </SearchableSelect>
+                <Label htmlFor="assigneeContactId">Ανάθεση σε</Label>
+                <Select name="assigneeContactId" defaultValue={stage.assigneeContactId || 'none'}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Επιλέξτε ανάδοχο..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="none">Καμία ανάθεση</SelectItem>
+                        {contacts.map(contact => (
+                            <SelectItem key={contact.id} value={contact.id}>
+                                {contact.firstName} {contact.lastName} ({contact.role})
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
 
             <div className="space-y-2">

@@ -53,11 +53,9 @@ export interface Contact {
   tiktokUrl?: string;
 }
 
-// **Προσθήκη: Σταθερές και Τύποι για ExpenseCategory**
 export const expenseCategories = ["Αερισμός", "Εξοικονόμηση Ενέργειας", "Θερμομόνωση", "Κουφώματα", "Λοιπές Παρεμβάσεις", "Συστήματα Θέρμανσης-Ψύξης", "ΖΝΧ", "Σκίαση"] as const;
 export type ExpenseCategory = typeof expenseCategories[number];
 
-// **Προσθήκη: Σταθερές και Τύποι για Units**
 export const units = ["€/m²", "€/kW", "€/μονάδα", "€/αίτηση"] as const;
 export type Unit = typeof units[number];
 
@@ -95,16 +93,15 @@ export const interventionSubcategories = [
 ] as const;
 export type InterventionSubcategory = typeof interventionSubcategories[number];
 
-// This represents an intervention from the master list
 export interface MasterIntervention {
   id: string;
   code: string;
   info?: string;
   energySpecsOptions?: string;
-  expenseCategory: ExpenseCategory;
+  expenseCategory: ExpenseCategory | string;
   interventionCategory: InterventionCategory;
   interventionSubcategory?: string;
-  unit: Unit;
+  unit: Unit | string;
   maxUnitPrice: number;
   maxAmount: number;
 }
@@ -145,7 +142,6 @@ export interface SubIntervention {
   displayCode?: string; // Added field for calculated display value
 }
 
-// This represents an intervention that has been added to a project
 export interface ProjectIntervention extends Omit<MasterIntervention, 'id'> {
   masterId: string; // ID from MasterIntervention
   subInterventions?: SubIntervention[];

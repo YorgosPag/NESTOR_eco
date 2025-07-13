@@ -1,18 +1,16 @@
 
 "use client";
 
-import { useEffect, useState, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect, useState } from 'react';
+import { useActionState, useFormStatus } from 'react-dom';
 import { updateProjectAction } from '@/app/actions/projects';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { Project, Contact } from '@/types';
-import { Separator } from '../ui/separator';
-import { CreateContactDialog } from '../contacts/create-contact-dialog';
-import { SearchableSelect } from '../ui/searchable-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const initialState = {
   message: null,
@@ -38,7 +36,6 @@ interface EditProjectFormProps {
 export function EditProjectForm({ project, contacts, setOpen }: EditProjectFormProps) {
     const [state, formAction] = useActionState(updateProjectAction, initialState);
     const { toast } = useToast();
-    const [ownerContactId, setOwnerContactId] = useState(project.ownerContactId || '');
 
     useEffect(() => {
         if (state?.success === true) {
@@ -56,17 +53,9 @@ export function EditProjectForm({ project, contacts, setOpen }: EditProjectFormP
     
     const formattedDeadline = project.deadline ? project.deadline.substring(0, 10) : '';
 
-    const contactOptions = contacts
-        .filter(c => c.role === 'Πελάτης')
-        .map(contact => ({
-            value: contact.id,
-            label: `${contact.firstName} ${contact.lastName} (${contact.address || "Χωρίς διεύθυνση"})`
-        })).sort((a, b) => a.label.localeCompare(b.label));
-
     return (
         <form action={formAction} className="space-y-4 pt-4">
             <input type="hidden" name="id" value={project.id} />
-            <input type="hidden" name="ownerContactId" value={ownerContactId} />
              <div className="space-y-2">
                 <Label htmlFor="title">Τίτλος Έργου</Label>
                 <Input id="title" name="title" defaultValue={project.title} required />
@@ -78,23 +67,19 @@ export function EditProjectForm({ project, contacts, setOpen }: EditProjectFormP
                 {state.errors?.applicationNumber && <p className="text-sm font-medium text-destructive mt-1">{state.errors.applicationNumber[0]}</p>}
             </div>
              <div className="space-y-2">
-                <Label htmlFor="ownerContactId-select">Ιδιοκτήτης / Ωφελούμενος</Label>
-                <SearchableSelect
-                    value={ownerContactId}
-                    onValueChange={setOwnerContactId}
-                    options={contactOptions}
-                    placeholder="Επιλέξτε από τη λίστα επαφών..."
-                    searchPlaceholder="Αναζήτηση επαφής..."
-                    emptyMessage="Δεν βρέθηκε επαφή."
-                >
-                    <Separator className="my-1"/>
-                    <CreateContactDialog customLists={[]} customListItems={[]}>
-                        <div onMouseDown={(e) => e.preventDefault()} className="flex cursor-pointer select-none items-center gap-2 rounded-sm p-2 text-sm outline-none transition-colors hover:bg-accent focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
-                            <PlusCircle className="h-4 w-4 mr-2" />
-                            <span>Δημιουργία Νέας Επαφής</span>
-                        </div>
-                    </CreateContactDialog>
-                </SearchableSelect>
+                <Label htmlFor="ownerContactId">Ιδιοκτήτης / Ωφελούμενος</Label>
+                <Select name="ownerContactId" defaultValue={project.ownerContactId} required>
+                    <SelectTrigger id="ownerContactId">
+                        <SelectValue placeholder="Επιλέξτε από τη λίστα επαφών..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {contacts.filter(c => c.role === 'Πελάτης').map(contact => (
+                            <SelectItem key={contact.id} value={contact.id}>
+                                {contact.firstName} {contact.lastName}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
                  {state.errors?.ownerContactId && <p className="text-sm font-medium text-destructive mt-1">{state.errors.ownerContactId[0]}</p>}
             </div>
              <div className="space-y-2">
