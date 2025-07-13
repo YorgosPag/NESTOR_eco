@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect } from 'react';
@@ -55,30 +54,10 @@ export function AddInterventionForm({ projectId, setOpen }: AddInterventionFormP
       <input type="hidden" name="projectId" value={projectId} />
       
       <div className="space-y-2">
-          <Label htmlFor="masterId">Παρέμβαση</Label>
-          <Select name="masterId" required>
-            <SelectTrigger>
-                <SelectValue placeholder="Επιλέξτε από τον κατάλογο παρεμβάσεων..." />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectGroup>
-                    <SelectLabel>Master Παρεμβάσεις</SelectLabel>
-                    {masterInterventionsData.map((intervention) => (
-                        <SelectItem key={intervention.code} value={intervention.code}>
-                            {intervention.interventionSubcategory || intervention.interventionCategory}
-                        </SelectItem>
-                    ))}
-                </SelectGroup>
-            </SelectContent>
-          </Select>
-          {state.errors?.masterId && <p className="text-sm font-medium text-destructive mt-1">{state.errors.masterId[0]}</p>}
+          <Label htmlFor="interventionName">Όνομα Παρέμβασης</Label>
+          <Input id="interventionName" name="interventionName" placeholder="π.χ. Τοποθέτηση Ηλιακού" required />
+          {state.errors?.interventionName && <p className="text-sm font-medium text-destructive mt-1">{state.errors.interventionName[0]}</p>}
       </div>
-
-       <div className="space-y-2">
-            <Label htmlFor="quantity">Ποσότητα</Label>
-            <Input id="quantity" name="quantity" type="number" step="0.01" placeholder="π.χ., 25.5" required />
-            {state.errors?.quantity && <p className="text-sm font-medium text-destructive mt-1">{state.errors.quantity[0]}</p>}
-        </div>
       
       <SubmitButton />
     </form>

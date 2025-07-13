@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -52,12 +51,9 @@ export function EditInterventionForm({ intervention, setOpen, customLists, custo
     const [state, formAction] = useFormState(updateMasterInterventionAction, initialState);
     const { toast } = useToast();
 
-    const [info, setInfo] = useState(intervention.info || '');
-    const [energySpecsOptions, setEnergySpecsOptions] = useState(intervention.energySpecsOptions || '');
     const [expenseCategory, setExpenseCategory] = useState(intervention.expenseCategory || '');
     const [interventionCategory, setInterventionCategory] = useState(intervention.interventionCategory || '');
     const [code, setCode] = useState(intervention.code || '');
-    const [interventionSubcategory, setInterventionSubcategory] = useState(intervention.interventionSubcategory || '');
     const [unit, setUnit] = useState(intervention.unit || '');
 
     useEffect(() => {
@@ -84,56 +80,20 @@ export function EditInterventionForm({ intervention, setOpen, customLists, custo
         return { list, options };
     };
 
-    const { list: infoList, options: infoOptions } = getListAndOptions('INFO', 'info');
-    const { list: energySpecsList, options: energySpecsOptionsList } = getListAndOptions('ENERGY_SPECS', 'Ενεργειακά Χαρακτηριστικά');
     const { list: expenseCategoryList, options: expenseCategoryOptions } = getListAndOptions('EXPENSE_CATEGORY', 'Κατηγορία Δαπάνης');
     const { list: interventionCategoryList, options: interventionCategoryOptions } = getListAndOptions('INTERVENTION_CATEGORY', 'Κατηγορία Παρέμβασης');
     const { list: codeList, options: codeOptions } = getListAndOptions('CODE', 'Κωδικός');
-    const { list: subcategoryList, options: interventionSubcategoryOptions } = getListAndOptions('SUB_INTERVENTION_CATEGORY', 'Υπο-Κατηγορία Παρέμβασης');
     const { list: unitList, options: unitOptions } = getListAndOptions('UNIT_OF_MEASUREMENT', 'Μονάδες Μέτρησης');
 
 
     return (
         <form action={formAction} className="space-y-4 pt-4">
             <input type="hidden" name="id" value={intervention.id} />
-            <input type="hidden" name="info" value={info} />
-            <input type="hidden" name="energySpecsOptions" value={energySpecsOptions} />
             <input type="hidden" name="expenseCategory" value={expenseCategory} />
             <input type="hidden" name="interventionCategory" value={interventionCategory} />
             <input type="hidden" name="code" value={code} />
-            <input type="hidden" name="interventionSubcategory" value={interventionSubcategory} />
-             <input type="hidden" name="unit" value={unit} />
+            <input type="hidden" name="unit" value={unit} />
             
-            <div className="space-y-2">
-                <Label htmlFor="info-select">Info</Label>
-                <SearchableSelect
-                    value={info}
-                    onValueChange={setInfo}
-                    options={infoOptions}
-                    placeholder="Επιλέξτε info..."
-                    searchPlaceholder="Αναζήτηση..."
-                    emptyMessage='Η λίστα "info" είναι κενή.'
-                >
-                    {infoList && <DialogChild listId={infoList.id} text="Προσθήκη Νέου Info..."/>}
-                </SearchableSelect>
-                {state.errors?.info && <p className="text-sm font-medium text-destructive mt-1">{state.errors.info[0]}</p>}
-            </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="energySpecsOptions-select">Ενεργειακά Χαρακτηριστικά</Label>
-                <SearchableSelect
-                    value={energySpecsOptions}
-                    onValueChange={setEnergySpecsOptions}
-                    options={energySpecsOptionsList}
-                    placeholder="Επιλέξτε χαρακτηριστικά..."
-                    searchPlaceholder="Αναζήτηση..."
-                    emptyMessage='Η λίστα "Ενεργειακά Χαρακτηριστικά" είναι κενή.'
-                >
-                    {energySpecsList && <DialogChild listId={energySpecsList.id} text="Προσθήκη Νέου Χαρακτηριστικού..."/>}
-                </SearchableSelect>
-                {state.errors?.energySpecsOptions && <p className="text-sm font-medium text-destructive mt-1">{state.errors.energySpecsOptions[0]}</p>}
-            </div>
-
             <div className="space-y-2">
                 <Label htmlFor="expenseCategory-select">Κατηγορία Δαπάνης</Label>
                 <SearchableSelect
@@ -204,21 +164,6 @@ export function EditInterventionForm({ intervention, setOpen, customLists, custo
                 <Label htmlFor="maxAmount">Μέγιστο Ποσό Παρέμβασης</Label>
                 <Input id="maxAmount" name="maxAmount" type="number" step="0.01" defaultValue={intervention.maxAmount} required />
                 {state.errors?.maxAmount && <p className="text-sm font-medium text-destructive mt-1">{state.errors.maxAmount[0]}</p>}
-            </div>
-
-            <div className="space-y-2">
-                <Label htmlFor="interventionSubcategory-select">Υπο-Κατηγορία Παρέμβασης</Label>
-                <SearchableSelect
-                    value={interventionSubcategory}
-                    onValueChange={setInterventionSubcategory}
-                    options={interventionSubcategoryOptions}
-                    placeholder="Επιλέξτε υπο-κατηγορία..."
-                    searchPlaceholder="Αναζήτηση..."
-                    emptyMessage='Η λίστα "Υπο-Κατηγορία Παρέμβασης" είναι κενή.'
-                >
-                    {subcategoryList && <DialogChild listId={subcategoryList.id} text="Προσθήκη Νέας Υπο-κατηγορίας..."/>}
-                </SearchableSelect>
-                {state.errors?.interventionSubcategory && <p className="text-sm font-medium text-destructive mt-1">{state.errors.interventionSubcategory[0]}</p>}
             </div>
 
             <SubmitButton />

@@ -1,28 +1,20 @@
-
 "use client";
 
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Pencil, Trash2, FileText, Rocket, ChevronDown } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ArrowLeft, Pencil, Trash2, FileText, Rocket } from "lucide-react";
 import { EditProjectDialog } from "./edit-project-dialog";
 import { DeleteProjectDialog } from "./delete-project-dialog";
-import { useActionState } from 'react';
+import { useFormState } from 'react-dom';
 import { activateProjectAction } from '@/app/actions/projects';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
 import type { Project, Contact } from '@/types';
-import { AssigneeReportDialog } from './assignee-report-dialog';
 
 
 function ActivateProjectButton({ projectId }: { projectId: string }) {
     const { toast } = useToast();
-    const [state, formAction] = useActionState(activateProjectAction, { success: false, message: null });
+    const [state, formAction] = useFormState(activateProjectAction, { success: false, message: null });
 
     useEffect(() => {
         if (state.message) {
@@ -65,28 +57,12 @@ export function ProjectActions({ project, contacts }: ProjectActionsProps) {
             </Button>
             <div className="flex items-center gap-2">
                 {!isQuotation && (
-                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                           <Button variant="outline">
-                                Αναφορές Έργου
-                                <ChevronDown className="ml-2 h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                                <Link href={`/projects/${project.id}/work-order`}>
-                                <FileText className="mr-2 h-4 w-4" />
-                                Αναφορά Εργασιών
-                                </Link>
-                            </DropdownMenuItem>
-                             <AssigneeReportDialog project={project} contacts={contacts}>
-                                 <div className="relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
-                                    <FileText className="mr-2 h-4 w-4" />
-                                    Αναφορά Εργασιών (Αναδόχων)
-                                 </div>
-                             </AssigneeReportDialog>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                     <Button asChild variant="outline">
+                        <Link href={`/projects/${project.id}/work-order`}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Αναφορά Εργασιών
+                        </Link>
+                    </Button>
                 )}
                  {isQuotation && <ActivateProjectButton projectId={project.id} />}
                 <EditProjectDialog project={project} contacts={contacts}>

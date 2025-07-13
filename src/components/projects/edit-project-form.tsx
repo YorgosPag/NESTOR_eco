@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { updateProjectAction } from '@/app/actions/projects';
 import { useToast } from '@/hooks/use-toast';

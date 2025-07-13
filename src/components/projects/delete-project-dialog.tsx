@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -47,8 +46,6 @@ export function DeleteProjectDialog({ project, children }: DeleteProjectDialogPr
   const { toast } = useToast();
 
   useEffect(() => {
-    // We only want to show toasts if the dialog was open
-    // This prevents toasts from showing on page load
     if (!open) return;
 
     if (state?.success === true) {

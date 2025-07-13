@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, type ReactNode } from 'react';
@@ -48,7 +47,7 @@ export function DeleteStageDialog({ stage, projectId, children }: DeleteStageDia
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!open) return; // Only show toasts if the dialog was open
+    if (!open) return;
     if (state?.success === true) {
       toast({ title: 'Επιτυχία!', description: state.message });
       setOpen(false);
@@ -62,9 +61,7 @@ export function DeleteStageDialog({ stage, projectId, children }: DeleteStageDia
     }
   }, [state, toast, open]);
   
-  const descriptionText = stage.status === 'in progress'
-    ? `Η διαγραφή του σταδίου "${stage.title}" είναι μη αναστρέψιμη και μπορεί να επηρεάσει τη ροή του έργου. Είστε βέβαιος ότι θέλετε να συνεχίσετε;`
-    : `Είστε βέβαιος ότι θέλετε να διαγράψετε οριστικά το στάδιο "${stage.title}"; Η ενέργεια αυτή δεν μπορεί να αναιρεθεί.`;
+  const descriptionText = `Είστε βέβαιος ότι θέλετε να διαγράψετε οριστικά το στάδιο "${stage.title}"; Η ενέργεια αυτή δεν μπορεί να αναιρεθεί.`;
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
