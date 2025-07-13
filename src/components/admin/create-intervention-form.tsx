@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useState, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect, useState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { createMasterInterventionAction } from '@/app/actions/admin';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -48,7 +48,7 @@ const DialogChild = ({listId, text}: {listId: string, text: string}) => (
 );
 
 export function CreateInterventionForm({ setOpen, customLists, customListItems }: CreateInterventionFormProps) {
-    const [state, formAction] = useActionState(createMasterInterventionAction, initialState);
+    const [state, formAction] = useFormState(createMasterInterventionAction, initialState);
     const { toast } = useToast();
 
     const [info, setInfo] = useState('');

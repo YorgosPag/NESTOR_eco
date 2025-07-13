@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useState, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect, useState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import {
   Dialog,
   DialogContent,
@@ -57,7 +57,7 @@ function SubmitButton() {
 }
 
 function CreateContactForm({ setOpen, customLists, customListItems }: { setOpen: (open: boolean) => void, customLists: CustomList[], customListItems: CustomListItem[] }) {
-    const [state, formAction] = useActionState(createContactAction, initialState);
+    const [state, formAction] = useFormState(createContactAction, initialState);
     const { toast } = useToast();
     const [role, setRole] = useState('');
     const [gender, setGender] = useState('');
@@ -431,32 +431,4 @@ function CreateContactForm({ setOpen, customLists, customListItems }: { setOpen:
             <SubmitButton />
         </form>
     );
-}
-
-
-// --- Dialog Component ---
-
-interface CreateContactDialogProps {
-    children: React.ReactNode;
-    customLists: CustomList[];
-    customListItems: CustomListItem[];
-}
-
-export function CreateContactDialog({ children, customLists, customListItems }: CreateContactDialogProps) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Δημιουργία Νέας Επαφής</DialogTitle>
-          <DialogDescription>Συμπληρώστε τα στοιχεία της νέας επαφής.</DialogDescription>
-        </DialogHeader>
-        <ScrollArea className="max-h-[70vh] pr-6">
-          <CreateContactForm setOpen={setOpen} customLists={customLists} customListItems={customListItems} />
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
-  );
 }

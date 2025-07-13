@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { createInterventionCategoryAction } from '@/app/actions/admin';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ function SubmitButton() {
 }
 
 export function CreateCategoryForm({ setOpen }: { setOpen: (open: boolean) => void }) {
-    const [state, formAction] = useActionState(createInterventionCategoryAction, initialState);
+    const [state, formAction] = useFormState(createInterventionCategoryAction, initialState);
     const { toast } = useToast();
 
     useEffect(() => {

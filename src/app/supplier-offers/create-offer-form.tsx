@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useState, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect, useState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,7 +53,7 @@ function SubmitButton() {
 }
 
 export function CreateOfferForm({ setOpen, contacts, projects, customLists, customListItems }: CreateOfferFormProps) {
-    const [state, formAction] = useActionState(createOfferAction, initialState);
+    const [state, formAction] = useFormState(createOfferAction, initialState);
     const { toast } = useToast();
 
     const [items, setItems] = useState<OfferItem[]>([{ id: `item-${Date.now()}`, name: '', unit: '', unitPrice: 0, quantity: 1 }]);
