@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -24,7 +23,7 @@ import {
   ListChecks,
   BarChart,
   ShoppingBag,
-  Beaker,
+  BellRing,
 } from "lucide-react";
 import { InstructionsDialog } from "./instructions-dialog";
 
@@ -67,14 +66,9 @@ const EcoFlowLogo = () => (
 export function SidebarNav() {
   const pathname = usePathname();
 
-  const isActive = (path: string) => {
-    // Exact match for dashboard, startsWith for others
-    if (path === '/dashboard') {
+  const isActive = (path: string, exact: boolean = false) => {
+    if (exact) {
         return pathname === path;
-    }
-    // Handle admin routes which are now more nested
-    if (path === '/admin') {
-       return pathname === '/admin';
     }
     return pathname.startsWith(path) && path !== '/';
   };
@@ -88,7 +82,7 @@ export function SidebarNav() {
         <SidebarMenuItem>
           <SidebarMenuButton
             asChild
-            isActive={isActive("/dashboard")}
+            isActive={isActive("/dashboard", true)}
             tooltip="Πίνακας Ελέγχου"
           >
             <Link href="/dashboard">
@@ -160,7 +154,7 @@ export function SidebarNav() {
            <SidebarGroupContent>
               <SidebarMenu>
                  <SidebarMenuItem>
-                     <SidebarMenuButton asChild isActive={isActive("/admin")} tooltip="Κατάλογος Παρεμβάσεων">
+                     <SidebarMenuButton asChild isActive={isActive("/admin", true)} tooltip="Κατάλογος Παρεμβάσεων">
                         <Link href="/admin">
                             <Shield />
                             <span>Κατάλογος Παρεμβάσεων</span>
@@ -176,6 +170,14 @@ export function SidebarNav() {
                      </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
+                     <SidebarMenuButton asChild isActive={pathname.startsWith("/admin/triggers")} tooltip="Triggers">
+                        <Link href="/admin/triggers">
+                            <BellRing />
+                            <span>Triggers</span>
+                        </Link>
+                     </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
                      <SidebarMenuButton asChild isActive={isActive("/settings")} tooltip="Ρυθμίσεις">
                         <Link href="/settings">
                             <Settings />
@@ -187,14 +189,6 @@ export function SidebarNav() {
                      <SidebarMenuButton tooltip="Αποσύνδεση">
                         <LogOut />
                         <span>Αποσύνδεση</span>
-                     </SidebarMenuButton>
-                  </SidebarMenuItem>
-                   <SidebarMenuItem>
-                     <SidebarMenuButton asChild isActive={isActive("/print-test")} tooltip="Τεστ Εκτύπωσης">
-                        <Link href="/print-test">
-                            <Beaker />
-                            <span>Τεστ Εκτύπωσης</span>
-                        </Link>
                      </SidebarMenuButton>
                   </SidebarMenuItem>
               </SidebarMenu>

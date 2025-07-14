@@ -1,3 +1,4 @@
+
 "use server";
 
 import { revalidatePath } from 'next/cache';
@@ -41,10 +42,10 @@ export async function updateStageStatus(projectId: string, stageId: string, stat
 const UpdateStageStatusSchema = z.object({
   projectId: z.string(),
   stageId: z.string(),
-  status: z.enum(['pending', 'inProgress', 'completed', 'delayed', 'cancelled']),
+  status: z.enum(['pending', 'in progress', 'completed', 'failed']),
 });
 
-export async function updateStageStatusAction(prevState: any, formData: FormData) {
+export async function updateStageStatusAction(formData: FormData) {
   const validated = UpdateStageStatusSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validated.success) {
@@ -102,7 +103,7 @@ const CreateProjectSchema = z.object({
     deadline: z.string().optional(),
 });
 
-export async function createProjectAction(prevState: any, formData: FormData) {
+export async function createProjectAction(formData: FormData) {
     try {
         const validatedFields = CreateProjectSchema.safeParse({
             title: formData.get('title'),
@@ -121,13 +122,12 @@ export async function createProjectAction(prevState: any, formData: FormData) {
         const { title, applicationNumber, ownerContactId, deadline } = validatedFields.data;
         const db = getAdminDb();
 
-        const newProject: Omit<Project, 'id' | 'progress' | 'alerts'> = {
+        const newProject: Omit<Project, 'id' | 'progress' | 'alerts' | 'budget'> = {
             title,
             applicationNumber,
             ownerContactId,
             deadline: deadline ? new Date(deadline).toISOString() : undefined,
             status: 'Quotation',
-            budget: 0,
             interventions: [],
             auditLog: [
                 {
@@ -159,7 +159,7 @@ const UpdateProjectSchema = z.object({
     deadline: z.string().optional(),
 });
 
-export async function updateProjectAction(prevState: any, formData: FormData) {
+export async function updateProjectAction(formData: FormData) {
     const validatedFields = UpdateProjectSchema.safeParse({
         id: formData.get('id'),
         title: formData.get('title'),
@@ -205,7 +205,7 @@ const ActivateProjectSchema = z.object({
     projectId: z.string().min(1),
 });
 
-export async function activateProjectAction(prevState: any, formData: FormData) {
+export async function activateProjectAction(formData: FormData) {
     const validatedFields = ActivateProjectSchema.safeParse(Object.fromEntries(formData.entries()));
     if (!validatedFields.success) {
         return { success: false, message: 'Μη έγκυρο ID έργου.' };
@@ -254,7 +254,7 @@ const DeleteProjectSchema = z.object({
     id: z.string().min(1),
 });
 
-export async function deleteProjectAction(prevState: any, formData: FormData) {
+export async function deleteProjectAction(formData: FormData) {
     try {
         const validatedFields = DeleteProjectSchema.safeParse({
             id: formData.get('id'),
@@ -281,7 +281,7 @@ const LogEmailNotificationSchema = z.object({
     assigneeName: z.string(),
 });
 
-export async function logEmailNotificationAction(prevState: any, formData: FormData) {
+export async function logEmailNotificationAction(formData: FormData) {
     const validatedFields = LogEmailNotificationSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
@@ -330,7 +330,7 @@ const AddStageSchema = z.object({
     supervisorContactId: z.string().optional(),
 });
 
-export async function addStageAction(prevState: any, formData: FormData) {
+export async function addStageAction(formData: FormData) {
     const validatedFields = AddStageSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
@@ -390,7 +390,7 @@ const UpdateStageSchema = AddStageSchema.extend({
   stageId: z.string(),
 });
 
-export async function updateStageAction(prevState: any, formData: FormData) {
+export async function updateStageAction(formData: FormData) {
     const validatedFields = UpdateStageSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
@@ -445,7 +445,7 @@ const DeleteStageSchema = z.object({
   stageId: z.string(),
 });
 
-export async function deleteStageAction(prevState: any, formData: FormData) {
+export async function deleteStageAction(formData: FormData) {
     const validatedFields = DeleteStageSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
@@ -494,7 +494,7 @@ const MoveStageSchema = z.object({
   direction: z.enum(['up', 'down']),
 });
 
-export async function moveStageAction(prevState: any, formData: FormData) {
+export async function moveStageAction(formData: FormData) {
     const validatedFields = MoveStageSchema.safeParse(Object.fromEntries(formData.entries()));
     if (!validatedFields.success) {
         return { success: false, message: 'Μη έγκυρα δεδομένα.' };

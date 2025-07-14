@@ -1,38 +1,72 @@
-
 "use server";
 
 import type { Project, Attachment, StageStatus } from '@/types';
 import { firestore } from "firebase-admin";
 import { users } from '@/lib/data-helpers';
 
+function processProject(projectData: Omit<Project, 'progress' | 'alerts'> & { id: string }): Project {
+    let totalProjectBudget = 0;
+    const sortedInterventions = [...projectData.interventions].sort((a, b) => 
+        (a.interventionSubcategory || a.interventionCategory).localeCompare(b.interventionSubcategory || b.interventionCategory)
+    );
+
+    const interventionsWithCosts = sortedInterventions.map(intervention => {
+        const interventionTotalCost = intervention.subInterventions?.reduce((sum, sub) => sum + sub.cost, 0) || 0;
+        totalProjectBudget += interventionTotalCost;
+        
+        const romanNumeralMatch = (intervention.expenseCategory || '').match(/\((I|II|III|IV|V|VI|VII|VIII|IX|X)\)/);
+        const romanNumeral = romanNumeralMatch ? ` (${romanNumeralMatch[1]})` : '';
+
+        const updatedSubInterventions = intervention.subInterventions?.map(sub => ({
+            ...sub,
+            displayCode: `${sub.subcategoryCode}${romanNumeral}`
+        })).sort((a, b) => a.subcategoryCode.localeCompare(b.subcategoryCode));
+
+        return {
+            ...intervention,
+            totalCost: interventionTotalCost,
+            subInterventions: updatedSubInterventions
+        };
+    });
+
+    return {
+        ...projectData,
+        interventions: interventionsWithCosts,
+        budget: totalProjectBudget,
+        progress: 0, // Default progress, client will calculate real value
+        alerts: 0,   // Default alerts, client will calculate real value
+    };
+}
+
+
 export async function getProjectById(db: firestore.Firestore, id: string): Promise<Project | undefined> {
-    const projectsCollection = db.collection('projects');
-    const doc = await projectsCollection.doc(id).get();
+    const doc = await db.collection('projects').doc(id).get();
     if (!doc.exists) {
         return undefined;
     }
-    const projectData = { id: doc.id, ...doc.data() } as Project;
-    return projectData;
+    const projectData = { id: doc.id, ...doc.data() } as Omit<Project, 'progress' | 'alerts'> & { id: string };
+    return processProject(projectData);
 };
 
 export async function getProjectsByIds(db: firestore.Firestore, ids: string[]): Promise<Project[]> {
     if (!ids || ids.length === 0) {
         return [];
     }
-    const projectsCollection = db.collection('projects');
     const chunks: string[][] = [];
     for (let i = 0; i < ids.length; i += 30) {
         chunks.push(ids.slice(i, i + 30));
     }
 
     const promises = chunks.map(chunk => 
-        projectsCollection.where(firestore.FieldPath.documentId(), 'in', chunk).get()
+        db.collection('projects').where(firestore.FieldPath.documentId(), 'in', chunk).get()
     );
 
     const snapshots = await Promise.all(promises);
     const projects: Project[] = [];
     snapshots.forEach(snapshot => {
-        const projs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+        const projs = snapshot.docs.map(doc => 
+            processProject({ id: doc.id, ...doc.data() } as Omit<Project, 'progress' | 'alerts'> & { id: string })
+        );
         projects.push(...projs);
     });
     
@@ -40,24 +74,23 @@ export async function getProjectsByIds(db: firestore.Firestore, ids: string[]): 
 };
  
 export async function getAllProjects(db: firestore.Firestore): Promise<Project[]> {
-    const projectsCollection = db.collection('projects');
-    const snapshot = await projectsCollection.orderBy('title').get();
+    const snapshot = await db.collection('projects').orderBy('title').get();
     if (snapshot.empty) {
         return [];
     }
-    const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+    const projects = snapshot.docs.map(doc => 
+        processProject({ id: doc.id, ...doc.data() } as Omit<Project, 'progress' | 'alerts'> & { id: string })
+    );
     return projects;
 };
  
 export async function addProjectData(db: firestore.Firestore, project: Omit<Project, 'id' | 'progress' | 'alerts' | 'budget'>) {
-    const projectsCollection = db.collection('projects');
-    await projectsCollection.add(project);
+    await db.collection('projects').add(project);
 };
  
-export async function updateProjectData(db: firestore.Firestore, id: string, updates: Partial<Project>) {
-    const projectsCollection = db.collection('projects');
+export async function updateProjectData(db: firestore.Firestore, id: string, updates: Partial<Omit<Project, 'progress' | 'alerts' | 'budget'>>) {
     try {
-        await projectsCollection.doc(id).update(updates);
+        await db.collection('projects').doc(id).update(updates);
         return true;
     } catch(error) {
         console.error("Error updating project:", error);
@@ -66,9 +99,8 @@ export async function updateProjectData(db: firestore.Firestore, id: string, upd
 };
  
 export async function deleteProjectData(db: firestore.Firestore, id: string): Promise<boolean> {
-    const projectsCollection = db.collection('projects');
     try {
-        await projectsCollection.doc(id).delete();
+        await db.collection('projects').doc(id).delete();
         return true;
     } catch (error) {
         console.error("Error deleting project:", error);
@@ -120,7 +152,8 @@ export async function addFileToStage(db: firestore.Firestore, projectId: string,
     
     if (!fileAdded) return false;
 
-    await updateProjectData(db, projectId, project);
+    const { progress, alerts, budget, ...projectToUpdate } = project;
+    await db.collection('projects').doc(projectId).update(projectToUpdate);
     return true;
 }
 
@@ -155,59 +188,11 @@ export async function updateStageStatus(db: firestore.Firestore, projectId: stri
     });
 
     try {
-        await updateProjectData(db, projectId, project);
+        const { progress, alerts, budget, ...projectToUpdate } = project;
+        await db.collection('projects').doc(projectId).update(projectToUpdate);
         return true;
     } catch (error) {
         console.error("Error updating stage status:", error);
         return false;
     }
-}
- 
-export async function findContextByQuery(db: firestore.Firestore, query: string): Promise<{ projectId: string; interventionMasterId: string; stageId:string; stageTitle:string; projectTitle: string; } | null> {
-    const allProjects = await getAllProjects(db);
-    if (!allProjects || allProjects.length === 0) return null;
-
-    const lowerCaseQuery = query.toLowerCase();
-
-    for (const project of allProjects) {
-        if (project.title.toLowerCase().includes(lowerCaseQuery)) {
-            if (project.interventions.length > 0 && project.interventions[0].stages.length > 0) {
-                const firstIntervention = project.interventions[0];
-                const firstStage = firstIntervention.stages[0];
-                return {
-                    projectId: project.id,
-                    interventionMasterId: firstIntervention.masterId,
-                    stageId: firstStage.id,
-                    stageTitle: firstStage.title,
-                    projectTitle: project.title,
-                };
-            }
-        }
-        for (const intervention of project.interventions) {
-             if (intervention.interventionCategory.toLowerCase().includes(lowerCaseQuery)) {
-                 if (intervention.stages.length > 0) {
-                     const firstStage = intervention.stages[0];
-                     return {
-                         projectId: project.id,
-                         interventionMasterId: intervention.masterId,
-                         stageId: firstStage.id,
-                         stageTitle: firstStage.title,
-                         projectTitle: project.title,
-                       }
-                 }
-             }
-            for (const stage of intervention.stages) {
-                if (stage.title.toLowerCase().includes(lowerCaseQuery)) {
-                    return {
-                        projectId: project.id,
-                        interventionMasterId: intervention.masterId,
-                        stageId: stage.id,
-                        stageTitle: stage.title,
-                        projectTitle: project.title,
-                    };
-                }
-            }
-        }
-    }
-    return null;
 }

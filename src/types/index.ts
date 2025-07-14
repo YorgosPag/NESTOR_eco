@@ -1,4 +1,3 @@
-
 export type UserRole = "Admin" | "Supplier" | "Client" | "Accounting";
 export type ContactRole = string;
 
@@ -53,55 +52,20 @@ export interface Contact {
   tiktokUrl?: string;
 }
 
-export const expenseCategories = ["Αερισμός", "Εξοικονόμηση Ενέργειας", "Θερμομόνωση", "Κουφώματα", "Λοιπές Παρεμβάσεις", "Συστήματα Θέρμανσης-Ψύξης", "ΖΝΧ", "Σκίαση"] as const;
-export type ExpenseCategory = typeof expenseCategories[number];
-
-export const units = ["€/m²", "€/kW", "€/μονάδα", "€/αίτηση"] as const;
-export type Unit = typeof units[number];
-
+export type ExpenseCategory = string;
+export type Unit = string;
 export type InterventionCategory = string;
-
-export const interventionSubcategories = [
-  "Πλαίσιο αλουμινίου με ενεργειακό υαλοπίνακα- Παράθυρο",
-  "Πλαίσιο αλουμινίου με ενεργειακό υαλοπίνακα – Εξωστόθυρα",
-  "Πλαίσιο ξύλου με ενεργειακό υαλοπίνακα – Παράθυρο",
-  "Πλαίσιο ξύλου με ενεργειακό υαλοπίνακα – Εξωστόθυρα",
-  "Πλαίσιο PVC με ενεργειακό υαλοπίνακα – Παράθυρο",
-  "Πλαίσιο PVC με ενεργειακό υαλοπίνακα - Εξωστόθυρα",
-  "Μόνον ενεργειακοί υαλοπίνακες (Χωρίς αντικατάσταση πλαισίου) (1) (2)",
-  "Εξωτερικό προστατευτικό φύλλο (σύστημα Κουτί–Ρολό, ή Εξώφυλλο) (2) (3)(4)",
-  "Λοιπά σταθερά ή κινητά συστήματα σκίασης (2) (4)",
-  "Συστήματα Μηχανικού Αερισμού με ανάκτηση θερμότητας (4)(5)(€/ μονάδα)",
-  "Θερμομόνωση δώματος εξωτερικά",
-  "Θερμομόνωση στέγης ή οριζόντιας οροφής κάτω από μη θερμομονωμένη στέγη",
-  "Θερμομόνωση εξωτ. τοιχοποιίας, φέροντος οργανισμού, δαπέδου επί εδάφους επί πιλοτής, ή μη θερμαινόμενου χώρου, με επικάλυψη με συνθετικό επίχρισμα(6)",
-  "Θερμομόνωση εξωτ. τοιχοποιίας, φέροντος οργανισμού, δαπέδου επί πιλοτής, ή μη θερμαινόμενου χώρου, με επικάλυψη με ελαφρά πετάσματα (6)",
-  "Διατάξεις αυτομάτου ελέγχου λειτουργίας συστήματος θέρμανσης (7) (8)",
-  "Σύστημα καυστήρα – λέβητα Φυσικού Αερίου / Υγραερίου",
-  "Σύστημα Α/Θ (Θέρμανσης – Ψύξης / Ελάχιστη απαίτηση ενεργειακής σήμανσης στους 55oC)",
-  "Σύστημα γεωθερμικής αντλίας θερμότητας",
-  "Σύστημα συμπαραγωγής Φ.Α. (ΣΗΘΥΑ)",
-  "Σύστημα λέβητα βιομάζας - πελλέτας ξύλου)",
-  "Σύστημα ενδοδαπέδιας θέρμανσης",
-  "Αντλίες θερμότητας αέρα – αέρα διαιρούμενου τύπου (split unit) για θέρμανση/ψύξη χώρου (4) (10)",
-  "Ηλιακό θερμοσιφωνικό σύστημα συλλέκτη – ταμιευτήρα αποθήκευσης ΖΝΧ (4)",
-  "Ηλιoθερμικό σύστημα συλλέκτη – ταμιευτήρα αποθήκευσης ΖΝΧ βεβιασμένης κυκλοφορίας  (8) (11)",
-  "Ηλιoθερμικό σύστημα παροχής ΖΝΧ και υποβοήθησης θέρμανσης χώρου  (8) (11) (12)",
-  "Αντλία θερμότητας  (4)",
-  "Συσκευές  διαχείρισης ενέργειας (smarthome) (4) (11) (12)",
-  "Αναβάθμιση  φωτισμού  (μόνον για πολυκατοικία)  (11)"
-] as const;
-export type InterventionSubcategory = typeof interventionSubcategories[number];
+export type InterventionSubcategory = string;
 
 export interface MasterIntervention {
   id: string;
   code: string;
   info?: string;
   energySpecsOptions?: string;
-  expenseCategory: ExpenseCategory | string;
+  expenseCategory: ExpenseCategory;
   interventionCategory: InterventionCategory;
-  interventionSubcategory?: string;
-  unit: Unit | string;
+  interventionSubcategory?: InterventionSubcategory;
+  unit: Unit;
   maxUnitPrice: number;
   maxAmount: number;
 }
@@ -142,8 +106,9 @@ export interface SubIntervention {
   displayCode?: string; // Added field for calculated display value
 }
 
-export interface ProjectIntervention extends Omit<MasterIntervention, 'id'> {
+export interface ProjectIntervention extends Omit<MasterIntervention, 'id' | 'code' | 'unit' | 'maxUnitPrice' | 'maxAmount'> {
   masterId: string; // ID from MasterIntervention
+  code?: string;
   subInterventions?: SubIntervention[];
 
   // User-defined values for this specific project
@@ -158,8 +123,6 @@ export interface ProjectIntervention extends Omit<MasterIntervention, 'id'> {
   // Calculated value
   totalCost: number;
   stages: Stage[];
-  
-  interventionSubcategory: string;
 }
 
 export interface Project {
@@ -220,13 +183,13 @@ export interface OfferItem {
 export interface Offer {
   id: string;
   supplierId: string;
-  supplierType: "contractor" | "vendor"; // Συνεργείο ή Προμηθευτής
-  type: "general" | "perProject"; // Γενική ή για έργο
-  projectId?: string; // Προαιρετικό αν είναι perProject
+  supplierType: "contractor" | "vendor";
+  type: "general" | "perProject";
+  projectId?: string;
   description: string;
-  items: Omit<OfferItem, 'id'>[]; // Items don't have their own ID in the database
-  fileUrl?: string; // Ανέβασμα PDF
-  createdAt: string; // ISO 8601 date string
+  items: Omit<OfferItem, 'id'>[];
+  fileUrl?: string;
+  createdAt: string;
 }
 
 export interface ChartData {
