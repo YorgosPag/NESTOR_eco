@@ -1,3 +1,4 @@
+
 "use server";
 
 import type { Project, Attachment, StageStatus } from '@/types';
@@ -6,9 +7,15 @@ import { users } from '@/lib/data-helpers';
 
 function processProject(projectData: Omit<Project, 'progress' | 'alerts'> & { id: string }): Project {
     let totalProjectBudget = 0;
-    const sortedInterventions = [...projectData.interventions].sort((a, b) => 
-        (a.interventionSubcategory || a.interventionCategory).localeCompare(b.interventionSubcategory || b.interventionCategory)
-    );
+    
+    // Ensure interventions is an array before trying to sort
+    const interventionsToSort = projectData.interventions || [];
+
+    const sortedInterventions = [...interventionsToSort].sort((a, b) => {
+        const nameA = a.interventionSubcategory || a.interventionCategory || '';
+        const nameB = b.interventionSubcategory || b.interventionCategory || '';
+        return nameA.localeCompare(nameB);
+    });
 
     const interventionsWithCosts = sortedInterventions.map(intervention => {
         const interventionTotalCost = intervention.subInterventions?.reduce((sum, sub) => sum + sub.cost, 0) || 0;
@@ -17,7 +24,8 @@ function processProject(projectData: Omit<Project, 'progress' | 'alerts'> & { id
         const romanNumeralMatch = (intervention.expenseCategory || '').match(/\((I|II|III|IV|V|VI|VII|VIII|IX|X)\)/);
         const romanNumeral = romanNumeralMatch ? ` (${romanNumeralMatch[1]})` : '';
 
-        const updatedSubInterventions = intervention.subInterventions?.map(sub => ({
+        const subInterventionsToSort = intervention.subInterventions || [];
+        const updatedSubInterventions = subInterventionsToSort.map(sub => ({
             ...sub,
             displayCode: `${sub.subcategoryCode}${romanNumeral}`
         })).sort((a, b) => a.subcategoryCode.localeCompare(b.subcategoryCode));
@@ -88,7 +96,7 @@ export async function addProjectData(db: firestore.Firestore, project: Omit<Proj
     await db.collection('projects').add(project);
 };
  
-export async function updateProjectData(db: firestore.Firestore, id: string, updates: Partial<Omit<Project, 'progress' | 'alerts' | 'budget'>>) {
+export async function updateProjectData(db: firestore.Firestore, id: string, updates: Partial<Omit<Project, 'id' | 'progress' | 'alerts' | 'budget'>>) {
     try {
         await db.collection('projects').doc(id).update(updates);
         return true;
