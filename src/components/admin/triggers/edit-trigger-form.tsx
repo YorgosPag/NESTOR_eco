@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useState, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect, useState } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { updateTriggerAction } from '@/app/actions/admin';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -50,7 +50,7 @@ const DialogChild = ({listId, text}: {listId: string, text: string}) => (
 );
 
 export function EditTriggerForm({ trigger, setOpen, customLists, customListItems }: EditTriggerFormProps) {
-    const [state, formAction] = useActionState(updateTriggerAction, initialState);
+    const [state, formAction] = useFormState(updateTriggerAction, initialState);
     const { toast } = useToast();
     const [code, setCode] = useState(trigger.code);
     const [interventionCategory, setInterventionCategory] = useState(trigger.interventionCategory);

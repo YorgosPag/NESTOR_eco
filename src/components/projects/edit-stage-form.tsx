@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
 import { updateStageAction } from '@/app/actions/projects';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,7 @@ interface EditStageFormProps {
 }
 
 export function EditStageForm({ stage, projectId, contacts, setOpen }: EditStageFormProps) {
-    const [state, formAction] = useActionState(updateStageAction, initialState);
+    const [state, formAction] = useFormState(updateStageAction, initialState);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -83,6 +83,23 @@ export function EditStageForm({ stage, projectId, contacts, setOpen }: EditStage
                         {contacts.map(contact => (
                             <SelectItem key={contact.id} value={contact.id}>
                                 {contact.firstName} {contact.lastName} ({contact.role})
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="supervisorContactId">Επίβλεψη από</Label>
+                <Select name="supervisorContactId" defaultValue={stage.supervisorContactId || 'none'}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Επιλέξτε επιβλέποντα..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="none">Καμία επίβλεψη</SelectItem>
+                        {contacts.filter(c => c.specialty?.includes("Μηχανικός")).map(contact => (
+                            <SelectItem key={contact.id} value={contact.id}>
+                                {contact.firstName} {contact.lastName}
                             </SelectItem>
                         ))}
                     </SelectContent>

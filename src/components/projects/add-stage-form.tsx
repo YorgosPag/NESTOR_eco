@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect } from 'react';
@@ -80,6 +81,23 @@ export function AddStageForm({ interventionMasterId, projectId, contacts, setOpe
                         {contacts.map(contact => (
                             <SelectItem key={contact.id} value={contact.id}>
                                 {contact.firstName} {contact.lastName} ({contact.role})
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
+             <div className="space-y-2">
+                <Label htmlFor="supervisorContactId">Επίβλεψη από</Label>
+                <Select name="supervisorContactId">
+                    <SelectTrigger>
+                        <SelectValue placeholder="Επιλέξτε επιβλέποντα..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="none">Καμία επίβλεψη</SelectItem>
+                        {contacts.filter(c => c.specialty?.includes("Μηχανικός")).map(contact => (
+                            <SelectItem key={contact.id} value={contact.id}>
+                                {contact.firstName} {contact.lastName}
                             </SelectItem>
                         ))}
                     </SelectContent>

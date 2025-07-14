@@ -23,6 +23,7 @@ interface CreateOfferFormProps {
     projects: Project[];
     customLists: CustomList[];
     customListItems: CustomListItem[];
+    onAddOffer: (offer: any) => void;
 }
 
 const DialogChild = ({listId, text}: {listId: string, text: string}) => (

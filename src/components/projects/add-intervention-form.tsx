@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { addInterventionAction } from '@/app/actions/interventions';
 import { useToast } from '@/hooks/use-toast';
@@ -29,9 +30,11 @@ function SubmitButton() {
 interface AddInterventionFormProps {
     projectId: string;
     setOpen: (open: boolean) => void;
+    customLists: any[]; // Add appropriate types
+    customListItems: any[]; // Add appropriate types
 }
 
-export function AddInterventionForm({ projectId, setOpen }: AddInterventionFormProps) {
+export function AddInterventionForm({ projectId, setOpen, customLists, customListItems }: AddInterventionFormProps) {
   const [state, formAction] = useFormState(addInterventionAction, initialState);
   const { toast } = useToast();
 

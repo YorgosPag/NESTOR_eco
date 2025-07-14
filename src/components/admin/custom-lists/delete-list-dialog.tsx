@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useEffect, useState, useActionState } from 'react';
+import { useEffect, useState } from 'react';
 import * as React from 'react';
-import { useFormStatus } from 'react-dom';
+import { useFormState, useFormStatus } from 'react-dom';
 import { deleteCustomListAction } from '@/app/actions/admin';
 import {
   AlertDialog,
@@ -51,7 +51,7 @@ interface DeleteListDialogProps {
 
 export function DeleteListDialog({ list, children }: DeleteListDialogProps) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useActionState(deleteCustomListAction, initialState);
+  const [state, formAction] = useFormState(deleteCustomListAction, initialState);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -75,8 +75,6 @@ export function DeleteListDialog({ list, children }: DeleteListDialogProps) {
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       const form = new FormData();
-      // @ts-ignore - a way to reset the form state
-      formAction(form)
     }
     setOpen(isOpen);
   };
