@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from 'react';
@@ -8,27 +9,32 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Copy, HardDriveDownload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { exportContactsToMarkdownAction } from '@/app/actions/contacts';
+import { exportProjectsToMarkdownAction } from '@/app/actions/projects';
+
+type ExportType = 'contacts' | 'projects';
 
 export function DataExport() {
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState<ExportType | null>(null);
     const [markdownData, setMarkdownData] = useState<string | null>(null);
     const { toast } = useToast();
 
-    const handleExport = async () => {
-        setIsLoading(true);
+    const handleExport = async (type: ExportType) => {
+        setIsLoading(type);
         setMarkdownData(null);
         try {
-            const result = await exportContactsToMarkdownAction();
+            const action = type === 'contacts' ? exportContactsToMarkdownAction : exportProjectsToMarkdownAction;
+            const result = await action();
+            
             if (result.success) {
                 setMarkdownData(result.data);
-                toast({ title: 'Επιτυχία', description: 'Τα δεδομένα επαφών εξήχθησαν με επιτυχία.' });
+                toast({ title: 'Επιτυχία', description: `Τα δεδομένα (${type === 'contacts' ? 'επαφών' : 'έργων'}) εξήχθησαν με επιτυχία.` });
             } else {
                 toast({ variant: 'destructive', title: 'Σφάλμα', description: result.error });
             }
         } catch (error) {
              toast({ variant: 'destructive', title: 'Σφάλμα Συστήματος', description: 'Προέκυψε ένα μη αναμενόμενο σφάλμα κατά την εξαγωγή.' });
         } finally {
-            setIsLoading(false);
+            setIsLoading(null);
         }
     };
     
@@ -53,9 +59,14 @@ export function DataExport() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                    <Button onClick={handleExport} disabled={isLoading}>
-                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Εξαγωγή Επαφών σε Markdown'}
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <Button onClick={() => handleExport('contacts')} disabled={!!isLoading}>
+                        {isLoading === 'contacts' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Εξαγωγή Επαφών
+                    </Button>
+                     <Button onClick={() => handleExport('projects')} disabled={!!isLoading}>
+                        {isLoading === 'projects' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Εξαγωγή Έργων
                     </Button>
                     {markdownData && (
                         <Button onClick={handleCopy} variant="outline">
@@ -71,7 +82,7 @@ export function DataExport() {
                     </div>
                 )}
                 
-                {markdownData && (
+                {markdownData && !isLoading && (
                     <div>
                         <Label htmlFor="markdown-output">Αποτέλεσμα Εξαγωγής</Label>
                         <Textarea

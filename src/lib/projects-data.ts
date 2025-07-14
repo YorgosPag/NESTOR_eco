@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import type { Project, Attachment, StageStatus } from '@/types';
@@ -10,17 +11,14 @@ function serializeData(data: any): any {
     if (data === null || data === undefined) {
         return data;
     }
+    // Handle Firestore Timestamp specifically
+    if (typeof data.toDate === 'function') {
+        return data.toDate().toISOString();
+    }
     if (Array.isArray(data)) {
-        // Filter out null/undefined entries and serialize the rest
-        return data.filter(item => item !== null && item !== undefined).map(serializeData);
+        return data.map(serializeData);
     }
     if (typeof data === 'object') {
-        // Handle Firestore Timestamp
-        if (typeof data.toDate === 'function') {
-            return data.toDate().toISOString();
-        }
-        
-        // Handle other objects recursively
         const serializedData: { [key: string]: any } = {};
         for (const key in data) {
             serializedData[key] = serializeData(data[key]);

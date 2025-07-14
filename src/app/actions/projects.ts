@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { revalidatePath } from 'next/cache';
@@ -6,10 +7,11 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import type { Project, Contact, Stage, Attachment, User, StageStatus } from '@/types';
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getContacts as getContactsData } from '@/lib/contacts-data';
+import { getContacts as getContactsData, getContactById as getContactDataById } from '@/lib/contacts-data';
 import { users } from '@/lib/data-helpers';
 import { calculateClientProjectMetrics } from '@/lib/client-utils';
 import { 
+    getAllProjects as getAllProjectsData,
     getProjectById as getProjectDataById, 
     getProjectsByIds as getProjectsDataByIds,
     updateProjectData,
@@ -531,4 +533,69 @@ export async function moveStageAction(prevState: any, formData: FormData) {
 
     revalidatePath(`/projects/${projectId}`);
     return { success: true, message: 'Η σειρά άλλαξε.' };
+}
+
+// --- Data Export Action ---
+
+async function projectsToMarkdown(db: firestore.Firestore, projects: Project[]): Promise<string> {
+    let markdown = '# Λίστα Έργων Βάσης Δεδομένων\n\n';
+    markdown += 'Ακολουθούν τα αναλυτικά στοιχεία για όλα τα έργα που είναι καταχωρημένα στο σύστημα.\n\n---\n\n';
+
+    for (const project of projects) {
+        markdown += `## ${project.title || 'Έργο χωρίς τίτλο'} (ID: ${project.id})\n\n`;
+        markdown += `- **Αρ. Αίτησης:** ${project.applicationNumber || 'Δ/Υ'}\n`;
+        markdown += `- **Κατάσταση:** ${project.status || 'Δ/Υ'}\n`;
+        if (project.deadline) {
+            markdown += `- **Προθεσμία:** ${new Date(project.deadline).toLocaleDateString('el-GR')}\n`;
+        }
+        
+        if (project.ownerContactId) {
+            const owner = await getContactDataById(db, project.ownerContactId);
+            markdown += `- **Ιδιοκτήτης:** ${owner ? `${owner.firstName} ${owner.lastName}` : 'Άγνωστος'}\n`;
+        }
+
+        markdown += `\n### Παρεμβάσεις\n\n`;
+        if (project.interventions && project.interventions.length > 0) {
+            project.interventions.forEach(intervention => {
+                markdown += `#### ${intervention.interventionSubcategory || intervention.interventionCategory}\n`;
+                if (intervention.subInterventions && intervention.subInterventions.length > 0) {
+                    markdown += '| Κωδικός | Περιγραφή | Κόστος |\n';
+                    markdown += '|:---|:---|---:|\n';
+                    intervention.subInterventions.forEach(sub => {
+                        markdown += `| ${sub.subcategoryCode} | ${sub.description} | ${sub.cost.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })} |\n`;
+                    });
+                     markdown += '\n';
+                }
+
+                if (intervention.stages && intervention.stages.length > 0) {
+                    markdown += '**Στάδια Υλοποίησης:**\n';
+                     intervention.stages.forEach(stage => {
+                         markdown += `- **${stage.title}**: ${stage.status} (Προθεσμία: ${new Date(stage.deadline).toLocaleDateString('el-GR')})\n`;
+                     });
+                     markdown += '\n';
+                }
+            });
+        } else {
+            markdown += `_Δεν υπάρχουν καταχωρημένες παρεμβάσεις για αυτό το έργο._\n\n`;
+        }
+        markdown += '---\n\n';
+    }
+
+    return markdown;
+}
+
+
+export async function exportProjectsToMarkdownAction() {
+  try {
+    const db = getAdminDb();
+    const projects = await getAllProjectsData(db);
+    if (projects.length === 0) {
+      return { success: true, data: "Δεν βρέθηκαν έργα στη βάση δεδομένων." };
+    }
+    const markdownData = await projectsToMarkdown(db, projects);
+    return { success: true, data: markdownData };
+  } catch (error: any) {
+    console.error("🔥 ERROR in exportProjectsToMarkdownAction:", error);
+    return { success: false, error: `Η εξαγωγή απέτυχε: ${error.message}` };
+  }
 }
