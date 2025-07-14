@@ -5,65 +5,52 @@ This is a Next.js application built with Firebase, Next.js, and Genkit for AI fe
 
 ---
 
-## 🚀 Deploying Your Application
+## 🚀 Deploying and Configuring Your Application
 
-To get your application live on the internet, you need to deploy it to **Firebase App Hosting**. Here are the essential steps.
+To get your application running correctly, you need to connect it to your Firebase project by setting up the necessary environment variables.
 
-### 1. Setting Up Environment Variables
+### 1. Firebase Project Details (From `firebase.json`)
 
-Your application needs a few secret keys to connect to Firebase services (like the database) and Google's AI models. These are called **environment variables**.
+*   **Project ID (`projectId`):** The application is configured to use the Firebase project ID you provide in the environment variables.
+*   **Firestore Region (`location`):** `eur3`
+*   **Hosting Region (`region`):** `us-central1`
+
+### 2. Environment Variables (`.env`)
+
+For the Firebase Admin SDK to connect to Firestore, you must set up the following environment variables in your deployment environment (e.g., Firebase App Hosting secrets, Netlify environment variables).
 
 #### Required Variables:
 
 *   `FIREBASE_PROJECT_ID`: Your Firebase project's unique ID.
-*   `FIREBASE_CLIENT_EMAIL`: The email for the service account.
-*   `FIREBASE_PRIVATE_KEY`: The private key for the service account.
+*   `FIREBASE_CLIENT_EMAIL`: The email for the service account you will create.
+*   `FIREBASE_PRIVATE_KEY`: The private key for that service account.
 *   `GEMINI_API_KEY`: Your API key for using Google's AI models (Gemini).
 
-#### Step A: Get Your Firebase Credentials
+#### How to Get These Values:
 
-The first three variables come from a **service account key file** in your Firebase project.
+1.  **Get Your Firebase Credentials:**
+    *   Go to your **Firebase Console**.
+    *   Click the gear icon ⚙️ next to "Project Overview" and select **Project settings**.
+    *   Go to the **Service accounts** tab.
+    *   Click **Generate new private key**. A JSON file will be downloaded.
+    *   Open this file. You will find the exact values for:
+        *   `project_id`
+        *   `client_email`
+        *   `private_key` (This is a long string that starts with `-----BEGIN PRIVATE KEY-----`). **Important:** When you copy the `private_key`, make sure to copy the entire string, including the `-----BEGIN...` and `-----END...` parts.
 
-1.  Go to your **Firebase Console**.
-2.  Click the gear icon ⚙️ next to "Project Overview" and select **Project settings**.
-3.  Go to the **Service accounts** tab.
-4.  Click **Generate new private key**. A JSON file will be downloaded to your computer.
-5.  Open this file. You will find the values for:
-    *   `project_id`
-    *   `client_email`
-    *   `private_key` (This is a long string that starts with `-----BEGIN PRIVATE KEY-----`).
+2.  **Get Your Gemini API Key:**
+    *   Go to **Google AI Studio**.
+    *   Click **"Get API key"** and create a new key.
 
-**Important:** When you copy the `private_key`, make sure to copy the entire string, including the `-----BEGIN...` and `-----END...` parts, exactly as it appears inside the quotes `""`.
+### 3. Data Source and Consistency
 
-#### Step B: Get Your Gemini API Key
+*   The application uses a **single Firestore database**. It does not connect to multiple databases.
+*   The data displayed in the application comes directly from the collections (`projects`, `contacts`, etc.) within the Firebase project you have configured with the environment variables above.
+*   Therefore, the data is always consistent and reflects the current state of that single database.
 
-1.  Go to **Google AI Studio**.
-2.  Click **"Get API key"**.
-3.  Create a new API key in a new or existing Google Cloud project.
-4.  Copy the generated key.
+### 4. Seeding the Database (For First-Time Use)
 
-#### Step C: Add Variables to Firebase App Hosting
-
-1.  Go back to your **Firebase Console**.
-2.  From the left menu, select **Build > App Hosting**.
-3.  Find your backend and click on its name to go to its details page.
-4.  Go to the **Settings** tab.
-5.  In the "Backend secret management" section, click **Add secret**.
-6.  Add each of the four variables one by one:
-    *   Secret name: `FIREBASE_PROJECT_ID`, Secret value: (paste the value from the JSON file)
-    *   Secret name: `FIREBASE_CLIENT_EMAIL`, Secret value: (paste the value from the JSON file)
-    *   Secret name: `FIREBASE_PRIVATE_KEY`, Secret value: (paste the value from the JSON file)
-    *   Secret name: `GEMINI_API_KEY`, Secret value: (paste your Gemini key)
-7.  Click **Save changes**. You might need to deploy a new version for the changes to take effect.
-
-### 2. Deploy Your App
-
-Once your environment variables are set up, deploying is straightforward. If you have the Firebase CLI installed on your local machine, you can run:
-
-```bash
-firebase deploy
-```
-
-If you are using a continuous deployment (CI/CD) setup through Firebase Studio or another service, a new deployment will likely be triggered automatically when you push your changes.
-
-After the deployment is complete, your application will be live at the URL provided by Firebase!
+If your Firestore database is empty, you can populate it with sample data.
+1.  Navigate to the `/settings` page in the application.
+2.  Click the "Εκτέλεση Αρχικοποίησης (Seed)" button.
+3.  This will add sample projects, contacts, and other necessary data to get you started. **This should only be done once on an empty database.**
