@@ -8,13 +8,12 @@ interface InterventionPipelineProps {
   stages: Stage[];
   project: Project;
   allProjectInterventions: ProjectIntervention[];
-  interventionName: string;
+  interventionMasterId: string;
   contacts: Contact[];
   owner?: Contact;
-  interventionMasterId: string;
 }
 
-const PipelineColumn = ({ title, stages, project, allProjectInterventions, interventionName, contacts, owner, interventionMasterId }: { title: string, stages: Stage[], project: Project, allProjectInterventions: ProjectIntervention[], interventionName: string, contacts: Contact[], owner?: Contact, interventionMasterId: string }) => (
+const PipelineColumn = ({ title, stages, ...props }: { title: string, stages: Stage[] } & Omit<InterventionPipelineProps, 'stages'>) => (
   <div>
     <h3 className="font-semibold mb-3 px-2 text-muted-foreground">{title} ({stages.length})</h3>
     <div className="flex flex-col gap-3">
@@ -22,12 +21,7 @@ const PipelineColumn = ({ title, stages, project, allProjectInterventions, inter
         <StageCard 
             key={stage.id} 
             stage={stage} 
-            project={project}
-            allProjectInterventions={allProjectInterventions}
-            interventionName={interventionName}
-            contacts={contacts} 
-            owner={owner}
-            interventionMasterId={interventionMasterId}
+            {...props}
             canMoveUp={index > 0}
             canMoveDown={index < stages.length - 1}
         />
@@ -37,7 +31,8 @@ const PipelineColumn = ({ title, stages, project, allProjectInterventions, inter
   </div>
 );
 
-export function InterventionPipeline({ stages, project, allProjectInterventions, interventionName, contacts, owner, interventionMasterId }: InterventionPipelineProps) {
+export function InterventionPipeline(props: InterventionPipelineProps) {
+  const { stages } = props;
   const pendingItems = stages.filter((s) => s.status === 'pending');
   const inProgressItems = stages.filter((s) => s.status === 'in progress');
   const completedItems = stages.filter((s) => s.status === 'completed');
@@ -45,10 +40,10 @@ export function InterventionPipeline({ stages, project, allProjectInterventions,
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <PipelineColumn title="Σε Εκκρεμότητα" stages={pendingItems} project={project} allProjectInterventions={allProjectInterventions} interventionName={interventionName} contacts={contacts} owner={owner} interventionMasterId={interventionMasterId} />
-      <PipelineColumn title="Σε Εξέλιξη" stages={inProgressItems} project={project} allProjectInterventions={allProjectInterventions} interventionName={interventionName} contacts={contacts} owner={owner} interventionMasterId={interventionMasterId}/>
-      <PipelineColumn title="Ολοκληρωμένα" stages={completedItems} project={project} allProjectInterventions={allProjectInterventions} interventionName={interventionName} contacts={contacts} owner={owner} interventionMasterId={interventionMasterId}/>
-      <PipelineColumn title="Απέτυχαν" stages={failedItems} project={project} allProjectInterventions={allProjectInterventions} interventionName={interventionName} contacts={contacts} owner={owner} interventionMasterId={interventionMasterId}/>
+      <PipelineColumn title="Σε Εκκρεμότητα" stages={pendingItems} {...props} />
+      <PipelineColumn title="Σε Εξέλιξη" stages={inProgressItems} {...props}/>
+      <PipelineColumn title="Ολοκληρωμένα" stages={completedItems} {...props}/>
+      <PipelineColumn title="Απέτυχαν" stages={failedItems} {...props}/>
     </div>
   );
 }

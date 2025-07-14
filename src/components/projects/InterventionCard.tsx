@@ -1,9 +1,8 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { Project, ProjectIntervention, Contact, CustomList, CustomListItem } from "@/types";
-import { useFormState } from 'react-dom';
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -20,7 +19,7 @@ import { DeleteSubInterventionDialog } from "./delete-sub-intervention-dialog";
 import { PlusCircle, Pencil, Trash2, ChevronDown, MoreHorizontal, ArrowUp, ArrowDown, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { moveSubInterventionAction, updateInterventionCostsAction } from '@/app/actions/interventions';
+import { moveSubInterventionAction } from '@/app/actions/interventions';
 
 
 const TooltipHeader = ({ title, tooltipText, className }: { title: string, tooltipText: React.ReactNode, className?: string }) => (
@@ -57,6 +56,12 @@ export function InterventionCard({ project, intervention, allProjectIntervention
     const vatAmount = subtotal * 0.24;
     const totalAmount = subtotal + vatAmount;
     const interventionName = intervention.interventionSubcategory || intervention.interventionCategory;
+    
+    const sortedSubInterventions = useMemo(() => {
+        return [...(intervention.subInterventions || [])].sort((a, b) => 
+            (a.subcategoryCode || '').localeCompare(b.subcategoryCode || '')
+        );
+    }, [intervention.subInterventions]);
 
 
     return (
@@ -129,8 +134,8 @@ export function InterventionCard({ project, intervention, allProjectIntervention
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {(intervention.subInterventions && intervention.subInterventions.length > 0) ? (
-                              intervention.subInterventions.map((sub, index) => {
+                            {(sortedSubInterventions && sortedSubInterventions.length > 0) ? (
+                              sortedSubInterventions.map((sub, index) => {
                                 const internalCost = (sub.costOfMaterials || 0) + (sub.costOfLabor || 0);
                                 const profit = sub.cost - internalCost;
                                 const profitMargin = sub.cost > 0 ? (profit / sub.cost) * 100 : 0;
@@ -210,7 +215,7 @@ export function InterventionCard({ project, intervention, allProjectIntervention
                               </TableRow>
                             )}
                           </TableBody>
-                          {(intervention.subInterventions && intervention.subInterventions.length > 0) && (
+                          {(sortedSubInterventions && sortedSubInterventions.length > 0) && (
                               <TableFooter>
                                   <TableRow>
                                       <TableCell colSpan={4} className="text-right font-medium">Καθαρή Αξία</TableCell>
@@ -245,7 +250,7 @@ export function InterventionCard({ project, intervention, allProjectIntervention
                       />
                     </div>
                     <div className="flex justify-start pt-2">
-                        <AddStageDialog projectId={project.id} interventionMasterId={intervention.masterId} interventionName={interventionName} contacts={contacts}>
+                        <AddStageDialog projectId={project.id} interventionMasterId={intervention.masterId} contacts={contacts}>
                             <Button variant="outline" size="sm">
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Προσθήκη Νέου Σταδίου

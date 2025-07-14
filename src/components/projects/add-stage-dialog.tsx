@@ -15,13 +15,12 @@ import type { Contact } from '@/types';
 
 interface AddStageDialogProps {
     interventionMasterId: string;
-    interventionName: string;
     projectId: string;
     contacts: Contact[];
     children: ReactNode;
 }
 
-export function AddStageDialog({ interventionMasterId, interventionName, projectId, contacts, children }: AddStageDialogProps) {
+export function AddStageDialog({ interventionMasterId, projectId, contacts, children }: AddStageDialogProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -31,8 +30,6 @@ export function AddStageDialog({ interventionMasterId, interventionName, project
         <DialogHeader>
           <DialogTitle>Προσθήκη Νέου Σταδίου</DialogTitle>
           <DialogDescription>
-            Για την παρέμβαση: <strong>{interventionName}</strong>.
-            <br />
             Συμπληρώστε τις λεπτομέρειες του νέου σταδίου.
           </DialogDescription>
         </DialogHeader>

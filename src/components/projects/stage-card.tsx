@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -19,11 +18,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuPortal,
-  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { FileUploadDialog } from "@/components/projects/file-upload-dialog";
 import { SmartReminderDialog } from "@/components/projects/smart-reminder-dialog";
@@ -40,15 +34,14 @@ interface StageCardProps {
   stage: Stage;
   project: Project;
   allProjectInterventions: ProjectIntervention[];
-  interventionName: string;
+  interventionMasterId: string;
   contacts: Contact[];
   owner?: Contact;
-  interventionMasterId: string;
   canMoveUp: boolean;
   canMoveDown: boolean;
 }
 
-export function StageCard({ stage, project, allProjectInterventions, interventionName, contacts, owner, interventionMasterId, canMoveUp, canMoveDown }: StageCardProps) {
+export function StageCard({ stage, project, allProjectInterventions, contacts, owner, interventionMasterId, canMoveUp, canMoveDown }: StageCardProps) {
   const [isClient, setIsClient] = useState(false);
   const formRefUp = useRef<HTMLFormElement>(null);
   const formRefDown = useRef<HTMLFormElement>(null);
@@ -58,7 +51,6 @@ export function StageCard({ stage, project, allProjectInterventions, interventio
   const formRefRestart = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    // This ensures date calculations are only done on the client, preventing hydration mismatch.
     setIsClient(true);
   }, []);
 
@@ -78,8 +70,7 @@ export function StageCard({ stage, project, allProjectInterventions, interventio
   
   const deadlineDate = new Date(stage.deadline);
   const isOverdue = isClient ? isPast(deadlineDate) && stage.status !== 'completed' : false;
-  const daysUntilDeadline = isClient ? differenceInDays(deadlineDate, new Date()) : 0;
-  const isApproaching = isClient ? daysUntilDeadline >= 0 && daysUntilDeadline <= 7 && stage.status !== 'completed' : false;
+  const isApproaching = isClient ? differenceInDays(deadlineDate, new Date()) <= 7 && !isOverdue && stage.status !== 'completed' : false;
 
   const assignee = contacts.find(c => c.id === stage.assigneeContactId);
   const supervisor = contacts.find(c => c.id === stage.supervisorContactId);
@@ -105,55 +96,17 @@ export function StageCard({ stage, project, allProjectInterventions, interventio
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuSeparator />
-
-                {stage.status === 'pending' && (
-                    <form action={updateStageStatusAction} ref={formRefStart}>
-                        <input type="hidden" name="projectId" value={project.id} />
-                        <input type="hidden" name="stageId" value={stage.id} />
-                        <input type="hidden" name="status" value="in progress" />
-                        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefStart.current?.requestSubmit(); }}>
-                            <Play className="mr-2 h-4 w-4" />
-                            <span>Έναρξη Εργασιών</span>
-                        </DropdownMenuItem>
-                    </form>
-                )}
-
-                {stage.status === 'in progress' && (
-                    <>
-                        <form action={updateStageStatusAction} ref={formRefComplete}>
-                            <input type="hidden" name="projectId" value={project.id} />
-                            <input type="hidden" name="stageId" value={stage.id} />
-                            <input type="hidden" name="status" value="completed" />
-                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefComplete.current?.requestSubmit(); }}>
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                <span>Ολοκλήρωση Σταδίου</span>
-                            </DropdownMenuItem>
-                        </form>
-                        <form action={updateStageStatusAction} ref={formRefFail}>
-                            <input type="hidden" name="projectId" value={project.id} />
-                            <input type="hidden" name="stageId" value={stage.id} />
-                            <input type="hidden" name="status" value="failed" />
-                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefFail.current?.requestSubmit(); }} className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                                <XCircle className="mr-2 h-4 w-4" />
-                                <span>Σήμανση ως Αποτυχημένο</span>
-                            </DropdownMenuItem>
-                        </form>
-                    </>
-                )}
-
-                {(stage.status === 'completed' || stage.status === 'failed') && (
-                    <form action={updateStageStatusAction} ref={formRefRestart}>
-                        <input type="hidden" name="projectId" value={project.id} />
-                        <input type="hidden" name="stageId" value={stage.id} />
-                        <input type="hidden" name="status" value="in progress" />
-                        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefRestart.current?.requestSubmit(); }}>
-                            <Undo2 className="mr-2 h-4 w-4" />
-                            <span>Επανέναρξη Εργασιών</span>
-                        </DropdownMenuItem>
-                    </form>
-                )}
-
+                <form action={updateStageStatusAction} ref={formRefStart}><input type="hidden" name="projectId" value={project.id} /><input type="hidden" name="stageId" value={stage.id} /><input type="hidden" name="status" value="in progress" /></form>
+                <form action={updateStageStatusAction} ref={formRefComplete}><input type="hidden" name="projectId" value={project.id} /><input type="hidden" name="stageId" value={stage.id} /><input type="hidden" name="status" value="completed" /></form>
+                <form action={updateStageStatusAction} ref={formRefFail}><input type="hidden" name="projectId" value={project.id} /><input type="hidden" name="stageId" value={stage.id} /><input type="hidden" name="status" value="failed" /></form>
+                <form action={updateStageStatusAction} ref={formRefRestart}><input type="hidden" name="projectId" value={project.id} /><input type="hidden" name="stageId" value={stage.id} /><input type="hidden" name="status" value="in progress" /></form>
+                <form action={moveStageAction} ref={formRefUp}><input type="hidden" name="projectId" value={project.id} /><input type="hidden" name="interventionMasterId" value={interventionMasterId} /><input type="hidden" name="stageId" value={stage.id} /><input type="hidden" name="direction" value="up" /></form>
+                <form action={moveStageAction} ref={formRefDown}><input type="hidden" name="projectId" value={project.id} /><input type="hidden" name="interventionMasterId" value={interventionMasterId} /><input type="hidden" name="stageId" value={stage.id} /><input type="hidden" name="direction" value="down" /></form>
+                
+                {stage.status === 'pending' && <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefStart.current?.requestSubmit(); }}><Play className="mr-2 h-4 w-4" /><span>Έναρξη Εργασιών</span></DropdownMenuItem>}
+                {stage.status === 'in progress' && <><DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefComplete.current?.requestSubmit(); }}><CheckCircle className="mr-2 h-4 w-4" /><span>Ολοκλήρωση Σταδίου</span></DropdownMenuItem><DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefFail.current?.requestSubmit(); }} className="text-destructive focus:text-destructive focus:bg-destructive/10"><XCircle className="mr-2 h-4 w-4" /><span>Σήμανση ως Αποτυχημένο</span></DropdownMenuItem></>}
+                {(stage.status === 'completed' || stage.status === 'failed') && <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefRestart.current?.requestSubmit(); }}><Undo2 className="mr-2 h-4 w-4" /><span>Επανέναρξη Εργασιών</span></DropdownMenuItem>}
+                
                 <DropdownMenuSeparator />
                 <NotifyAssigneeDialog 
                   stage={stage}
@@ -181,28 +134,16 @@ export function StageCard({ stage, project, allProjectInterventions, interventio
                   </DropdownMenuItem>
                </FileUploadDialog>
               <DropdownMenuSeparator />
-              <form action={moveStageAction} ref={formRefUp} className="w-full">
-                <input type="hidden" name="projectId" value={project.id} />
-                <input type="hidden" name="interventionMasterId" value={interventionMasterId} />
-                <input type="hidden" name="stageId" value={stage.id} />
-                <input type="hidden" name="direction" value="up" />
-                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefUp.current?.requestSubmit(); }} disabled={!canMoveUp}>
+              <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefUp.current?.requestSubmit(); }} disabled={!canMoveUp}>
                     <ArrowUp className="mr-2 h-4 w-4" />
                     <span>Μετακίνηση Πάνω</span>
                 </DropdownMenuItem>
-              </form>
-              <form action={moveStageAction} ref={formRefDown} className="w-full">
-                <input type="hidden" name="projectId" value={project.id} />
-                <input type="hidden" name="interventionMasterId" value={interventionMasterId} />
-                <input type="hidden" name="stageId" value={stage.id} />
-                <input type="hidden" name="direction" value="down" />
-                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefDown.current?.requestSubmit(); }} disabled={!canMoveDown}>
+              <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefDown.current?.requestSubmit(); }} disabled={!canMoveDown}>
                   <ArrowDown className="mr-2 h-4 w-4" />
                   <span>Μετακίνηση Κάτω</span>
                 </DropdownMenuItem>
-              </form>
               <DropdownMenuSeparator />
-              <EditStageDialog stage={stage} projectId={project.id} interventionName={interventionName} contacts={contacts}>
+              <EditStageDialog stage={stage} projectId={project.id} contacts={contacts}>
                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                     <Pencil className="mr-2 h-4 w-4" />
                     <span>Επεξεργασία Σταδίου</span>

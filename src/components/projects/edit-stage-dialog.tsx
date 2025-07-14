@@ -17,30 +17,21 @@ import { AlertTriangle } from 'lucide-react';
 
 interface EditStageDialogProps {
     stage: Stage;
-    interventionName: string;
     projectId: string;
     contacts: Contact[];
     children: ReactNode;
 }
 
-export function EditStageDialog({ stage, interventionName, projectId, contacts, children }: EditStageDialogProps) {
+export function EditStageDialog({ stage, projectId, contacts, children }: EditStageDialogProps) {
   const [open, setOpen] = useState(false);
 
-  const handleOpenChange = (isOpen: boolean) => {
-    // Prevent closing the dialog by clicking outside when the form is inside
-    // This logic can be more complex if needed, e.g., based on form state
-    setOpen(isOpen);
-  };
-
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Επεξεργασία Σταδίου</DialogTitle>
           <DialogDescription>
-             Για την παρέμβαση: <strong>{interventionName}</strong>.
-             <br />
              Ενημερώστε τις λεπτομέρειες του σταδίου.
           </DialogDescription>
         </DialogHeader>

@@ -8,7 +8,6 @@ import { users } from '@/lib/data-helpers';
 function processProject(projectData: Omit<Project, 'progress' | 'alerts'> & { id: string }): Project {
     let totalProjectBudget = 0;
     
-    // Ensure interventions is an array before trying to sort
     const interventionsToSort = projectData.interventions || [];
 
     const sortedInterventions = [...interventionsToSort].sort((a, b) => {
@@ -24,16 +23,15 @@ function processProject(projectData: Omit<Project, 'progress' | 'alerts'> & { id
         const romanNumeralMatch = (intervention.expenseCategory || '').match(/\((I|II|III|IV|V|VI|VII|VIII|IX|X)\)/);
         const romanNumeral = romanNumeralMatch ? ` (${romanNumeralMatch[1]})` : '';
 
-        const subInterventionsToSort = intervention.subInterventions || [];
-        const updatedSubInterventions = subInterventionsToSort.map(sub => ({
+        const subInterventionsWithDisplayCode = (intervention.subInterventions || []).map(sub => ({
             ...sub,
-            displayCode: `${sub.subcategoryCode}${romanNumeral}`
-        })).sort((a, b) => a.subcategoryCode.localeCompare(b.subcategoryCode));
+            displayCode: `${sub.subcategoryCode || ''}${romanNumeral}`
+        }));
 
         return {
             ...intervention,
             totalCost: interventionTotalCost,
-            subInterventions: updatedSubInterventions
+            subInterventions: subInterventionsWithDisplayCode
         };
     });
 
@@ -41,8 +39,8 @@ function processProject(projectData: Omit<Project, 'progress' | 'alerts'> & { id
         ...projectData,
         interventions: interventionsWithCosts,
         budget: totalProjectBudget,
-        progress: 0, // Default progress, client will calculate real value
-        alerts: 0,   // Default alerts, client will calculate real value
+        progress: 0, 
+        alerts: 0,   
     };
 }
 
