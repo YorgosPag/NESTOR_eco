@@ -11,7 +11,8 @@ function serializeData(data: any): any {
         return data;
     }
     if (Array.isArray(data)) {
-        return data.map(serializeData);
+        // Filter out null/undefined entries and serialize the rest
+        return data.filter(item => item !== null && item !== undefined).map(serializeData);
     }
     if (typeof data === 'object') {
         // Handle Firestore Timestamp
