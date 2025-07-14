@@ -254,7 +254,7 @@ const DeleteProjectSchema = z.object({
     id: z.string().min(1),
 });
 
-export async function deleteProjectAction(formData: FormData) {
+export async function deleteProjectAction(prevState: any, formData: FormData) {
     try {
         const validatedFields = DeleteProjectSchema.safeParse({
             id: formData.get('id'),
@@ -272,7 +272,8 @@ export async function deleteProjectAction(formData: FormData) {
     }
 
     revalidatePath('/dashboard');
-    return { success: true, message: 'Το έργο διαγράφηκε με επιτυχία.' };
+    revalidatePath('/projects');
+    redirect('/projects');
 }
 
 const LogEmailNotificationSchema = z.object({
@@ -330,7 +331,7 @@ const AddStageSchema = z.object({
     supervisorContactId: z.string().optional(),
 });
 
-export async function addStageAction(formData: FormData) {
+export async function addStageAction(prevState: any, formData: FormData) {
     const validatedFields = AddStageSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
@@ -390,7 +391,7 @@ const UpdateStageSchema = AddStageSchema.extend({
   stageId: z.string(),
 });
 
-export async function updateStageAction(formData: FormData) {
+export async function updateStageAction(prevState: any, formData: FormData) {
     const validatedFields = UpdateStageSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
@@ -445,7 +446,7 @@ const DeleteStageSchema = z.object({
   stageId: z.string(),
 });
 
-export async function deleteStageAction(formData: FormData) {
+export async function deleteStageAction(prevState: any, formData: FormData) {
     const validatedFields = DeleteStageSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
@@ -494,7 +495,7 @@ const MoveStageSchema = z.object({
   direction: z.enum(['up', 'down']),
 });
 
-export async function moveStageAction(formData: FormData) {
+export async function moveStageAction(prevState: any, formData: FormData) {
     const validatedFields = MoveStageSchema.safeParse(Object.fromEntries(formData.entries()));
     if (!validatedFields.success) {
         return { success: false, message: 'Μη έγκυρα δεδομένα.' };

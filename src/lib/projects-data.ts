@@ -7,21 +7,22 @@ import { users } from '@/lib/data-helpers';
 
 // Helper function to safely serialize Firestore Timestamps to ISO strings
 function serializeData(data: any): any {
-    if (!data) return data;
+    if (data === null || data === undefined) {
+        return data;
+    }
     if (Array.isArray(data)) {
         return data.map(serializeData);
     }
     if (typeof data === 'object') {
+        // Handle Firestore Timestamp
+        if (typeof data.toDate === 'function') {
+            return data.toDate().toISOString();
+        }
+        
+        // Handle other objects recursively
         const serializedData: { [key: string]: any } = {};
         for (const key in data) {
-            const value = data[key];
-            if (value && typeof value.toDate === 'function') {
-                serializedData[key] = value.toDate().toISOString();
-            } else if (typeof value === 'object') {
-                serializedData[key] = serializeData(value);
-            } else {
-                serializedData[key] = value;
-            }
+            serializedData[key] = serializeData(data[key]);
         }
         return serializedData;
     }
