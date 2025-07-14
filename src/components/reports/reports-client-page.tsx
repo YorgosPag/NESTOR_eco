@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState } from "react";
@@ -13,10 +12,9 @@ import {
 } from "@/components/ui/select";
 import { FinancialSummaryReport } from "./financial-summary-report";
 import { AIReportAssistant } from "./ai-report-assistant";
-import { BarChart2 } from "lucide-react";
+import { BarChart2, HardDriveDownload } from "lucide-react";
 import { DynamicReportBuilder } from "./dynamic-report-builder";
-import { getAllProjects } from "@/lib/projects-data";
-import { getAdminDb } from "@/lib/firebase-admin";
+import { DataExport } from "./data-export";
 
 
 interface ReportsClientPageProps {
@@ -46,6 +44,7 @@ export function ReportsClientPage({ projects, contacts }: ReportsClientPageProps
                             <SelectItem value="report_builder">Ευέλικτες Αναφορές</SelectItem>
                             <SelectItem value="ai_assistant">Βοηθός Αναφορών AI</SelectItem>
                             <SelectItem value="financial_summary">Οικονομική Επισκόπηση</SelectItem>
+                            <SelectItem value="data_export">Εξαγωγή Δεδομένων</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -60,6 +59,9 @@ export function ReportsClientPage({ projects, contacts }: ReportsClientPageProps
                 )}
                 {selectedReport === 'financial_summary' && (
                     <FinancialSummaryReport projects={projects.filter(p => p.status !== 'Quotation')} />
+                )}
+                {selectedReport === 'data_export' && (
+                    <DataExport />
                 )}
             </div>
         </div>
