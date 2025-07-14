@@ -5,6 +5,7 @@
 ├── .env
 ├── .vscode/
 │   └── settings.json
+├── DATABASE_STRUCTURE.md
 ├── README.md
 ├── apphosting.yaml
 ├── components.json
