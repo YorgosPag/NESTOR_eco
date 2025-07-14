@@ -5,54 +5,62 @@ import type { Project, Attachment, StageStatus } from '@/types';
 import { firestore } from "firebase-admin";
 import { users } from '@/lib/data-helpers';
 
-function processProject(projectData: Omit<Project, 'progress' | 'alerts' | 'budget'> & { id: string }): Project {
-    let totalProjectBudget = 0;
-    
-    // Ensure interventions exist and sort them safely
+// Helper function to safely serialize Firestore Timestamps to ISO strings
+function serializeData(data: any): any {
+    if (!data) return data;
+    if (Array.isArray(data)) {
+        return data.map(serializeData);
+    }
+    if (typeof data === 'object') {
+        const serializedData: { [key: string]: any } = {};
+        for (const key in data) {
+            const value = data[key];
+            if (value && typeof value.toDate === 'function') {
+                serializedData[key] = value.toDate().toISOString();
+            } else if (typeof value === 'object') {
+                serializedData[key] = serializeData(value);
+            } else {
+                serializedData[key] = value;
+            }
+        }
+        return serializedData;
+    }
+    return data;
+}
+
+function processProject(projectDoc: firestore.DocumentSnapshot): Project {
+    const data = projectDoc.data();
+    if (!data) {
+        throw new Error(`Project with ID ${projectDoc.id} has no data.`);
+    }
+
+    const projectData = {
+        id: projectDoc.id,
+        ...serializeData(data),
+    } as Project;
+
+    // Ensure interventions are always an array and sorted
     const interventionsToSort = projectData.interventions || [];
-    const sortedInterventions = [...interventionsToSort].sort((a, b) => {
+    projectData.interventions = [...interventionsToSort].sort((a, b) => {
         const nameA = a.interventionSubcategory || a.interventionCategory || '';
         const nameB = b.interventionSubcategory || b.interventionCategory || '';
         return nameA.localeCompare(nameB);
     });
 
-    const interventionsWithCosts = sortedInterventions.map(intervention => {
-        const interventionTotalCost = intervention.subInterventions?.reduce((sum, sub) => sum + sub.cost, 0) || 0;
-        totalProjectBudget += interventionTotalCost;
-        
-        const expenseCategory = intervention.expenseCategory || '';
-        const romanNumeralMatch = expenseCategory.match(/\((I|II|III|IV|V|VI|VII|VIII|IX|X)\)/);
-        const romanNumeral = romanNumeralMatch ? ` (${romanNumeralMatch[1]})` : '';
+    // Initialize client-side calculated fields
+    projectData.budget = 0;
+    projectData.progress = 0;
+    projectData.alerts = 0;
 
-        const subInterventionsWithDisplayCode = (intervention.subInterventions || []).map(sub => ({
-            ...sub,
-            displayCode: `${sub.subcategoryCode || ''}${romanNumeral}`
-        }));
-
-        return {
-            ...intervention,
-            totalCost: interventionTotalCost,
-            subInterventions: subInterventionsWithDisplayCode
-        };
-    });
-
-    return {
-        ...projectData,
-        interventions: interventionsWithCosts,
-        budget: totalProjectBudget,
-        progress: 0, 
-        alerts: 0,   
-    };
+    return projectData;
 }
-
 
 export async function getProjectById(db: firestore.Firestore, id: string): Promise<Project | undefined> {
     const doc = await db.collection('projects').doc(id).get();
     if (!doc.exists) {
         return undefined;
     }
-    const projectData = { id: doc.id, ...doc.data() } as Omit<Project, 'progress' | 'alerts' | 'budget'> & { id: string };
-    return processProject(projectData);
+    return processProject(doc);
 };
 
 export async function getProjectsByIds(db: firestore.Firestore, ids: string[]): Promise<Project[]> {
@@ -71,9 +79,7 @@ export async function getProjectsByIds(db: firestore.Firestore, ids: string[]): 
     const snapshots = await Promise.all(promises);
     const projects: Project[] = [];
     snapshots.forEach(snapshot => {
-        const projs = snapshot.docs.map(doc => 
-            processProject({ id: doc.id, ...doc.data() } as Omit<Project, 'progress' | 'alerts' | 'budget'> & { id: string })
-        );
+        const projs = snapshot.docs.map(processProject);
         projects.push(...projs);
     });
     
@@ -85,10 +91,7 @@ export async function getAllProjects(db: firestore.Firestore): Promise<Project[]
     if (snapshot.empty) {
         return [];
     }
-    const projects = snapshot.docs.map(doc => 
-        processProject({ id: doc.id, ...doc.data() } as Omit<Project, 'progress' | 'alerts' | 'budget'> & { id: string })
-    );
-    return projects;
+    return snapshot.docs.map(processProject);
 };
  
 export async function addProjectData(db: firestore.Firestore, project: Omit<Project, 'id' | 'progress' | 'alerts' | 'budget'>) {

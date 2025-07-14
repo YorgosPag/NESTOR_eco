@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { ArrowLeft, Printer, Mail, Calendar, Phone, MapPin, FileText, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { el } from 'date-fns/locale';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +44,21 @@ export function WorkOrderView({ project, contacts, isBatch = false, showAssignee
         owner.addressPrefecture,
     ].filter(Boolean).join(', ') : '';
 
+    const processedInterventions = useMemo(() => {
+        return project.interventions.map(intervention => {
+            const subInterventionsWithDisplayCode = (intervention.subInterventions || []).map(sub => {
+                const expenseCategory = sub.expenseCategory || intervention.expenseCategory || '';
+                const romanNumeralMatch = expenseCategory.match(/\((I|II|III|IV|V|VI|VII|VIII|IX|X)\)/);
+                const romanNumeral = romanNumeralMatch ? ` (${romanNumeralMatch[1]})` : '';
+                return {
+                    ...sub,
+                    displayCode: `${sub.subcategoryCode || ''}${romanNumeral}`
+                }
+            });
+            return {...intervention, subInterventions: subInterventionsWithDisplayCode};
+        });
+    }, [project.interventions]);
+
     useEffect(() => {
         setIsClient(true);
     }, []);
@@ -77,11 +92,7 @@ export function WorkOrderView({ project, contacts, isBatch = false, showAssignee
             `---------------------------------`,
         );
 
-        project.interventions.forEach(intervention => {
-            const expenseCategoryText = intervention.expenseCategory || '';
-            const romanNumeralMatch = expenseCategoryText.match(/\((I|II|III|IV|V|VI|VII|VIII|IX|X)\)/);
-            const romanNumeral = romanNumeralMatch ? ` (${romanNumeralMatch[1]})` : '';
-            
+        processedInterventions.forEach(intervention => {
             bodyParts.push(`\n• ΠΑΡΕΜΒΑΣΗ: ${intervention.interventionSubcategory || intervention.interventionCategory}`);
             
             if (intervention.subInterventions && intervention.subInterventions.length > 0) {
@@ -263,7 +274,7 @@ export function WorkOrderView({ project, contacts, isBatch = false, showAssignee
                 <section>
                     <h3 className="text-h2 mb-4 text-primary">Λίστα Παρεμβάσεων & Εργασιών</h3>
                     <div className="space-y-6">
-                        {project.interventions.map(intervention => {
+                        {processedInterventions.map(intervention => {
                             const firstStageWithAssignee = intervention.stages?.find(s => s.assigneeContactId);
                             const assignee = firstStageWithAssignee ? contacts.find(c => c.id === firstStageWithAssignee.assigneeContactId) : undefined;
                             

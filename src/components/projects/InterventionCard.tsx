@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import type { Project, ProjectIntervention, Contact, CustomList, CustomListItem } from "@/types";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -52,17 +52,23 @@ interface InterventionCardProps {
 
 export function InterventionCard({ project, intervention, allProjectInterventions, contacts, customLists, customListItems, owner }: InterventionCardProps) {
 
-    const subtotal = intervention.subInterventions?.reduce((sum, sub) => sum + sub.cost, 0) || 0;
+    const processedIntervention = useMemo(() => {
+        const subInterventionsWithDisplayCode = (intervention.subInterventions || []).map(sub => {
+             const expenseCategory = sub.expenseCategory || intervention.expenseCategory || '';
+             const romanNumeralMatch = expenseCategory.match(/\((I|II|III|IV|V|VI|VII|VIII|IX|X)\)/);
+             const romanNumeral = romanNumeralMatch ? ` (${romanNumeralMatch[1]})` : '';
+             return {
+                ...sub,
+                displayCode: `${sub.subcategoryCode || ''}${romanNumeral}`
+             }
+        });
+        return {...intervention, subInterventions: subInterventionsWithDisplayCode};
+    }, [intervention]);
+
+    const subtotal = processedIntervention.subInterventions?.reduce((sum, sub) => sum + sub.cost, 0) || 0;
     const vatAmount = subtotal * 0.24;
     const totalAmount = subtotal + vatAmount;
-    const interventionName = intervention.interventionSubcategory || intervention.interventionCategory;
-    
-    const sortedSubInterventions = useMemo(() => {
-        return [...(intervention.subInterventions || [])].sort((a, b) => 
-            (a.subcategoryCode || '').localeCompare(b.subcategoryCode || '')
-        );
-    }, [intervention.subInterventions]);
-
+    const interventionName = processedIntervention.interventionSubcategory || processedIntervention.interventionCategory;
 
     return (
         <AccordionItem value={intervention.masterId} className="border-none">
@@ -134,15 +140,15 @@ export function InterventionCard({ project, intervention, allProjectIntervention
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {(sortedSubInterventions && sortedSubInterventions.length > 0) ? (
-                              sortedSubInterventions.map((sub, index) => {
+                            {(processedIntervention.subInterventions && processedIntervention.subInterventions.length > 0) ? (
+                              processedIntervention.subInterventions.map((sub, index) => {
                                 const internalCost = (sub.costOfMaterials || 0) + (sub.costOfLabor || 0);
                                 const profit = sub.cost - internalCost;
                                 const profitMargin = sub.cost > 0 ? (profit / sub.cost) * 100 : 0;
                                 
                                 return (
                                 <TableRow key={sub.id}>
-                                  <TableCell className="text-xs">{sub.displayCode || sub.subcategoryCode}</TableCell>
+                                  <TableCell className="text-xs">{sub.displayCode}</TableCell>
                                   <TableCell className="font-medium max-w-xs truncate" title={sub.description}>{sub.description}</TableCell>
                                   <TableCell className="text-right">{sub.cost.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</TableCell>
                                   <TableCell className="text-right">{internalCost > 0 ? internalCost.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' }) : '-'}</TableCell>
@@ -215,7 +221,7 @@ export function InterventionCard({ project, intervention, allProjectIntervention
                               </TableRow>
                             )}
                           </TableBody>
-                          {(sortedSubInterventions && sortedSubInterventions.length > 0) && (
+                          {(processedIntervention.subInterventions && processedIntervention.subInterventions.length > 0) && (
                               <TableFooter>
                                   <TableRow>
                                       <TableCell colSpan={4} className="text-right font-medium">Καθαρή Αξία</TableCell>
