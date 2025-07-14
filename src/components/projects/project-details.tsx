@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { Project, MasterIntervention, Contact, CustomList, CustomListItem } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,14 +17,18 @@ import { InterventionCard } from "./InterventionCard";
 import { calculateClientProjectMetrics } from "@/lib/client-utils";
 
 export function ProjectDetails({ project: serverProject, masterInterventions, contacts, customLists, customListItems }: { project: Project, masterInterventions: MasterIntervention[], contacts: Contact[], customLists: CustomList[], customListItems: CustomListItem[] }) {
-  const [project, setProject] = useState(serverProject);
-  const [openAccordionItems, setOpenAccordionItems] = useState<string[]>([]);
   const [isMounted, setIsMounted] = useState(false);
-
+  
   useEffect(() => {
     setIsMounted(true);
-    setProject(calculateClientProjectMetrics(serverProject));
-  }, [serverProject]);
+  }, []);
+
+  const project = useMemo(() => {
+      if (!isMounted) return serverProject;
+      return calculateClientProjectMetrics(serverProject);
+  }, [serverProject, isMounted]);
+
+  const [openAccordionItems, setOpenAccordionItems] = useState<string[]>([]);
   
   const owner = contacts.find(c => c.id === project.ownerContactId);
   
@@ -37,11 +42,11 @@ export function ProjectDetails({ project: serverProject, masterInterventions, co
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-      <ProjectHeader project={project} owner={owner} isMounted={isMounted} />
+      <ProjectHeader project={project} owner={owner} />
       
       <ProjectActions project={project} contacts={contacts} />
 
-      {isMounted && <ProjectAlerts project={project} />}
+      <ProjectAlerts project={project} />
       
       <div className="flex items-center justify-between gap-2">
           <AddInterventionDialog projectId={project.id} customLists={customLists} customListItems={customListItems}>

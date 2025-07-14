@@ -11,7 +11,7 @@ import { isPast } from 'date-fns';
  * @param project The project object from the server.
  * @returns A project object with accurately calculated client-side metrics.
  */
-export function calculateClientProjectMetrics(project: Project, isClient = true): Project {
+export function calculateClientProjectMetrics(project: Project): Project {
     if (!project || !project.interventions) {
         return project;
     }
@@ -26,7 +26,7 @@ export function calculateClientProjectMetrics(project: Project, isClient = true)
             intervention.stages.forEach(stage => {
                 if (stage.status === 'completed') {
                     completedStages++;
-                } else if (isClient && stage.status !== 'failed') {
+                } else if (stage.status !== 'failed') {
                     if (isPast(new Date(stage.deadline))) {
                         overdueStages++;
                     }
@@ -41,41 +41,15 @@ export function calculateClientProjectMetrics(project: Project, isClient = true)
     if (status !== 'Quotation' && status !== 'Completed') {
         if (progress === 100 && totalStages > 0) {
             status = 'Completed';
-        } else if (isClient && overdueStages > 0) {
+        } else if (overdueStages > 0) {
             status = 'Delayed';
         } else {
             status = 'On Track';
         }
     }
 
-    const sortedInterventions = [...project.interventions].sort((a, b) => 
-        (a.interventionSubcategory || a.interventionCategory).localeCompare(b.interventionSubcategory || b.interventionCategory)
-    );
-    
-    let totalProjectBudget = 0;
-    const interventionsWithRecalculatedCosts = sortedInterventions.map(intervention => {
-        const interventionTotalCost = intervention.subInterventions?.reduce((sum, sub) => sum + sub.cost, 0) || 0;
-        totalProjectBudget += interventionTotalCost;
-        
-        const romanNumeralMatch = (intervention.expenseCategory || '').match(/\((I|II|III|IV|V|VI|VII|VIII|IX|X)\)/);
-        const romanNumeral = romanNumeralMatch ? ` (${romanNumeralMatch[1]})` : '';
-
-        const updatedSubInterventions = intervention.subInterventions?.map(sub => ({
-            ...sub,
-            displayCode: `${sub.subcategoryCode}${romanNumeral}`
-        }));
-
-        return {
-            ...intervention,
-            totalCost: interventionTotalCost,
-            subInterventions: updatedSubInterventions
-        };
-    });
-
     return {
         ...project,
-        interventions: interventionsWithRecalculatedCosts,
-        budget: totalProjectBudget,
         progress,
         status,
         alerts: overdueStages,

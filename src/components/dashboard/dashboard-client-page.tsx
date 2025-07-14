@@ -19,7 +19,7 @@ interface DashboardClientPageProps {
 
 export function DashboardClientPage({ projects: serverProjects, contacts }: DashboardClientPageProps) {
     
-    const projects = useMemo(() => serverProjects.map(p => calculateClientProjectMetrics(p, true)), [serverProjects]);
+    const projects = useMemo(() => serverProjects.map(p => calculateClientProjectMetrics(p)), [serverProjects]);
 
     const activeProjects = projects.filter(p => p.status !== 'Quotation' && p.status !== 'Completed');
     const quotationProjects = projects.filter(p => p.status === 'Quotation');

@@ -2,24 +2,23 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { Project, Contact } from "@/types";
 import { Loader2, Printer, FileText } from "lucide-react";
 import { WorkOrderView } from "@/components/projects/work-order-view";
 import { getBatchWorkOrderData } from "@/app/actions/projects";
 import { Button } from "@/components/ui/button";
+import { calculateClientProjectMetrics } from "@/lib/client-utils";
 
 export default function BatchWorkOrderPage() {
     const searchParams = useSearchParams();
-    const [data, setData] = useState<{ projects: Project[], contacts: Contact[] } | null>(null);
+    const [serverData, setServerData] = useState<{ projects: Project[], contacts: Contact[] } | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchBatchData = async () => {
             const projectIds = searchParams.getAll('ids');
-            console.log("Ζητούμενα IDs:", projectIds);
-
             if (projectIds.length === 0) {
                 setError("Δεν επιλέχθηκαν έργα.");
                 setLoading(false);
@@ -28,15 +27,12 @@ export default function BatchWorkOrderPage() {
 
             try {
                 const result = await getBatchWorkOrderData(projectIds);
-                console.log("Αποτελέσματα από getBatchWorkOrderData:", result);
-
                 if (result.projects.length === 0) {
                     setError("Δεν βρέθηκαν τα επιλεγμένα έργα.");
                 } else {
-                    setData(result);
+                    setServerData(result);
                 }
             } catch (err: any) {
-                console.error("Σφάλμα απόκρισης:", err);
                 setError(`Απέτυχε η φόρτωση των δεδομένων: ${err.message}`);
             } finally {
                 setLoading(false);
@@ -45,6 +41,14 @@ export default function BatchWorkOrderPage() {
 
         fetchBatchData();
     }, [searchParams]);
+
+    const displayData = useMemo(() => {
+        if (!serverData) return null;
+        return {
+            ...serverData,
+            projects: serverData.projects.map(p => calculateClientProjectMetrics(p))
+        }
+    }, [serverData]);
 
     if (loading) {
         return (
@@ -65,7 +69,7 @@ export default function BatchWorkOrderPage() {
         );
     }
     
-    if (!data) {
+    if (!displayData) {
         return (
             <div className="flex h-screen w-full items-center justify-center p-4">
                 <p className="text-muted-foreground">Δεν υπάρχουν δεδομένα για εμφάνιση.</p>
@@ -82,7 +86,7 @@ export default function BatchWorkOrderPage() {
                            <FileText className="h-5 w-5"/>
                            Μαζική Αναφορά Εργασιών
                         </h1>
-                        <p className="text-muted text-sm">{data.projects.length} Έργα</p>
+                        <p className="text-muted text-sm">{displayData.projects.length} Έργα</p>
                     </div>
                     <Button
                         onClick={() => {
@@ -96,9 +100,9 @@ export default function BatchWorkOrderPage() {
             </header>
 
             <div className="p-4 md:p-8 space-y-8">
-                 {data.projects.map((project, index) => (
-                    <div key={project.id} className={index < data.projects.length - 1 ? "page-break-after" : ""}>
-                        <WorkOrderView project={project} contacts={data.contacts} isBatch={true} />
+                 {displayData.projects.map((project, index) => (
+                    <div key={project.id} className={index < displayData.projects.length - 1 ? "page-break-after" : ""}>
+                        <WorkOrderView project={project} contacts={displayData.contacts} isBatch={true} />
                     </div>
                 ))}
             </div>

@@ -2,17 +2,18 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { Project, Contact } from "@/types";
 import { Loader2 } from "lucide-react";
 import { WorkOrderView } from "@/components/projects/work-order-view";
 import { getBatchWorkOrderData } from "@/app/actions/projects";
 import { notFound } from "next/navigation";
+import { calculateClientProjectMetrics } from "@/lib/client-utils";
 
 export default function WorkOrderDetailedPage({ params }: { params: { id: string } }) {
     const searchParams = useSearchParams();
     const assigneeId = searchParams.get('assigneeId');
-    const [project, setProject] = useState<Project | null>(null);
+    const [serverProject, setServerProject] = useState<Project | null>(null);
     const [contacts, setContacts] = useState<Contact[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -25,19 +26,9 @@ export default function WorkOrderDetailedPage({ params }: { params: { id: string
                 const proj = result.projects[0];
                 if (!proj) {
                     setError("Project not found.");
-                    setIsLoading(false);
                     return;
                 }
-
-                if (assigneeId) {
-                    const filteredInterventions = proj.interventions.filter(intervention => 
-                        intervention.stages.some(stage => stage.assigneeContactId === assigneeId)
-                    );
-                    setProject({ ...proj, interventions: filteredInterventions });
-                } else {
-                    setProject(proj);
-                }
-
+                setServerProject(proj);
                 setContacts(result.contacts);
             } catch (err: any) {
                 setError(err.message || "Failed to load data.");
@@ -46,7 +37,21 @@ export default function WorkOrderDetailedPage({ params }: { params: { id: string
             }
         };
         fetchData();
-    }, [params.id, assigneeId]);
+    }, [params.id]);
+
+    const displayProject = useMemo(() => {
+        if (!serverProject) return null;
+        let projectWithFilteredInterventions = serverProject;
+
+        if (assigneeId) {
+            const filteredInterventions = serverProject.interventions.filter(intervention => 
+                intervention.stages.some(stage => stage.assigneeContactId === assigneeId)
+            );
+            projectWithFilteredInterventions = { ...serverProject, interventions: filteredInterventions };
+        }
+        
+        return calculateClientProjectMetrics(projectWithFilteredInterventions);
+    }, [serverProject, assigneeId]);
 
     if (isLoading) {
         return (
@@ -67,9 +72,9 @@ export default function WorkOrderDetailedPage({ params }: { params: { id: string
         )
     }
 
-    if (!project) {
+    if (!displayProject) {
         notFound();
     }
 
-    return <WorkOrderView project={project} contacts={contacts} showAssignees={true} />;
+    return <WorkOrderView project={displayProject} contacts={contacts} showAssignees={true} />;
 }

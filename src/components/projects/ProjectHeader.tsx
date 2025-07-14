@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { Project, Contact } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -12,13 +12,19 @@ import { Skeleton } from '../ui/skeleton';
 interface ProjectHeaderProps {
     project: Project;
     owner?: Contact;
-    isMounted: boolean;
 }
 
-export function ProjectHeader({ project: serverProject, owner, isMounted }: ProjectHeaderProps) {
+export function ProjectHeader({ project: serverProject, owner }: ProjectHeaderProps) {
+    const [isMounted, setIsMounted] = useState(false);
     
-    // Use memoized client-side calculation to ensure alerts are up-to-date
-    const project = useMemo(() => calculateClientProjectMetrics(serverProject, isMounted), [serverProject, isMounted]);
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    const project = useMemo(() => {
+        if (!isMounted) return serverProject;
+        return calculateClientProjectMetrics(serverProject);
+    }, [serverProject, isMounted]);
 
     const statusConfig = {
         'Quotation': { text: 'Σε Προσφορά', variant: 'outline', icon: <Clock className="h-4 w-4" /> },

@@ -45,7 +45,7 @@ const UpdateStageStatusSchema = z.object({
   status: z.enum(['pending', 'in progress', 'completed', 'failed']),
 });
 
-export async function updateStageStatusAction(formData: FormData) {
+export async function updateStageStatusAction(prevState: any, formData: FormData) {
   const validated = UpdateStageStatusSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validated.success) {
@@ -88,7 +88,7 @@ export async function getBatchWorkOrderData(projectIds: string[]): Promise<{ pro
         getProjectsDataByIds(db, projectIds),
     ]);
 
-    const clientSideProjects = resolvedProjects.map(p => calculateClientProjectMetrics(p, true));
+    const clientSideProjects = resolvedProjects.map(p => calculateClientProjectMetrics(p));
 
     return {
         projects: clientSideProjects,
@@ -103,7 +103,7 @@ const CreateProjectSchema = z.object({
     deadline: z.string().optional(),
 });
 
-export async function createProjectAction(formData: FormData) {
+export async function createProjectAction(prevState: any, formData: FormData) {
     try {
         const validatedFields = CreateProjectSchema.safeParse({
             title: formData.get('title'),
@@ -159,7 +159,7 @@ const UpdateProjectSchema = z.object({
     deadline: z.string().optional(),
 });
 
-export async function updateProjectAction(formData: FormData) {
+export async function updateProjectAction(prevState: any, formData: FormData) {
     const validatedFields = UpdateProjectSchema.safeParse({
         id: formData.get('id'),
         title: formData.get('title'),
@@ -205,7 +205,7 @@ const ActivateProjectSchema = z.object({
     projectId: z.string().min(1),
 });
 
-export async function activateProjectAction(formData: FormData) {
+export async function activateProjectAction(prevState: any, formData: FormData) {
     const validatedFields = ActivateProjectSchema.safeParse(Object.fromEntries(formData.entries()));
     if (!validatedFields.success) {
         return { success: false, message: 'Μη έγκυρο ID έργου.' };
@@ -281,7 +281,7 @@ const LogEmailNotificationSchema = z.object({
     assigneeName: z.string(),
 });
 
-export async function logEmailNotificationAction(formData: FormData) {
+export async function logEmailNotificationAction(prevState: any, formData: FormData) {
     const validatedFields = LogEmailNotificationSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {

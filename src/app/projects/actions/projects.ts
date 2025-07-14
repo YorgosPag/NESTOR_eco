@@ -8,7 +8,6 @@ import type { Project, Contact, Stage, Attachment, User, StageStatus } from '@/t
 import { getAdminDb } from "@/lib/firebase-admin";
 import { getContacts as getContactsData } from '@/lib/contacts-data';
 import { users } from '@/lib/data-helpers';
-import { calculateClientProjectMetrics } from '@/lib/client-utils';
 import { 
     getProjectById as getProjectDataById, 
     getProjectsByIds as getProjectsDataByIds,
@@ -88,10 +87,8 @@ export async function getBatchWorkOrderData(projectIds: string[]): Promise<{ pro
         getProjectsDataByIds(db, projectIds),
     ]);
 
-    const clientSideProjects = resolvedProjects.map(p => calculateClientProjectMetrics(p, true));
-
     return {
-        projects: clientSideProjects,
+        projects: resolvedProjects,
         contacts: allContacts,
     };
 }
@@ -390,7 +387,7 @@ const UpdateStageSchema = AddStageSchema.extend({
   stageId: z.string(),
 });
 
-export async function updateStageAction(prevState: any, formData: FormData) {
+export async function updateStageAction(formData: FormData) {
     const validatedFields = UpdateStageSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
@@ -445,7 +442,7 @@ const DeleteStageSchema = z.object({
   stageId: z.string(),
 });
 
-export async function deleteStageAction(prevState: any, formData: FormData) {
+export async function deleteStageAction(formData: FormData) {
     const validatedFields = DeleteStageSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
@@ -494,7 +491,7 @@ const MoveStageSchema = z.object({
   direction: z.enum(['up', 'down']),
 });
 
-export async function moveStageAction(prevState: any, formData: FormData) {
+export async function moveStageAction(formData: FormData) {
     const validatedFields = MoveStageSchema.safeParse(Object.fromEntries(formData.entries()));
     if (!validatedFields.success) {
         return { success: false, message: 'Μη έγκυρα δεδομένα.' };
@@ -531,4 +528,3 @@ export async function moveStageAction(prevState: any, formData: FormData) {
     revalidatePath(`/projects/${projectId}`);
     return { success: true, message: 'Η σειρά άλλαξε.' };
 }
-```

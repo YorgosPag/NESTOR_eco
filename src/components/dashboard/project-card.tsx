@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -40,34 +40,37 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project: serverProject, contacts, onSelectToggle, isSelected = false }: ProjectCardProps) {
-  const [project, setProject] = useState(serverProject);
   const [isMounted, setIsMounted] = useState(false);
+  
+  const project = useMemo(() => {
+      // On the server, we use the serverProject directly.
+      // On the client, after mounting, we calculate the dynamic metrics.
+      if (!isMounted) return serverProject;
+      return calculateClientProjectMetrics(serverProject);
+  }, [serverProject, isMounted]);
 
-  useEffect(() => {
-    setProject(calculateClientProjectMetrics(serverProject));
-    setIsMounted(true);
-  }, [serverProject]);
 
   const owner = contacts.find(c => c.id === project.ownerContactId);
   const ownerAddress = owner ? [owner.addressStreet, owner.addressNumber, owner.addressCity].filter(Boolean).join(' ') : '';
 
 
-  // Use the mounted state to conditionally render client-specific data
-  const displayProject = isMounted ? project : serverProject;
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const statusVariant = {
     'On Track': 'default',
     'Delayed': 'destructive',
     'Completed': 'secondary',
     'Quotation': 'outline',
-  }[displayProject.status] as "default" | "destructive" | "secondary" | "outline";
+  }[project.status] as "default" | "destructive" | "secondary" | "outline";
 
   const statusText = {
     'On Track': 'Εντός Χρονοδιαγράμματος',
     'Delayed': 'Σε Καθυστέρηση',
     'Completed': 'Ολοκληρωμένο',
     'Quotation': 'Σε Προσφορά',
-  }[displayProject.status];
+  }[project.status];
 
   return (
     <Card className={cn("flex flex-col relative", isSelected && "ring-2 ring-primary")}>
@@ -126,7 +129,7 @@ export function ProjectCard({ project: serverProject, contacts, onSelectToggle, 
             {isMounted ? (
                 <>
                     <Badge variant={statusVariant}>{statusText}</Badge>
-                    {displayProject.alerts > 0 && <Badge variant="outline" className="text-destructive border-destructive">{displayProject.alerts} Ειδοποιήσεις</Badge>}
+                    {project.alerts > 0 && <Badge variant="outline" className="text-destructive border-destructive">{project.alerts} Ειδοποιήσεις</Badge>}
                 </>
             ) : (
                 <Skeleton className="h-full w-2/3" />
@@ -135,9 +138,9 @@ export function ProjectCard({ project: serverProject, contacts, onSelectToggle, 
         <div>
           <div className="flex justify-between text-sm text-muted-foreground mb-1">
             <span>Πρόοδος</span>
-            <span>{displayProject.progress}%</span>
+            <span>{project.progress}%</span>
           </div>
-          <Progress value={displayProject.progress} aria-label={`${displayProject.progress}% ολοκληρωμένο`} />
+          <Progress value={project.progress} aria-label={`${project.progress}% ολοκληρωμένο`} />
         </div>
         
         {project.deadline && (
