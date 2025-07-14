@@ -1,5 +1,5 @@
 
-import { getAllProjects } from "@/lib/data";
+import { getAllProjects } from "@/lib/projects-data";
 import { CalendarView } from "@/components/calendar/calendar-view";
 import type { Project } from "@/types";
 import { getAdminDb } from "@/lib/firebase-admin";

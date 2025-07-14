@@ -40,7 +40,6 @@ export async function addInterventionAction(prevState: any, formData: FormData) 
       expenseCategory: interventionName,
       interventionCategory: interventionName,
       interventionSubcategory: interventionName,
-      maxUnitPrice: 0,
       quantity: 0,
       totalCost: 0,
       stages: [],
@@ -447,13 +446,11 @@ const MoveSubInterventionSchema = z.object({
 });
 
 export async function moveSubInterventionAction(prevState: any, formData: FormData) {
-  const effectiveFormData = formData instanceof FormData ? formData : prevState;
-
-  if (!(effectiveFormData instanceof FormData)) {
+  if (!(formData instanceof FormData)) {
     return { success: false, message: 'Μη έγκυρα δεδομένα φόρμας.' };
   }
   
-  const validatedFields = MoveSubInterventionSchema.safeParse(Object.fromEntries(effectiveFormData.entries()));
+  const validatedFields = MoveSubInterventionSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!validatedFields.success) {
     return { success: false, message: 'Μη έγκυρα δεδομένα.' };
   }
