@@ -43,3 +43,6 @@ export default async function TriggersPage() {
                     </CardContent>
                 </Card>
             </div>
+        </main>
+    );
+}

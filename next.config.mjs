@@ -1,24 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'i.pravatar.cc',
-        port: '',
-        pathname: '/**',
-      },
-    ],
-  },
-  experimental: {
-    serverComponentsExternalPackages: ['handlebars'],
-  },
+    webpack: (config, { isServer }) => {
+        config.externals.push('firebase-admin');
+        return config;
+    },
+    experimental: {
+        serverExternalPackages: ['@opentelemetry/winston-transport', 'winston'],
+    }
 };
 
 export default nextConfig;
