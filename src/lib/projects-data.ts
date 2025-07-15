@@ -84,6 +84,7 @@ export async function getProjectsByIds(db: firestore.Firestore, ids: string[]): 
         projects.push(...projs);
     });
     
+    // Ensure we only return projects that were actually found, preventing undefined entries.
     return ids.map(id => projects.find(p => p.id === id)).filter((p): p is Project => p !== undefined);
 };
  

@@ -31,7 +31,7 @@ export default async function ProjectPage({ params }: PageProps) {
     return <ProjectDetails project={project} masterInterventions={masterInterventions} contacts={contacts} customLists={customLists} customListItems={customListItems} />;
 }
 
-export async function generateStaticParams() {
+export async function generateStaticParams(): Promise<{ id: string }[]> {
   try {
     const db = getAdminDb();
     const projects: Project[] = await getAllProjects(db);
