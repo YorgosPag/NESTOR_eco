@@ -25,7 +25,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
   return <ProjectDetails project={project} masterInterventions={masterInterventions} contacts={contacts} customLists={customLists} customListItems={customListItems} />;
 }
 
-export async function generateStaticParams(): Promise<{ id: string }[]> {
+export async function generateStaticParams() {
   try {
     const db = getAdminDb();
     const projects: Project[] = await getAllProjects(db);
@@ -34,8 +34,6 @@ export async function generateStaticParams(): Promise<{ id: string }[]> {
     }));
   } catch (error) {
     console.error("Failed to generate static params for projects due to DB connection issue:", error);
-    // Return an empty array to prevent the build from failing.
-    // Pages will be generated on-demand at runtime.
     return [];
   }
 }
