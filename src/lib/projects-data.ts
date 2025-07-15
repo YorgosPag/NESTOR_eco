@@ -16,7 +16,8 @@ function serializeData(data: any): any {
         return data.toDate().toISOString();
     }
     if (Array.isArray(data)) {
-        return data.map(serializeData);
+        // Filter out null/undefined entries from arrays before mapping
+        return data.filter(item => item !== null && item !== undefined).map(serializeData);
     }
     if (typeof data === 'object') {
         const serializedData: { [key: string]: any } = {};
