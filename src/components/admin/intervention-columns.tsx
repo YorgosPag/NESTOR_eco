@@ -29,14 +29,14 @@ const getRomanNumeral = (expenseCategory: string = ''): string | null => {
 
 export const columns = ({ customLists, customListItems }: ColumnsProps): ColumnDef<MasterIntervention>[] => [
   {
-    accessorKey: "info",
+    accessorKey: "expenseCategory",
     header: "Info",
     cell: ({ row }) => {
         const intervention = row.original;
         const romanNumeral = getRomanNumeral(intervention.expenseCategory);
 
         if (!romanNumeral) {
-            return null; // Or some fallback
+            return null;
         }
 
         return (
@@ -52,6 +52,7 @@ export const columns = ({ customLists, customListItems }: ColumnsProps): ColumnD
             </TooltipProvider>
         )
     },
+    enableHiding: false,
   },
   {
     accessorKey: "code",
@@ -72,8 +73,8 @@ export const columns = ({ customLists, customListItems }: ColumnsProps): ColumnD
     header: "Υποκατηγορία Παρέμβασης",
   },
   {
-    accessorKey: "expenseCategory",
-    header: "Κατηγορία Δαπάνης",
+    accessorKey: "unit",
+    header: "Μονάδα",
   },
   {
     accessorKey: "maxUnitPrice",
@@ -87,7 +88,7 @@ export const columns = ({ customLists, customListItems }: ColumnsProps): ColumnD
         currency: "EUR",
       }).format(value)
  
-      return <div className="font-medium">{formatted}</div>
+      return <div className="text-right font-medium">{formatted}</div>
     },
   },
   {
