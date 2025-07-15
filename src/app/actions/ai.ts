@@ -32,6 +32,8 @@ export async function generateReminderAction(input: GenerateReminderInput) {
 export async function generateReportAction(query: string) {
   try {
     const result: ReportOutput = await generateReport(query);
+    // The result can be either a string or a ChartData object.
+    // We return it directly without trying to destructure it.
     return { success: true, data: result };
   } catch (error: any) {
     console.error("🔥 ERROR in generateReportAction:", error);
