@@ -14,16 +14,44 @@ import {
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { EditInterventionDialog } from "./edit-intervention-dialog"
 import { DeleteInterventionDialog } from "./delete-intervention-dialog"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface ColumnsProps {
     customLists: CustomList[];
     customListItems: CustomListItem[];
 }
 
+// Helper to extract the Roman numeral from the expense category string
+const getRomanNumeral = (expenseCategory: string = ''): string | null => {
+    const match = expenseCategory.match(/\((I|II|III|IV|V|VI|VII|VIII|IX|X)\)/);
+    return match ? match[1] : null;
+};
+
 export const columns = ({ customLists, customListItems }: ColumnsProps): ColumnDef<MasterIntervention>[] => [
   {
     accessorKey: "info",
     header: "Info",
+    cell: ({ row }) => {
+        const intervention = row.original;
+        const romanNumeral = getRomanNumeral(intervention.expenseCategory);
+
+        if (!romanNumeral) {
+            return null; // Or some fallback
+        }
+
+        return (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <span className="cursor-help font-medium">({romanNumeral})</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p className="max-w-xs">{intervention.info}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        )
+    },
   },
   {
     accessorKey: "code",
