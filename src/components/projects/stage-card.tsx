@@ -24,7 +24,7 @@ import { SmartReminderDialog } from "@/components/projects/smart-reminder-dialog
 import { EditStageDialog } from "./edit-stage-dialog";
 import { DeleteStageDialog } from "./delete-stage-dialog";
 import { NotifyAssigneeDialog } from "./notify-assignee-dialog";
-import { Calendar, Clock, File as FileIcon, MoreVertical, Upload, Wand2, Pencil, Trash2, Mail, User, ArrowUp, ArrowDown, Play, CheckCircle, XCircle, Undo2, Briefcase } from "lucide-react";
+import { Calendar, Clock, File as FileIcon, MoreVertical, Upload, Wand2, Pencil, Trash2, Play, CheckCircle, XCircle, Undo2, Briefcase, User, ArrowUp, ArrowDown } from "lucide-react";
 import { format, differenceInDays, isPast } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { moveStageAction, updateStageStatusAction } from "@/app/actions/projects";
@@ -74,7 +74,7 @@ export function StageCard({ stage, project, allProjectInterventions, contacts, o
 
   const assignee = contacts.find(c => c.id === stage.assigneeContactId);
   const supervisor = contacts.find(c => c.id === stage.supervisorContactId);
-
+  
   const createFormForAction = (action: (prevState: any, formData: FormData) => Promise<any>, ref: React.RefObject<HTMLFormElement>, inputs: { [key: string]: string }) => (
     <form action={action} ref={ref}>
         {Object.entries(inputs).map(([name, value]) => (
@@ -110,7 +110,7 @@ export function StageCard({ stage, project, allProjectInterventions, contacts, o
                 {createFormForAction(updateStageStatusAction, formRefRestart, { projectId: project.id, stageId: stage.id, status: 'in progress' })}
                 {createFormForAction(moveStageAction, formRefUp, { projectId: project.id, interventionMasterId, stageId: stage.id, direction: 'up' })}
                 {createFormForAction(moveStageAction, formRefDown, { projectId: project.id, interventionMasterId, stageId: stage.id, direction: 'down' })}
-                
+
                 {stage.status === 'pending' && <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefStart.current?.requestSubmit(); }}><Play className="mr-2 h-4 w-4" /><span>Έναρξη Εργασιών</span></DropdownMenuItem>}
                 {stage.status === 'in progress' && <><DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefComplete.current?.requestSubmit(); }}><CheckCircle className="mr-2 h-4 w-4" /><span>Ολοκλήρωση Σταδίου</span></DropdownMenuItem><DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefFail.current?.requestSubmit(); }} className="text-destructive focus:text-destructive focus:bg-destructive/10"><XCircle className="mr-2 h-4 w-4" /><span>Σήμανση ως Αποτυχημένο</span></DropdownMenuItem></>}
                 {(stage.status === 'completed' || stage.status === 'failed') && <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefRestart.current?.requestSubmit(); }}><Undo2 className="mr-2 h-4 w-4" /><span>Επανέναρξη Εργασιών</span></DropdownMenuItem>}

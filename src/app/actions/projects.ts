@@ -5,20 +5,22 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import type { Project, Contact, Stage, Attachment, User, StageStatus } from '@/types';
+import type { Project, Contact, Stage, StageStatus } from '@/types';
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getContacts as getContactsData, getContactById as getContactDataById } from '@/lib/contacts-data';
-import { users } from '@/lib/data-helpers';
-import { calculateClientProjectMetrics } from '@/lib/client-utils';
+import { getContacts as getContactsData } from '@/lib/contacts-data';
 import { 
     getAllProjects as getAllProjectsData,
     getProjectById as getProjectDataById, 
     getProjectsByIds as getProjectsDataByIds,
-    updateProjectData,
-    addProjectData,
-    deleteProjectData,
-    findInterventionAndStage as findInterventionAndStageData,
-    updateStageStatus as updateStageStatusData
+    addProject as addProjectData,
+    updateProject as updateProjectData,
+    deleteProject as deleteProjectData,
+    updateStageStatus as updateStageStatusData,
+    addStageToProject,
+    updateStageInProject,
+    deleteStageFromProject,
+    moveStageInProject,
+    logEmailNotificationInProject
 } from '@/lib/projects-data';
 
 export async function getProjectById(id: string) {
@@ -29,16 +31,6 @@ export async function getProjectById(id: string) {
 export async function getProjectsByIds(ids: string[]) {
     const db = getAdminDb();
     return getProjectsDataByIds(db, ids);
-}
-
-export async function findInterventionAndStage(projectId: string, stageId: string) {
-    const db = getAdminDb();
-    return findInterventionAndStageData(db, projectId, stageId);
-}
-
-export async function updateStageStatus(projectId: string, stageId: string, status: StageStatus) {
-    const db = getAdminDb();
-    return updateStageStatusData(db, projectId, stageId, status);
 }
 
 const UpdateStageStatusSchema = z.object({
@@ -62,9 +54,11 @@ export async function updateStageStatusAction(prevState: any, formData: FormData
 
   try {
     const db = getAdminDb();
-    await updateStageStatus(db, projectId, stageId, status);
+    const success = await updateStageStatusData(db, projectId, stageId, status);
+     if (!success) {
+      throw new Error("Stage or project not found for status update.");
+    }
     revalidatePath(`/projects/${projectId}`);
-
     return {
       success: true,
       message: 'Η κατάσταση του σταδίου ενημερώθηκε.',
@@ -78,10 +72,6 @@ export async function updateStageStatusAction(prevState: any, formData: FormData
   }
 }
 
-// =================================================================
-// Server Actions
-// =================================================================
-
 export async function getBatchWorkOrderData(projectIds: string[]): Promise<{ projects: Project[], contacts: Contact[] }> {
     const db = getAdminDb();
     
@@ -90,10 +80,8 @@ export async function getBatchWorkOrderData(projectIds: string[]): Promise<{ pro
         getProjectsDataByIds(db, projectIds),
     ]);
 
-    const clientSideProjects = resolvedProjects.map(p => calculateClientProjectMetrics(p));
-
     return {
-        projects: clientSideProjects,
+        projects: resolvedProjects,
         contacts: allContacts,
     };
 }
@@ -106,43 +94,18 @@ const CreateProjectSchema = z.object({
 });
 
 export async function createProjectAction(prevState: any, formData: FormData) {
-    try {
-        const validatedFields = CreateProjectSchema.safeParse({
-            title: formData.get('title'),
-            applicationNumber: formData.get('applicationNumber'),
-            ownerContactId: formData.get('ownerContactId'),
-            deadline: formData.get('deadline'),
-        });
+    const validatedFields = CreateProjectSchema.safeParse(Object.fromEntries(formData.entries()));
 
-        if (!validatedFields.success) {
-            return {
-                errors: validatedFields.error.flatten().fieldErrors,
-                message: 'Σφάλμα. Παρακαλώ διορθώστε τα πεδία με σφάλμα και προσπαθήστε ξανά.',
-            };
-        }
-
-        const { title, applicationNumber, ownerContactId, deadline } = validatedFields.data;
-        const db = getAdminDb();
-
-        const newProject: Omit<Project, 'id' | 'progress' | 'alerts' | 'budget'> = {
-            title,
-            applicationNumber,
-            ownerContactId,
-            deadline: deadline ? new Date(deadline).toISOString() : undefined,
-            status: 'Quotation',
-            interventions: [],
-            auditLog: [
-                {
-                    id: `log-${Date.now()}`,
-                    user: users[0], 
-                    action: 'Δημιουργία Προσφοράς',
-                    timestamp: new Date().toISOString(),
-                    details: `Το έργο "${title}" δημιουργήθηκε σε φάση προσφοράς.`
-                }
-            ],
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: 'Σφάλμα. Παρακαλώ διορθώστε τα πεδία με σφάλμα και προσπαθήστε ξανά.',
         };
-
-        await addProjectData(db, newProject);
+    }
+    
+    try {
+        const db = getAdminDb();
+        await addProjectData(db, validatedFields.data);
     } catch (error: any) {
         console.error("🔥 ERROR in createProjectAction:", error);
         return { message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
@@ -162,13 +125,7 @@ const UpdateProjectSchema = z.object({
 });
 
 export async function updateProjectAction(prevState: any, formData: FormData) {
-    const validatedFields = UpdateProjectSchema.safeParse({
-        id: formData.get('id'),
-        title: formData.get('title'),
-        applicationNumber: formData.get('applicationNumber'),
-        ownerContactId: formData.get('ownerContactId'),
-        deadline: formData.get('deadline'),
-    });
+    const validatedFields = UpdateProjectSchema.safeParse(Object.fromEntries(formData.entries()));
 
     if (!validatedFields.success) {
         return {
@@ -177,18 +134,10 @@ export async function updateProjectAction(prevState: any, formData: FormData) {
             message: 'Σφάλμα. Παρακαλώ διορθώστε τα πεδία και προσπαθήστε ξανά.',
         };
     }
-    const { id } = validatedFields.data;
+    const { id, ...projectData } = validatedFields.data;
 
     try {
         const db = getAdminDb();
-        const { title, applicationNumber, ownerContactId, deadline } = validatedFields.data;
-        const projectData = {
-            title,
-            applicationNumber,
-            ownerContactId,
-            deadline: deadline ? new Date(deadline).toISOString() : '',
-        };
-
         const success = await updateProjectData(db, id, projectData);
         if (!success) {
             throw new Error("Το έργο δεν βρέθηκε για ενημέρωση.");
@@ -216,27 +165,7 @@ export async function activateProjectAction(prevState: any, formData: FormData) 
 
     try {
         const db = getAdminDb();
-        
-        const project = await getProjectDataById(db, projectId);
-        if (!project) {
-            throw new Error("Το έργο δεν βρέθηκε.");
-        }
-        
-        const auditLog = project.auditLog || [];
-        auditLog.unshift({
-            id: `log-${Date.now()}`,
-            user: users[0],
-            action: 'Ενεργοποίηση Έργου',
-            timestamp: new Date().toISOString(),
-            details: 'Η κατάσταση του έργου άλλαξε από "Προσφορά" σε "Εντός Χρονοδιαγράμματος".',
-        });
-
-        const updateData = {
-            status: 'On Track',
-            auditLog: auditLog
-        };
-
-        const success = await updateProjectData(db, projectId, updateData);
+        const success = await updateProjectData(db, projectId, { status: 'On Track' }, true);
         if (!success) {
             throw new Error("Η ενεργοποίηση του έργου απέτυχε.");
         }
@@ -251,21 +180,17 @@ export async function activateProjectAction(prevState: any, formData: FormData) 
     return { success: true, message: 'Το έργο ενεργοποιήθηκε με επιτυχία.' };
 }
 
-
 const DeleteProjectSchema = z.object({
     id: z.string().min(1),
 });
 
 export async function deleteProjectAction(prevState: any, formData: FormData) {
-    try {
-        const validatedFields = DeleteProjectSchema.safeParse({
-            id: formData.get('id'),
-        });
-
-        if (!validatedFields.success) {
-            return { success: false, message: 'Μη έγκυρα δεδομένα.' };
-        }
+    const validatedFields = DeleteProjectSchema.safeParse(Object.fromEntries(formData.entries()));
+    if (!validatedFields.success) {
+        return { success: false, message: 'Μη έγκυρα δεδομένα.' };
+    }
         
+    try {
         const db = getAdminDb();
         await deleteProjectData(db, validatedFields.data.id);
     } catch (error: any) {
@@ -291,37 +216,17 @@ export async function logEmailNotificationAction(prevState: any, formData: FormD
         return { success: false, message: 'Μη έγκυρα δεδομένα για καταγραφή.' };
     }
 
-    const { projectId, stageId, assigneeName } = validatedFields.data;
-
     try {
         const db = getAdminDb();
-        const project = await getProjectDataById(db, projectId);
-        if (!project) throw new Error('Project not found');
-
-        const lookup = await findInterventionAndStageData(db, projectId, stageId);
-        if (!lookup) throw new Error('Stage not found');
-
-        const { stage, intervention } = lookup;
-        
-        project.auditLog.unshift({
-            id: `log-${Date.now()}`,
-            user: users[0],
-            action: 'Αποστολή Email',
-            timestamp: new Date().toISOString(),
-            details: `Εστάλη ειδοποίηση στον/στην ${assigneeName} για το στάδιο "${stage.title}" της παρέμβασης "${intervention.interventionCategory}".`,
-        });
-        
-        await updateProjectData(db, projectId, project);
-
+        await logEmailNotificationInProject(db, validatedFields.data);
     } catch (error: any) {
         console.error("🔥 ERROR in logEmailNotificationAction:", error);
         return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
     }
 
-    revalidatePath(`/projects/${projectId}`);
+    revalidatePath(`/projects/${validatedFields.data.projectId}`);
     return { success: true, message: 'Η αποστολή email καταγράφηκε.' };
 }
-
 
 const AddStageSchema = z.object({
     projectId: z.string(),
@@ -343,42 +248,11 @@ export async function addStageAction(prevState: any, formData: FormData) {
             message: 'Σφάλμα. Παρακαλώ διορθώστε τα πεδία και προσπαθήστε ξανά.',
         };
     }
-    const { projectId, interventionMasterId } = validatedFields.data;
+    const { projectId } = validatedFields.data;
 
     try {
         const db = getAdminDb();
-        const project = await getProjectDataById(db, projectId);
-        if (!project) throw new Error('Project not found');
-
-        const intervention = project.interventions.find(i => i.masterId === interventionMasterId);
-        if (!intervention) throw new Error('Intervention not found');
-        
-        const { title, deadline, notes, assigneeContactId, supervisorContactId } = validatedFields.data;
-
-        const newStage: Stage = {
-            id: `stage-${Date.now()}`,
-            title,
-            status: 'pending',
-            deadline: new Date(deadline).toISOString(),
-            lastUpdated: new Date().toISOString(),
-            files: [],
-            notes: notes || undefined,
-            assigneeContactId: assigneeContactId && assigneeContactId !== 'none' ? assigneeContactId : undefined,
-            supervisorContactId: supervisorContactId && supervisorContactId !== 'none' ? supervisorContactId : undefined,
-        };
-
-        intervention.stages.push(newStage);
-
-        project.auditLog.unshift({
-            id: `log-${Date.now()}`,
-            user: users[0],
-            action: 'Προσθήκη Σταδίου',
-            timestamp: new Date().toISOString(),
-            details: `Προστέθηκε το στάδιο "${title}" στην παρέμβαση "${intervention.interventionCategory}".`,
-        });
-        
-        await updateProjectData(db, projectId, project);
-
+        await addStageToProject(db, validatedFields.data);
     } catch (error: any) {
         console.error("🔥 ERROR in addStageAction:", error);
         return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
@@ -387,7 +261,6 @@ export async function addStageAction(prevState: any, formData: FormData) {
     revalidatePath(`/projects/${projectId}`);
     return { success: true, message: 'Το στάδιο προστέθηκε με επιτυχία.' };
 }
-
 
 const UpdateStageSchema = AddStageSchema.extend({
   stageId: z.string(),
@@ -403,37 +276,11 @@ export async function updateStageAction(prevState: any, formData: FormData) {
             message: 'Σφάλμα. Παρακαλώ διορθώστε τα πεδία και προσπαθήστε ξανά.',
         };
     }
-    const { projectId, stageId } = validatedFields.data;
+    const { projectId } = validatedFields.data;
 
     try {
         const db = getAdminDb();
-        const project = await getProjectDataById(db, projectId);
-        if (!project) throw new Error('Project not found');
-
-        const lookup = await findInterventionAndStageData(db, projectId, stageId);
-        if (!lookup) throw new Error('Stage not found');
-        
-        const { stage, intervention } = lookup;
-        
-        const { title, deadline, notes, assigneeContactId, supervisorContactId } = validatedFields.data;
-        
-        stage.title = title;
-        stage.deadline = new Date(deadline).toISOString();
-        stage.notes = notes || undefined;
-        stage.assigneeContactId = assigneeContactId && assigneeContactId !== 'none' ? assigneeContactId : undefined;
-        stage.supervisorContactId = supervisorContactId && supervisorContactId !== 'none' ? supervisorContactId : undefined;
-        stage.lastUpdated = new Date().toISOString();
-
-        project.auditLog.unshift({
-            id: `log-${Date.now()}`,
-            user: users[0],
-            action: 'Επεξεργασία Σταδίου',
-            timestamp: new Date().toISOString(),
-            details: `Επεξεργάστηκε το στάδιο "${title}" στην παρέμβαση "${intervention.interventionCategory}".`,
-        });
-
-        await updateProjectData(db, projectId, project);
-
+        await updateStageInProject(db, validatedFields.data);
     } catch (error: any) {
         console.error("🔥 ERROR in updateStageAction:", error);
         return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
@@ -454,33 +301,11 @@ export async function deleteStageAction(prevState: any, formData: FormData) {
     if (!validatedFields.success) {
         return { success: false, message: 'Μη έγκυρα δεδομένα.' };
     }
-    const { projectId, stageId } = validatedFields.data;
+    const { projectId } = validatedFields.data;
 
     try {
         const db = getAdminDb();
-        const project = await getProjectDataById(db, projectId);
-        if (!project) throw new Error('Project not found');
-
-        const lookup = await findInterventionAndStageData(db, projectId, stageId);
-        if (!lookup) throw new Error('Stage or intervention not found');
-        
-        const { stage, intervention } = lookup;
-        
-        const stageIndex = intervention.stages.findIndex(s => s.id === stageId);
-        if (stageIndex === -1) throw new Error('Stage index not found in intervention');
-
-        intervention.stages.splice(stageIndex, 1);
-        
-        project.auditLog.unshift({
-            id: `log-${Date.now()}`,
-            user: users[0],
-            action: 'Διαγραφή Σταδίου',
-            timestamp: new Date().toISOString(),
-            details: `Διαγράφηκε το στάδιο "${stage.title}" από την παρέμβαση "${intervention.interventionCategory}".`,
-        });
-
-        await updateProjectData(db, projectId, project);
-
+        await deleteStageFromProject(db, validatedFields.data);
     } catch (error: any) {
         console.error("🔥 ERROR in deleteStageAction:", error);
         return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
@@ -502,30 +327,14 @@ export async function moveStageAction(prevState: any, formData: FormData) {
     if (!validatedFields.success) {
         return { success: false, message: 'Μη έγκυρα δεδομένα.' };
     }
-    const { projectId, interventionMasterId, stageId, direction } = validatedFields.data;
+    const { projectId } = validatedFields.data;
 
     try {
         const db = getAdminDb();
-        const project = await getProjectDataById(db, projectId);
-        if (!project) throw new Error('Project not found');
-
-        const intervention = project.interventions.find(i => i.masterId === interventionMasterId);
-        if (!intervention) throw new Error('Intervention not found');
-
-        const stages = intervention.stages;
-        const fromIndex = stages.findIndex(s => s.id === stageId);
-        if (fromIndex === -1) throw new Error('Stage not found');
-        
-        const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
-
-        if (toIndex >= 0 && toIndex < stages.length) {
-            [stages[fromIndex], stages[toIndex]] = [stages[toIndex], stages[fromIndex]]; // Swap
-        } else {
+        const result = await moveStageInProject(db, validatedFields.data);
+        if (!result.success) {
             return { success: true, message: 'Δεν είναι δυνατή η περαιτέρω μετακίνηση.' };
         }
-        
-        await updateProjectData(db, projectId, project);
-
     } catch (error: any) {
         console.error("🔥 ERROR in moveStageAction:", error);
         return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
@@ -533,61 +342,4 @@ export async function moveStageAction(prevState: any, formData: FormData) {
 
     revalidatePath(`/projects/${projectId}`);
     return { success: true, message: 'Η σειρά άλλαξε.' };
-}
-
-export async function exportProjectsToMarkdownAction() {
-    try {
-        const db = getAdminDb();
-        const projects = await getAllProjectsData(db);
-        const contacts = await getContactsData(db);
-        if (projects.length === 0) {
-            return { success: true, data: "Δεν βρέθηκαν έργα στη βάση δεδομένων." };
-        }
-        let markdown = '# Λίστα Έργων Βάσης Δεδομένων\n\n';
-        markdown += 'Ακολουθούν τα αναλυτικά στοιχεία για όλα τα έργα που είναι καταχωρημένα στο σύστημα.\n\n---\n\n';
-    
-        for (const project of projects) {
-            markdown += `## ${project.title || 'Έργο χωρίς τίτλο'} (ID: ${project.id})\n\n`;
-            markdown += `- **Αρ. Αίτησης:** ${project.applicationNumber || 'Δ/Υ'}\n`;
-            markdown += `- **Κατάσταση:** ${project.status || 'Δ/Υ'}\n`;
-            if (project.deadline) {
-                markdown += `- **Προθεσμία:** ${new Date(project.deadline).toLocaleDateString('el-GR')}\n`;
-            }
-            
-            if (project.ownerContactId) {
-                const owner = contacts.find(c => c.id === project.ownerContactId);
-                markdown += `- **Ιδιοκτήτης:** ${owner ? `${owner.firstName} ${owner.lastName}` : 'Άγνωστος'}\n`;
-            }
-    
-            markdown += `\n### Παρεμβάσεις\n\n`;
-            if (project.interventions && project.interventions.length > 0) {
-                project.interventions.forEach(intervention => {
-                    markdown += `#### ${intervention.interventionSubcategory || intervention.interventionCategory}\n`;
-                    if (intervention.subInterventions && intervention.subInterventions.length > 0) {
-                        markdown += '| Κωδικός | Περιγραφή | Κόστος |\n';
-                        markdown += '|:---|:---|---:|\n';
-                        intervention.subInterventions.forEach(sub => {
-                            markdown += `| ${sub.subcategoryCode} | ${sub.description} | ${sub.cost.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })} |\n`;
-                        });
-                         markdown += '\n';
-                    }
-    
-                    if (intervention.stages && intervention.stages.length > 0) {
-                        markdown += '**Στάδια Υλοποίησης:**\n';
-                         intervention.stages.forEach(stage => {
-                             markdown += `- **${stage.title}**: ${stage.status} (Προθεσμία: ${new Date(stage.deadline).toLocaleDateString('el-GR')})\n`;
-                         });
-                         markdown += '\n';
-                    }
-                });
-            } else {
-                markdown += `_Δεν υπάρχουν καταχωρημένες παρεμβάσεις για αυτό το έργο._\n\n`;
-            }
-            markdown += '---\n\n';
-        }
-        return { success: true, data: markdown };
-    } catch (error: any) {
-        console.error("🔥 ERROR in exportProjectsToMarkdownAction:", error);
-        return { success: false, error: `Η εξαγωγή απέτυχε: ${error.message}` };
-    }
 }
