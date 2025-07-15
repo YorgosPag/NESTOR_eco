@@ -343,3 +343,52 @@ export async function moveStageAction(prevState: any, formData: FormData) {
     revalidatePath(`/projects/${projectId}`);
     return { success: true, message: 'Η σειρά άλλαξε.' };
 }
+
+
+export async function exportProjectsToMarkdownAction() {
+  try {
+    const db = getAdminDb();
+    const [projects, contacts] = await Promise.all([
+      getAllProjectsData(db),
+      getContactsData(db),
+    ]);
+
+    if (projects.length === 0) {
+      return { success: true, data: "Δεν βρέθηκαν έργα στη βάση δεδομένων." };
+    }
+
+    let markdown = '# Λίστα Έργων Βάσης Δεδομένων\n\n';
+    markdown += 'Ακολουθούν τα αναλυτικά στοιχεία για όλα τα έργα που είναι καταχωρημένα στο σύστημα.\n\n---\n\n';
+
+    projects.forEach((project, index) => {
+        const owner = contacts.find(c => c.id === project.ownerContactId);
+        markdown += `## ${index + 1}. ${project.title}\n\n`;
+        markdown += `- **ID Έργου:** ${project.id}\n`;
+        markdown += `- **Αρ. Αίτησης:** ${project.applicationNumber || 'Δ/Υ'}\n`;
+        markdown += `- **Ιδιοκτήτης:** ${owner ? `${owner.firstName} ${owner.lastName}` : 'Άγνωστος'}\n`;
+        markdown += `- **Κατάσταση:** ${project.status}\n`;
+        markdown += `- **Προϋπολογισμός:** €${project.budget.toLocaleString('el-GR')}\n`;
+        markdown += `- **Προθεσμία:** ${project.deadline ? new Date(project.deadline).toLocaleDateString('el-GR') : 'Δ/Υ'}\n`;
+        
+        if (project.interventions.length > 0) {
+            markdown += `\n### Παρεμβάσεις (${project.interventions.length}):\n`;
+            project.interventions.forEach(intervention => {
+                markdown += `\n- **${intervention.interventionCategory} / ${intervention.interventionSubcategory || ''}**\n`;
+                if(intervention.subInterventions && intervention.subInterventions.length > 0){
+                    markdown += `  - **Ανάλυση Κόστους:**\n`;
+                    intervention.subInterventions.forEach(sub => {
+                        markdown += `    - ${sub.description}: €${sub.cost.toLocaleString('el-GR')}\n`;
+                    });
+                }
+            });
+        }
+        
+        markdown += `\n---\n\n`;
+    });
+
+    return { success: true, data: markdown };
+  } catch (error: any) {
+    console.error("🔥 ERROR in exportProjectsToMarkdownAction:", error);
+    return { success: false, error: `Η εξαγωγή απέτυχε: ${error.message}` };
+  }
+}
