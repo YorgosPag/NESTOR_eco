@@ -11,13 +11,14 @@ import { getCustomLists, getAllCustomListItems } from "@/lib/custom-lists-data";
 export const dynamic = 'force-dynamic';
 
 interface PageProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 export default async function ProjectPage({ params }: PageProps) {
+    const resolvedParams = await params;
     const db = getAdminDb();
     const [project, masterInterventions, contacts, customLists, customListItems] = await Promise.all([
-        getProjectById(db, params.id),
+        getProjectById(db, resolvedParams.id),
         getMasterInterventions(db),
         getContacts(db),
         getCustomLists(db),
