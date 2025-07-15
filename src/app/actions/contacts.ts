@@ -124,46 +124,6 @@ export async function deleteContactAction(prevState: any, formData: FormData) {
     return { success: true, message: 'Η επαφή διαγράφηκε με επιτυχία.' };
 }
 
-function formatAddress(contact: Contact) {
-    return [
-        contact.addressStreet,
-        contact.addressNumber,
-        contact.addressArea,
-        contact.addressPostalCode,
-        contact.addressCity,
-        contact.addressPrefecture,
-    ].filter(Boolean).join(', ');
-}
-
-function toMarkdown(contacts: Contact[]): string {
-    let markdown = '# Λίστα Επαφών Βάσης Δεδομένων\n\n';
-    markdown += 'Ακολουθούν τα αναλυτικά στοιχεία για όλες τις επαφές που είναι καταχωρημένες στο σύστημα.\n\n---\n\n';
-
-    contacts.forEach((contact, index) => {
-        const fullName = `${contact.firstName || ''} ${contact.lastName || ''}`.trim();
-        markdown += `### ${index + 1}. ${fullName || 'Επαφή χωρίς όνομα'}\n`;
-        if (contact.company) markdown += `- **Εταιρεία:** ${contact.company}\n`;
-        if (contact.email) markdown += `- **Email:** ${contact.email}\n`;
-        if (contact.mobilePhone) markdown += `- **Κινητό:** ${contact.mobilePhone}\n`;
-        if (contact.landlinePhone) markdown += `- **Σταθερό:** ${contact.landlinePhone}\n`;
-        if (contact.role) markdown += `- **Ρόλος:** ${contact.role}\n`;
-        if (contact.specialty) markdown += `- **Ειδικότητα:** ${contact.specialty}\n`;
-        
-        const address = formatAddress(contact);
-        if (address) markdown += `- **Διεύθυνση:** ${address}\n`;
-
-        if (contact.vatNumber) markdown += `- **ΑΦΜ:** ${contact.vatNumber}\n`;
-        if (contact.idNumber) markdown += `- **ΑΔΤ:** ${contact.idNumber}\n`;
-        
-        if (contact.notes) markdown += `- **Σημειώσεις:** ${contact.notes}\n`;
-
-        markdown += `\n---\n\n`;
-    });
-
-    return markdown;
-}
-
-
 export async function exportContactsToMarkdownAction() {
   try {
     const db = getAdminDb();
@@ -171,8 +131,36 @@ export async function exportContactsToMarkdownAction() {
     if (contacts.length === 0) {
       return { success: true, data: "Δεν βρέθηκαν επαφές στη βάση δεδομένων." };
     }
-    const markdownData = toMarkdown(contacts);
-    return { success: true, data: markdownData };
+    
+    let markdown = '# Λίστα Επαφών Βάσης Δεδομένων\n\n';
+    markdown += 'Ακολουθούν τα αναλυτικά στοιχεία για όλες τις επαφές που είναι καταχωρημένες στο σύστημα.\n\n---\n\n';
+
+    contacts.forEach((contact, index) => {
+        const fullName = `${contact.firstName || ''} ${contact.lastName || ''}`.trim();
+        const address = [
+            contact.addressStreet,
+            contact.addressNumber,
+            contact.addressArea,
+            contact.addressPostalCode,
+            contact.addressCity,
+            contact.addressPrefecture,
+        ].filter(Boolean).join(', ');
+
+        markdown += `### ${index + 1}. ${fullName || 'Επαφή χωρίς όνομα'}\n`;
+        if (contact.company) markdown += `- **Εταιρεία:** ${contact.company}\n`;
+        if (contact.email) markdown += `- **Email:** ${contact.email}\n`;
+        if (contact.mobilePhone) markdown += `- **Κινητό:** ${contact.mobilePhone}\n`;
+        if (contact.landlinePhone) markdown += `- **Σταθερό:** ${contact.landlinePhone}\n`;
+        if (contact.role) markdown += `- **Ρόλος:** ${contact.role}\n`;
+        if (contact.specialty) markdown += `- **Ειδικότητα:** ${contact.specialty}\n`;
+        if (address) markdown += `- **Διεύθυνση:** ${address}\n`;
+        if (contact.vatNumber) markdown += `- **ΑΦΜ:** ${contact.vatNumber}\n`;
+        if (contact.idNumber) markdown += `- **ΑΔΤ:** ${contact.idNumber}\n`;
+        if (contact.notes) markdown += `- **Σημειώσεις:** ${contact.notes}\n`;
+        markdown += `\n---\n\n`;
+    });
+
+    return { success: true, data: markdown };
   } catch (error: any) {
     console.error("🔥 ERROR in exportContactsToMarkdownAction:", error);
     return { success: false, error: `Η εξαγωγή απέτυχε: ${error.message}` };

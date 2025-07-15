@@ -8,15 +8,10 @@ import { ProjectDetails } from "@/components/projects/project-details";
 import type { Project } from "@/types";
 import { getCustomLists, getAllCustomListItems } from "@/lib/custom-lists-data";
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default async function ProjectPage({ params }: PageProps) {
-  const resolvedParams = await params;
+export default async function ProjectPage({ params }: { params: { id: string } }) {
   const db = getAdminDb();
   const [project, masterInterventions, contacts, customLists, customListItems] = await Promise.all([
-      getProjectById(db, resolvedParams.id),
+      getProjectById(db, params.id),
       getMasterInterventions(db),
       getContacts(db),
       getCustomLists(db),

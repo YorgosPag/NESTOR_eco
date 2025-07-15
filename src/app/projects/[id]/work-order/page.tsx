@@ -7,15 +7,10 @@ import { WorkOrderView } from "@/components/projects/work-order-view";
 
 export const dynamic = 'force-dynamic';
 
-interface PageProps {
-    params: Promise<{ id: string }>;
-}
-
-export default async function WorkOrderPage({ params }: PageProps) {
-    const resolvedParams = await params;
+export default async function WorkOrderPage({ params }: { params: { id: string } }) {
     const db = getAdminDb();
     const [project, contacts] = await Promise.all([
-        getProjectById(db, resolvedParams.id),
+        getProjectById(db, params.id),
         getContacts(db),
     ]);
 
