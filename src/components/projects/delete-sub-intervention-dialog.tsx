@@ -49,7 +49,8 @@ export function DeleteSubInterventionDialog({ projectId, interventionMasterId, s
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!open) return;
+    if (!open && !state.message) return;
+
     if (state?.success === true) {
       toast({ title: 'Επιτυχία!', description: state.message });
       setOpen(false);

@@ -446,10 +446,6 @@ const MoveSubInterventionSchema = z.object({
 });
 
 export async function moveSubInterventionAction(prevState: any, formData: FormData) {
-  if (!(formData instanceof FormData)) {
-    return { success: false, message: 'Μη έγκυρα δεδομένα φόρμας.' };
-  }
-  
   const validatedFields = MoveSubInterventionSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!validatedFields.success) {
     return { success: false, message: 'Μη έγκυρα δεδομένα.' };

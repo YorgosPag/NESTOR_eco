@@ -87,7 +87,7 @@ export function ProjectsClientPage({ projects, contacts }: ProjectsPageProps) {
     const onTrackProjects = filteredProjects.filter(p => p.status === 'On Track');
     const delayedProjects = filteredProjects.filter(p => p.status === 'Delayed');
     const completedProjects = filteredProjects.filter(p => p.status === 'Completed');
-    const allNonCompletedProjects = [...quotationProjects, ...onTrackProjects, ...delayedProjects];
+    const allProjects = [...quotationProjects, ...onTrackProjects, ...delayedProjects, ...completedProjects];
 
 
     return (
@@ -143,7 +143,7 @@ export function ProjectsClientPage({ projects, contacts }: ProjectsPageProps) {
 
             <Tabs defaultValue="all">
                 <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
-                    <TabsTrigger value="all">Όλα ({allNonCompletedProjects.length})</TabsTrigger>
+                    <TabsTrigger value="all">Όλα ({allProjects.length})</TabsTrigger>
                     <TabsTrigger value="quotation">Σε Προσφορά ({quotationProjects.length})</TabsTrigger>
                     <TabsTrigger value="on_track">Εντός ({onTrackProjects.length})</TabsTrigger>
                     <TabsTrigger value="delayed">Καθυστέρηση ({delayedProjects.length})</TabsTrigger>
@@ -166,9 +166,9 @@ export function ProjectsClientPage({ projects, contacts }: ProjectsPageProps) {
                                 </Button>
                             </div>
                         </div>
-                    ) : allNonCompletedProjects.length > 0 ? (
+                    ) : allProjects.length > 0 ? (
                         <div className="grid gap-4 md:gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {allNonCompletedProjects.map((project) => (
+                            {allProjects.map((project) => (
                                 <ProjectCard key={project.id} project={project} contacts={contacts} onSelectToggle={handleToggleProjectSelection} isSelected={selectedProjects.includes(project.id)} />
                             ))}
                         </div>
