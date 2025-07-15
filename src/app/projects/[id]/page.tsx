@@ -1,4 +1,6 @@
-import { getProjectById, getAllProjects, getMasterInterventions } from "@/lib/projects-data";
+
+import { getProjectById, getAllProjects } from "@/lib/projects-data";
+import { getMasterInterventions } from "@/lib/interventions-data";
 import { notFound } from "next/navigation";
 import { getContacts } from "@/lib/contacts-data";
 import { getAdminDb } from "@/lib/firebase-admin";

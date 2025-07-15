@@ -17,12 +17,38 @@ import { ReportOutputSchema, type ReportOutput } from './schemas';
 //  TOOLS DEFINITION
 // #################################################################
 
+const ProjectSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  ownerContactId: z.string().optional(),
+  status: z.string(),
+  budget: z.number(),
+  deadline: z.string().optional(),
+  interventions: z.array(z.object({
+    category: z.string(),
+    stages: z.array(z.object({
+      title: z.string(),
+      status: z.string(),
+      deadline: z.string(),
+      assigneeContactId: z.string().optional(),
+    }))
+  }))
+});
+
+const ContactSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    role: z.string(),
+    specialty: z.string().optional(),
+});
+
+
 const getProjectsTool = ai.defineTool(
   {
     name: 'getProjects',
     description: 'Retrieves a list of all projects with their details, including interventions, stages, budget, and status. Use this tool to answer questions about multiple projects, or to find a specific project if its ID is unknown.',
     inputSchema: z.object({}),
-    outputSchema: z.any(),
+    outputSchema: z.array(ProjectSchema),
   },
   async () => {
     try {
@@ -49,7 +75,7 @@ const getProjectsTool = ai.defineTool(
         }));
     } catch(e: any) {
         console.error(`[AI Tool getProjects] DB Error: ${e.message}`);
-        return { error: `Database error: ${e.message}` };
+        return [];
     }
   }
 );
@@ -60,7 +86,7 @@ const getContactsTool = ai.defineTool(
         name: 'getContacts',
         description: 'Retrieves a list of all contacts, including their roles, specialties, and contact information. Use this to find contact details or to cross-reference contact IDs found in project data.',
         inputSchema: z.object({}),
-        outputSchema: z.any(),
+        outputSchema: z.array(ContactSchema),
     },
     async () => {
         try {
@@ -76,7 +102,7 @@ const getContactsTool = ai.defineTool(
             }));
         } catch(e: any) {
             console.error(`[AI Tool getContacts] DB Error: ${e.message}`);
-            return { error: `Database error: ${e.message}` };
+            return [];
         }
     }
 );

@@ -1,3 +1,4 @@
+
 import { getBatchWorkOrderData } from "@/app/actions/projects";
 import { notFound } from "next/navigation";
 import { WorkOrderDetailedClientPage } from "./client-page";
