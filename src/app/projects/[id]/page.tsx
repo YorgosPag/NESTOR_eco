@@ -1,3 +1,11 @@
+import { getProjectById, getAllProjects, getMasterInterventions } from "@/lib/projects-data";
+import { notFound } from "next/navigation";
+import { getContacts } from "@/lib/contacts-data";
+import { getAdminDb } from "@/lib/firebase-admin";
+import { ProjectDetails } from "@/components/projects/project-details";
+import type { Project } from "@/types";
+import { getCustomLists, getAllCustomListItems } from "@/lib/custom-lists-data";
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -29,6 +37,8 @@ try {
   }));
 } catch (error) {
   console.error("Failed to generate static params for projects due to DB connection issue:", error);
+  // Return an empty array to prevent the build from failing.
+  // Pages will be generated on-demand at runtime.
   return [];
 }
 }
