@@ -19,7 +19,7 @@ function serializeData(data: any): any {
         // Filter out null/undefined entries from arrays before mapping
         return data.filter(item => item !== null && item !== undefined).map(serializeData);
     }
-    if (typeof data === 'object') {
+    if (typeof data === 'object' && data.constructor === Object) {
         const serializedData: { [key: string]: any } = {};
         for (const key in data) {
             serializedData[key] = serializeData(data[key]);
@@ -85,7 +85,7 @@ export async function getProjectsByIds(db: firestore.Firestore, ids: string[]): 
     });
     
     // Ensure we only return projects that were actually found, preventing undefined entries.
-    return ids.map(id => projects.find(p => p.id === id)).filter((p): p is Project => p !== undefined);
+    return ids.map(id => projects.find(p => p.id === id)).filter((p): p is Project => !!p);
 };
  
 export async function getAllProjects(db: firestore.Firestore): Promise<Project[]> {

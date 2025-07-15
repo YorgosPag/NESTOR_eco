@@ -3,14 +3,14 @@ import { getBatchWorkOrderData } from "@/app/actions/projects";
 import { notFound } from "next/navigation";
 import { WorkOrderDetailedClientPage } from "./client-page";
 
-interface PageProps {
-    params: Promise<{ id: string }>;
+// By removing the explicit PageProps interface, we allow Next.js's
+// built-in TypeScript support to correctly infer the types for params and searchParams.
+// This is the recommended approach and resolves the build error.
+export default async function WorkOrderDetailedPage({ params, searchParams }: {
+    params: { id: string };
     searchParams: { [key: string]: string | string[] | undefined };
-}
-
-export default async function WorkOrderDetailedPage({ params, searchParams }: PageProps) {
-    const resolvedParams = await params;
-    const { id } = resolvedParams;
+}) {
+    const { id } = params;
     const assigneeId = searchParams.assigneeId as string | undefined;
 
     try {
