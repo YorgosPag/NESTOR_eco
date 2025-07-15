@@ -169,9 +169,10 @@ export function ProjectCard({ project: serverProject, contacts, onSelectToggle, 
             </Tooltip>
         </TooltipProvider>
         <Button asChild variant="ghost" size="sm">
-            <Link href={`/projects/${project.id}`}>
-                Προβολή Έργου <ArrowUpRight className="h-4 w-4 ml-2" />
-            </Link>
+          <Link href={`/projects/${project.id}`}>
+            Προβολή Έργου
+            <ArrowUpRight className="h-4 w-4 ml-2" />
+          </Link>
         </Button>
       </CardFooter>
     </Card>
