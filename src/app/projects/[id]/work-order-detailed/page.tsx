@@ -1,9 +1,10 @@
+
 import { getBatchWorkOrderData } from "@/app/actions/projects";
 import { notFound } from "next/navigation";
 import { WorkOrderDetailedClientPage } from "./client-page";
 
 interface PageProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
     searchParams: { [key: string]: string | string[] | undefined };
 }
 

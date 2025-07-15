@@ -31,16 +31,16 @@ export default async function ProjectPage({ params }: PageProps) {
 }
 
 export async function generateStaticParams(): Promise<{ id: string }[]> {
-try {
-  const db = getAdminDb();
-  const projects: Project[] = await getAllProjects(db);
-  return projects.map((project) => ({
-    id: project.id,
-  }));
-} catch (error) {
-  console.error("Failed to generate static params for projects due to DB connection issue:", error);
-  // Return an empty array to prevent the build from failing.
-  // Pages will be generated on-demand at runtime.
-  return [];
-}
+  try {
+    const db = getAdminDb();
+    const projects: Project[] = await getAllProjects(db);
+    return projects.map((project) => ({
+      id: project.id,
+    }));
+  } catch (error) {
+    console.error("Failed to generate static params for projects due to DB connection issue:", error);
+    // Return an empty array to prevent the build from failing.
+    // Pages will be generated on-demand at runtime.
+    return [];
+  }
 }
