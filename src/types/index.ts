@@ -1,3 +1,4 @@
+
 export type UserRole = "Admin" | "Supplier" | "Client" | "Accounting";
 export type ContactRole = string;
 
