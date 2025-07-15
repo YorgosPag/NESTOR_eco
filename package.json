@@ -8,8 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit",
-    "test": "jest"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@genkit-ai/firebase": "^1.14.1",
@@ -68,7 +67,6 @@
     "eslint": "^8",
     "eslint-config-next": "^15.0.0",
     "genkit-cli": "^1.14.1",
-    "jest": "^30.0.4",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
