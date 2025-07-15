@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -24,6 +25,8 @@ import {
   BarChart,
   ShoppingBag,
   BellRing,
+  ClipboardList,
+  Network
 } from "lucide-react";
 import { InstructionsDialog } from "./instructions-dialog";
 
@@ -100,6 +103,30 @@ export function SidebarNav() {
             <Link href="/projects">
               <FolderKanban />
               <span>Λίστα Έργων</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+           <SidebarMenuButton
+            asChild
+            isActive={isActive("/project-interventions")}
+            tooltip="Παρεμβάσεις Έργων"
+          >
+            <Link href="/project-interventions">
+              <ClipboardList />
+              <span>Παρεμβάσεις Έργων</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+         <SidebarMenuItem>
+           <SidebarMenuButton
+            asChild
+            isActive={isActive("/intervention-stages")}
+            tooltip="Στάδια Παρεμβάσεων"
+          >
+            <Link href="/intervention-stages">
+              <Network />
+              <span>Στάδια Παρεμβάσεων</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

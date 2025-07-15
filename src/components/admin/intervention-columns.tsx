@@ -21,9 +21,9 @@ interface ColumnsProps {
     customListItems: CustomListItem[];
 }
 
-// Helper to extract the Roman numeral from the expense category string
-const getRomanNumeral = (expenseCategory: string = ''): string | null => {
-    const match = expenseCategory.match(/\((I|II|III|IV|V|VI|VII|VIII|IX|X)\)/);
+// Helper to extract the Arabic numeral from the expense category string
+const getArabicNumeral = (expenseCategory: string = ''): string | null => {
+    const match = expenseCategory.match(/\((\d+)\)/); // Matches one or more digits inside parentheses
     return match ? match[1] : null;
 };
 
@@ -33,9 +33,9 @@ export const columns = ({ customLists, customListItems }: ColumnsProps): ColumnD
     header: "Info",
     cell: ({ row }) => {
         const intervention = row.original;
-        const romanNumeral = getRomanNumeral(intervention.expenseCategory);
+        const arabicNumeral = getArabicNumeral(intervention.expenseCategory);
 
-        if (!romanNumeral) {
+        if (!arabicNumeral) {
             return null;
         }
 
@@ -43,7 +43,7 @@ export const columns = ({ customLists, customListItems }: ColumnsProps): ColumnD
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <span className="cursor-help font-medium">({romanNumeral})</span>
+                        <span className="cursor-help font-medium">({arabicNumeral})</span>
                     </TooltipTrigger>
                     <TooltipContent>
                         <p className="max-w-xs">{intervention.info}</p>
