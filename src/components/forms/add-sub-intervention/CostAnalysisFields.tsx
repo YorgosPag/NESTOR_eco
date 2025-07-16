@@ -60,4 +60,3 @@ export function CostAnalysisFields({ state, quantityUnit }: CostAnalysisFieldsPr
         </Accordion>
     );
 }
-
