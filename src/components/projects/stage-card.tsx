@@ -14,10 +14,10 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu-item";
 import { FileUploadDialog } from "@/components/projects/file-upload-dialog";
 import { SmartReminderDialog } from "@/components/projects/smart-reminder-dialog";
 import { EditStageDialog } from "./edit-stage-dialog";
