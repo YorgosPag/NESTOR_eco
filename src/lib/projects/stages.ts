@@ -1,48 +1,53 @@
 
+'use server';
+
 import type { Project, Stage, StageStatus } from '@/types';
 import { users } from '@/lib/data-helpers';
 import { FieldValue, Firestore } from 'firebase-admin/firestore';
+import { getProjectById } from './read';
 
 export async function addStageToProject(db: Firestore, data: { projectId: string; interventionMasterId: string; title: string; deadline: string; notes?: string; assigneeContactId?: string; supervisorContactId?: string; }) {
     const { projectId, interventionMasterId, ...stageData } = data;
     const projectRef = db.collection('projects').doc(projectId);
 
-    const newStage: Stage = {
-        id: `stage-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        title: stageData.title,
-        status: 'pending',
-        deadline: new Date(stageData.deadline).toISOString(),
-        lastUpdated: new Date().toISOString(),
-        files: [],
-        notes: stageData.notes || undefined,
-        assigneeContactId: stageData.assigneeContactId && stageData.assigneeContactId !== 'none' ? stageData.assigneeContactId : undefined,
-        supervisorContactId: stageData.supervisorContactId && stageData.supervisorContactId !== 'none' ? stageData.supervisorContactId : undefined,
-    };
-    
     return db.runTransaction(async (transaction) => {
         const projectDoc = await transaction.get(projectRef);
         if (!projectDoc.exists) throw new Error('Project not found');
-        
-        const projectData = projectDoc.data() as Project;
-        const interventions = projectData.interventions || [];
-        const interventionIndex = interventions.findIndex(i => i.masterId === interventionMasterId);
+
+        const project = projectDoc.data() as Project;
+        const interventionIndex = project.interventions.findIndex(i => i.masterId === interventionMasterId);
 
         if (interventionIndex === -1) throw new Error('Intervention not found');
         
-        interventions[interventionIndex].stages.push(newStage);
+        const newStage: Stage = {
+            id: `stage-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            title: stageData.title,
+            status: 'pending',
+            deadline: new Date(stageData.deadline).toISOString(),
+            lastUpdated: new Date().toISOString(),
+            files: [],
+            notes: stageData.notes || undefined,
+            assigneeContactId: stageData.assigneeContactId && stageData.assigneeContactId !== 'none' ? stageData.assigneeContactId : undefined,
+            supervisorContactId: stageData.supervisorContactId && stageData.supervisorContactId !== 'none' ? stageData.supervisorContactId : undefined,
+        };
 
+        // Create a new array with the new stage added
+        project.interventions[interventionIndex].stages.push(newStage);
+
+        // Update the entire interventions array
         transaction.update(projectRef, {
-            interventions,
+            interventions: project.interventions,
             auditLog: FieldValue.arrayUnion({
                 id: `log-${Date.now()}`,
                 user: users[0],
                 action: 'Προσθήκη Σταδίου',
                 timestamp: new Date().toISOString(),
-                details: `Προστέθηκε το στάδιο "${newStage.title}" στην παρέμβαση "${interventions[interventionIndex].interventionCategory}".`,
+                details: `Προστέθηκε το στάδιο "${newStage.title}" στην παρέμβαση "${project.interventions[interventionIndex].interventionCategory}".`,
             })
         });
     });
 }
+
 
 export async function updateStageInProject(db: Firestore, data: { projectId: string; stageId: string, title: string; deadline: string; notes?: string; assigneeContactId?: string; supervisorContactId?: string; }) {
     const { projectId, stageId, ...stageData } = data;
@@ -144,7 +149,7 @@ export async function moveStageInProject(db: Firestore, data: { projectId: strin
             transaction.update(projectRef, { interventions: project.interventions });
             return { success: true };
         } else {
-            return { success: false }; // Indicate that no move was possible
+            return { success: false, message: 'Δεν είναι δυνατή η περαιτέρω μετακίνηση.' };
         }
     });
 }

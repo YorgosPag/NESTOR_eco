@@ -46,7 +46,7 @@ export async function updateStageStatusAction(prevState: any, formData: FormData
     console.error('🔥 ERROR in updateStageStatusAction:', err);
     return {
       success: false,
-      message: `Σφάλμα ενημέρωσης κατάστασης: ${err.message}`,
+      message: "Παρουσιάστηκε ένα τεχνικό σφάλμα. Παρακαλώ δοκιμάστε ξανά.",
     };
   }
 }
@@ -78,7 +78,7 @@ export async function addStageAction(prevState: any, formData: FormData) {
         await addStageToProject(db, validatedFields.data);
     } catch (error: any) {
         console.error("🔥 ERROR in addStageAction:", error);
-        return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
+        return { success: false, message: "Παρουσιάστηκε ένα τεχνικό σφάλμα. Παρακαλώ δοκιμάστε ξανά." };
     }
 
     revalidatePath(`/projects/${projectId}`);
@@ -106,7 +106,7 @@ export async function updateStageAction(prevState: any, formData: FormData) {
         await updateStageInProject(db, validatedFields.data);
     } catch (error: any) {
         console.error("🔥 ERROR in updateStageAction:", error);
-        return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
+        return { success: false, message: "Παρουσιάστηκε ένα τεχνικό σφάλμα. Παρακαλώ δοκιμάστε ξανά." };
     }
 
     revalidatePath(`/projects/${projectId}`);
@@ -131,7 +131,7 @@ export async function deleteStageAction(prevState: any, formData: FormData) {
         await deleteStageFromProject(db, validatedFields.data);
     } catch (error: any) {
         console.error("🔥 ERROR in deleteStageAction:", error);
-        return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
+        return { success: false, message: "Παρουσιάστηκε ένα τεχνικό σφάλμα. Παρακαλώ δοκιμάστε ξανά." };
     }
 
     revalidatePath(`/projects/${projectId}`);
@@ -156,11 +156,11 @@ export async function moveStageAction(prevState: any, formData: FormData) {
         const db = getAdminDb();
         const result = await moveStageInProject(db, validatedFields.data);
         if (!result.success) {
-            return { success: true, message: 'Δεν είναι δυνατή η περαιτέρω μετακίνηση.' };
+            return { success: true, message: result.message };
         }
     } catch (error: any) {
         console.error("🔥 ERROR in moveStageAction:", error);
-        return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
+        return { success: false, message: "Παρουσιάστηκε ένα τεχνικό σφάλμα. Παρακαλώ δοκιμάστε ξανά." };
     }
 
     revalidatePath(`/projects/${projectId}`);
