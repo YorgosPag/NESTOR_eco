@@ -47,10 +47,6 @@ const ContactSchema = z.object({
   idIssueDate: z.string().optional(),
   idIssuingAuthority: z.string().optional(),
 
-  // Taxis Info
-  usernameTaxis: z.string().optional(),
-  passwordTaxis: z.string().optional(),
-
   // Social Media
   facebookUrl: z.string().url("Παρακαλώ εισάγετε ένα έγκυρο URL.").optional().or(z.literal('')),
   instagramUrl: z.string().url("Παρακαλώ εισάγετε ένα έγκυρο URL.").optional().or(z.literal('')),

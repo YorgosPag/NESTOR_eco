@@ -12,7 +12,6 @@ import { Accordion } from '../ui/accordion';
 
 import { PersonalInfoSection } from '../forms/create-contact/PersonalInfoSection';
 import { IdInfoSection } from '../forms/create-contact/IdInfoSection';
-import { TaxisInfoSection } from '../forms/create-contact/TaxisInfoSection';
 import { ContactInfoSection } from '../forms/create-contact/ContactInfoSection';
 import { SocialMediaSection } from '../forms/create-contact/SocialMediaSection';
 import { AddressInfoSection } from '../forms/create-contact/AddressInfoSection';
@@ -42,7 +41,6 @@ export function EditContactForm({ contact, setOpen, customLists, customListItems
     const [role, setRole] = useState(contact.role);
     const [gender, setGender] = useState(contact.gender || '');
     const [avatar, setAvatar] = useState(contact.avatar || '');
-    const [showPassword, setShowPassword] = useState(false);
     
     const { address, handleAddressChange } = useAddressState({
         street: contact.addressStreet,
@@ -93,8 +91,6 @@ export function EditContactForm({ contact, setOpen, customLists, customListItems
             <input type="hidden" name="idNumber" defaultValue={contact.idNumber} />
             <input type="hidden" name="idIssueDate" defaultValue={contact.idIssueDate ? new Date(contact.idIssueDate).toISOString().substring(0, 10) : ''} />
             <input type="hidden" name="idIssuingAuthority" defaultValue={contact.idIssuingAuthority} />
-            <input type="hidden" name="usernameTaxis" defaultValue={contact.usernameTaxis} />
-            <input type="hidden" name="passwordTaxis" defaultValue={contact.passwordTaxis} />
             <input type="hidden" name="email" defaultValue={contact.email} />
             <input type="hidden" name="landlinePhone" defaultValue={contact.landlinePhone} />
             <input type="hidden" name="mobilePhone" defaultValue={contact.mobilePhone} />
@@ -116,12 +112,6 @@ export function EditContactForm({ contact, setOpen, customLists, customListItems
                     contact={contact}
                 />
                 <IdInfoSection state={state} contact={contact} />
-                <TaxisInfoSection
-                    state={state}
-                    contact={contact}
-                    showPassword={showPassword}
-                    setShowPassword={setShowPassword}
-                />
                 <ContactInfoSection state={state} contact={contact} />
                 <SocialMediaSection state={state} contact={contact} />
                 <AddressInfoSection

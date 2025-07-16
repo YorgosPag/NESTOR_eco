@@ -9,7 +9,6 @@ import type { CustomList, CustomListItem } from '@/types';
 import { useAddressState } from './useAddressState';
 import { PersonalInfoSection } from './PersonalInfoSection';
 import { IdInfoSection } from './IdInfoSection';
-import { TaxisInfoSection } from './TaxisInfoSection';
 import { ContactInfoSection } from './ContactInfoSection';
 import { SocialMediaSection } from './SocialMediaSection';
 import { AddressInfoSection } from './AddressInfoSection';
@@ -31,7 +30,6 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: { s
     const [role, setRole] = useState('');
     const [gender, setGender] = useState('');
     const [avatar, setAvatar] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const { address, handleAddressChange } = useAddressState({});
 
     useEffect(() => {
@@ -70,11 +68,6 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: { s
                     setAvatar={setAvatar}
                 />
                 <IdInfoSection state={state} />
-                <TaxisInfoSection
-                    state={state}
-                    showPassword={showPassword}
-                    setShowPassword={setShowPassword}
-                />
                 <ContactInfoSection state={state} />
                 <SocialMediaSection state={state} />
                 <AddressInfoSection

@@ -6,16 +6,15 @@ import { useToast } from '@/hooks/use-toast';
 import { createContactAction } from '@/app/actions/contacts';
 import { Accordion } from '@/components/ui/accordion';
 import type { CustomList, CustomListItem } from '@/types';
-import { useAddressState } from '../forms/create-contact/useAddressState';
-import { PersonalInfoSection } from '../forms/create-contact/PersonalInfoSection';
-import { IdInfoSection } from '../forms/create-contact/IdInfoSection';
-import { TaxisInfoSection } from '../forms/create-contact/TaxisInfoSection';
-import { ContactInfoSection } from '../forms/create-contact/ContactInfoSection';
-import { SocialMediaSection } from '../forms/create-contact/SocialMediaSection';
-import { AddressInfoSection } from '../forms/create-contact/AddressInfoSection';
-import { ProfessionalInfoSection } from '../forms/create-contact/ProfessionalInfoSection';
-import { OtherInfoSection } from '../forms/create-contact/OtherInfoSection';
-import { SubmitButton } from '../forms/create-contact/SubmitButton';
+import { useAddressState } from './useAddressState';
+import { PersonalInfoSection } from './PersonalInfoSection';
+import { IdInfoSection } from './IdInfoSection';
+import { ContactInfoSection } from './ContactInfoSection';
+import { SocialMediaSection } from './SocialMediaSection';
+import { AddressInfoSection } from './AddressInfoSection';
+import { ProfessionalInfoSection } from './ProfessionalInfoSection';
+import { OtherInfoSection } from './OtherInfoSection';
+import { SubmitButton } from './SubmitButton';
 
 const initialState = {
   message: null,
@@ -31,7 +30,6 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: { s
     const [role, setRole] = useState('');
     const [gender, setGender] = useState('');
     const [avatar, setAvatar] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const { address, handleAddressChange } = useAddressState({});
 
     useEffect(() => {
@@ -70,11 +68,6 @@ export function CreateContactForm({ setOpen, customLists, customListItems }: { s
                     setAvatar={setAvatar}
                 />
                 <IdInfoSection state={state} />
-                <TaxisInfoSection
-                    state={state}
-                    showPassword={showPassword}
-                    setShowPassword={setShowPassword}
-                />
                 <ContactInfoSection state={state} />
                 <SocialMediaSection state={state} />
                 <AddressInfoSection

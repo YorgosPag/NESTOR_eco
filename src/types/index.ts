@@ -1,6 +1,8 @@
 
 export type UserRole = "Admin" | "Supplier" | "Client" | "Accounting";
-export type ContactRole = string;
+
+export const CONTACT_ROLES = ["Πελάτης", "Προμηθευτής", "Τεχνίτης", "Λογιστήριο", "Μηχανικός", "Συνεργείο", "Άλλο"] as const;
+export type ContactRole = typeof CONTACT_ROLES[number];
 
 export interface User {
   id: string;
@@ -43,18 +45,18 @@ export interface Contact {
   idIssueDate?: string;
   idIssuingAuthority?: string;
 
-  // Taxis login details
-  usernameTaxis?: string;
-  passwordTaxis?: string;
-
   // Social Media
   facebookUrl?: string;
   instagramUrl?: string;
   tiktokUrl?: string;
 }
 
-export type ExpenseCategory = string;
-export type Unit = string;
+export const EXPENSE_CATEGORIES = ["Κουφώματα (I)", "Θερμομόνωση (II)", "Συστήματα Θέρμανσης-Ψύξης (III)", "ΖΝΧ (IV)", "Λοιπές Παρεμβάσεις (V)"] as const;
+export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number];
+
+export const UNITS = ["€/m²", "€/kW", "€/μονάδα", "€/αίτηση", "τεμ.", "m", "m²", "m³", "kW", "kWh"] as const;
+export type Unit = typeof UNITS[number];
+
 export type InterventionCategory = string;
 export type InterventionSubcategory = string;
 
