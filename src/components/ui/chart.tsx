@@ -350,9 +350,17 @@ function getPayloadConfigFromPayload(
     ] as string
   }
 
-  return configLabelKey in config
-    ? config[configLabelKey]
-    : config[key as keyof typeof config]
+  const foundConfig =
+    configLabelKey in config
+      ? config[configLabelKey]
+      : config[key as keyof typeof config]
+
+  if (foundConfig) {
+    return foundConfig
+  }
+
+  // Fallback config
+  return { label: key, icon: null }
 }
 
 export {
