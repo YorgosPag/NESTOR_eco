@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from 'next/navigation';
 import type { Project, MasterIntervention, Contact, CustomList, CustomListItem } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,16 +16,16 @@ import { ProjectActions } from "./ProjectActions";
 import { ProjectAlerts } from "./ProjectAlerts";
 import { InterventionCard } from "./InterventionCard";
 import { calculateClientProjectMetrics } from "@/lib/client-utils";
+import { useIsClient } from "@/hooks/use-is-client";
 
 export function ProjectDetails({ project: serverProject, masterInterventions, contacts, customLists, customListItems }: { project: Project, masterInterventions: MasterIntervention[], contacts: Contact[], customLists: CustomList[], customListItems: CustomListItem[] }) {
-  const [isMounted, setIsMounted] = useState(false);
+  const isClient = useIsClient();
   const searchParams = useSearchParams();
   const highlightedInterventionId = searchParams.get('intervention');
   
   const [openAccordionItems, setOpenAccordionItems] = useState<string[]>([]);
   
   useEffect(() => {
-    setIsMounted(true);
     // Expand the highlighted intervention from the URL on initial load
     if (highlightedInterventionId) {
         setOpenAccordionItems(prev => [...new Set([...prev, highlightedInterventionId])]);
@@ -33,9 +33,9 @@ export function ProjectDetails({ project: serverProject, masterInterventions, co
   }, [highlightedInterventionId]);
 
   const project = useMemo(() => {
-      if (!isMounted) return serverProject;
+      if (!isClient) return serverProject;
       return calculateClientProjectMetrics(serverProject);
-  }, [serverProject, isMounted]);
+  }, [serverProject, isClient]);
 
   
   const owner = contacts.find(c => c.id === project.ownerContactId);

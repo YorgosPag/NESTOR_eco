@@ -1,13 +1,14 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { Project, Contact } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Calendar, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { calculateClientProjectMetrics } from '@/lib/client-utils';
 import { Skeleton } from '../ui/skeleton';
+import { useIsClient } from '@/hooks/use-is-client';
 
 interface ProjectHeaderProps {
     project: Project;
@@ -15,16 +16,12 @@ interface ProjectHeaderProps {
 }
 
 export function ProjectHeader({ project: serverProject, owner }: ProjectHeaderProps) {
-    const [isMounted, setIsMounted] = useState(false);
+    const isClient = useIsClient();
     
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
-
     const project = useMemo(() => {
-        if (!isMounted) return serverProject;
+        if (!isClient) return serverProject;
         return calculateClientProjectMetrics(serverProject);
-    }, [serverProject, isMounted]);
+    }, [serverProject, isClient]);
 
     const statusConfig = {
         'Quotation': { text: 'Σε Προσφορά', variant: 'outline', icon: <Clock className="h-4 w-4" /> },
@@ -48,13 +45,13 @@ export function ProjectHeader({ project: serverProject, owner }: ProjectHeaderPr
                     {project.deadline && (
                         <p className="flex items-center gap-2 text-sm">
                             <Calendar className="h-4 w-4" />
-                            <span>Προθεσμία Ολοκλήρωσης: {isMounted ? format(new Date(project.deadline), 'dd MMMM, yyyy') : '...'}</span>
+                            <span>Προθεσμία Ολοκλήρωσης: {isClient ? format(new Date(project.deadline), 'dd MMMM, yyyy') : '...'}</span>
                         </p>
                     )}
                 </div>
             </div>
             <div className="flex items-center gap-2 self-start md:self-center shrink-0">
-                {isMounted ? (
+                {isClient ? (
                     <Badge variant={statusConfig.variant} className="text-sm py-1 px-3 gap-2">
                         {statusConfig.icon}
                         {statusConfig.text}
@@ -62,7 +59,7 @@ export function ProjectHeader({ project: serverProject, owner }: ProjectHeaderPr
                 ) : (
                     <Skeleton className="h-8 w-40" />
                 )}
-                {isMounted && project.alerts > 0 && (
+                {isClient && project.alerts > 0 && (
                     <Badge variant="outline" className="text-destructive border-destructive">{project.alerts} Ειδοποιήσεις</Badge>
                 )}
             </div>
