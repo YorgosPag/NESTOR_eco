@@ -189,7 +189,7 @@ export function DynamicReportBuilder({ projects, contacts }: { projects: Project
                     </div>
                 </div>
                 
-                {filteredStages.length > 0 && (
+                {filteredStages.length > 0 ? (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                        {statusChartData && (
                             <div className="min-h-[300px]">
@@ -202,6 +202,8 @@ export function DynamicReportBuilder({ projects, contacts }: { projects: Project
                             </div>
                        )}
                     </div>
+                ) : (
+                     <div className="py-16 text-center text-muted-foreground italic border rounded-lg bg-muted/50">Δεν υπάρχουν δεδομένα για γραφήματα με τα επιλεγμένα φίλτρα.</div>
                 )}
 
 
@@ -217,7 +219,7 @@ export function DynamicReportBuilder({ projects, contacts }: { projects: Project
                         <TableBody>
                              {reportData.length > 0 ? reportData.map(group => (
                                 <TableRow key={group.title}>
-                                    <TableCell className="font-medium">{group.title}</TableCell>
+                                    <TableCell className="font-medium">{group.title || <span className="italic text-muted-foreground">Χωρίς Ανάθεση/Επιβλέποντα</span>}</TableCell>
                                     <TableCell className="text-center">{group.stages.length}</TableCell>
                                     <TableCell>
                                         <ul className="text-xs list-disc pl-4 space-y-1">
