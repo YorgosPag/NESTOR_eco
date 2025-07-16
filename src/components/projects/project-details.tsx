@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useSearchParams } from 'next/navigation';
 import type { Project, MasterIntervention, Contact, CustomList, CustomListItem } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,24 +19,31 @@ import { calculateClientProjectMetrics } from "@/lib/client-utils";
 
 export function ProjectDetails({ project: serverProject, masterInterventions, contacts, customLists, customListItems }: { project: Project, masterInterventions: MasterIntervention[], contacts: Contact[], customLists: CustomList[], customListItems: CustomListItem[] }) {
   const [isMounted, setIsMounted] = useState(false);
+  const searchParams = useSearchParams();
+  const highlightedInterventionId = searchParams.get('intervention');
+  
+  const [openAccordionItems, setOpenAccordionItems] = useState<string[]>([]);
   
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    // Expand the highlighted intervention from the URL on initial load
+    if (highlightedInterventionId) {
+        setOpenAccordionItems(prev => [...new Set([...prev, highlightedInterventionId])]);
+    }
+  }, [highlightedInterventionId]);
 
   const project = useMemo(() => {
       if (!isMounted) return serverProject;
       return calculateClientProjectMetrics(serverProject);
   }, [serverProject, isMounted]);
 
-  const [openAccordionItems, setOpenAccordionItems] = useState<string[]>([]);
   
   const owner = contacts.find(c => c.id === project.ownerContactId);
   
   const hasInterventions = project.interventions && project.interventions.length > 0;
 
   const expandAll = () => {
-    const allItemIds = ['summary', ...project.interventions.map(i => i.masterId)];
+    const allItemIds = ['summary', 'audit-log', ...project.interventions.map(i => i.masterId)];
     setOpenAccordionItems(allItemIds);
   };
   const collapseAll = () => setOpenAccordionItems([]);

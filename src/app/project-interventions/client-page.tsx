@@ -56,12 +56,17 @@ export function ProjectInterventionsClientPage({ projects, contacts }: ProjectIn
                         <p className="text-muted-foreground text-center py-8">Αυτό το έργο δεν έχει παρεμβάσεις.</p>
                     )}
                     {displayedInterventions.map((intervention: ProjectIntervention) => (
-                        <Link key={intervention.masterId} href={`/projects/${selectedProjectId}`} className="block hover:shadow-lg transition-shadow rounded-lg">
+                        <Link 
+                            key={intervention.masterId} 
+                            href={`/projects/${selectedProjectId}?intervention=${intervention.masterId}`} 
+                            className="block hover:shadow-lg transition-shadow rounded-lg"
+                            aria-label={`View intervention: ${intervention.interventionSubcategory || intervention.interventionCategory}`}
+                        >
                             <Card>
                                 <CardHeader>
                                     <CardTitle>{intervention.interventionSubcategory || intervention.interventionCategory}</CardTitle>
                                     <CardDescription>
-                                        {intervention.stages.length} στάδια | Κόστος: {intervention.totalCost.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}
+                                        {intervention.stages.length} στάδια | Κόστος: {(intervention.totalCost || 0).toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}
                                     </CardDescription>
                                 </CardHeader>
                             </Card>
