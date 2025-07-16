@@ -16,9 +16,9 @@ import { MoreHorizontal, FileText } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu-item";
 import { format } from 'date-fns';
 
 interface OffersTableProps {
