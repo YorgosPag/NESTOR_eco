@@ -18,6 +18,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { TrendingUp, TrendingDown, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getProfitability } from '@/lib/intervention-helpers';
 
 const TooltipHeader = ({ title, tooltipText }: { title: string, tooltipText: React.ReactNode }) => (
     <TableHead className="text-right">
@@ -44,16 +45,22 @@ interface QuotationSummaryCardProps {
 export function QuotationSummaryCard({ interventions }: QuotationSummaryCardProps) {
   const summaryData = useMemo(() => {
     return interventions.map((intervention) => {
-      const internalCost = intervention.subInterventions?.reduce((sum, sub) => sum + (sub.costOfMaterials || 0) + (sub.costOfLabor || 0), 0) || 0;
-      const programBudget = intervention.subInterventions?.reduce((sum, sub) => sum + sub.cost, 0) || 0;
-      const profit = programBudget - internalCost;
-      const margin = programBudget > 0 ? (profit / programBudget) * 100 : 0;
+      const { internalCost, programBudget, profit, margin } = intervention.subInterventions?.reduce((acc, sub) => {
+          const subProfitability = getProfitability(sub);
+          acc.internalCost += subProfitability.internalCost;
+          acc.programBudget += sub.cost;
+          acc.profit += subProfitability.profit;
+          return acc;
+      }, { internalCost: 0, programBudget: 0, profit: 0, margin: 0 }) || { internalCost: 0, programBudget: 0, profit: 0, margin: 0 };
+      
+      const totalMargin = programBudget > 0 ? (profit / programBudget) * 100 : 0;
+      
       return {
         name: intervention.interventionSubcategory || intervention.interventionCategory,
         internalCost,
         programBudget,
         profit,
-        margin,
+        margin: totalMargin,
       };
     });
   }, [interventions]);

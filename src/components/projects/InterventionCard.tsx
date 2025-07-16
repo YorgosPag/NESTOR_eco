@@ -4,7 +4,7 @@
 import { useState, useMemo } from "react";
 import type { Project, ProjectIntervention, Contact, CustomList, CustomListItem } from "@/types";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -16,11 +16,11 @@ import { AddStageDialog } from "@/components/projects/add-stage-dialog";
 import { AddSubInterventionDialog } from "./add-sub-intervention-dialog";
 import { EditSubInterventionDialog } from "./edit-sub-intervention-dialog";
 import { DeleteSubInterventionDialog } from "./delete-sub-intervention-dialog";
-import { PlusCircle, Pencil, Trash2, ChevronDown, MoreHorizontal, ArrowUp, ArrowDown, Info } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, ChevronDown, MoreHorizontal, ArrowUp, ArrowDown, Info, TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { moveSubInterventionAction } from '@/app/actions/sub-interventions';
-
+import { getProfitability, formatDisplayCode } from '@/lib/intervention-helpers';
 
 const TooltipHeader = ({ title, tooltipText, className }: { title: string, tooltipText: React.ReactNode, className?: string }) => (
     <TableHead className={className}>
@@ -53,21 +53,20 @@ interface InterventionCardProps {
 export function InterventionCard({ project, intervention, allProjectInterventions, contacts, customLists, customListItems, owner }: InterventionCardProps) {
 
     const processedIntervention = useMemo(() => {
-        const subInterventionsWithDisplayCode = (intervention.subInterventions || []).map(sub => {
-             const expenseCategory = sub.expenseCategory || intervention.expenseCategory || '';
-             const romanNumeralMatch = expenseCategory.match(/\((I|II|III|IV|V|VI|VII|VIII|IX|X)\)/);
-             const romanNumeral = romanNumeralMatch ? ` (${romanNumeralMatch[1]})` : '';
-             return {
-                ...sub,
-                displayCode: `${sub.subcategoryCode || ''}${romanNumeral}`
-             }
-        });
+        const subInterventionsWithDisplayCode = (intervention.subInterventions || []).map(sub => ({
+            ...sub,
+            displayCode: formatDisplayCode(sub.subcategoryCode || '', sub.expenseCategory || intervention.expenseCategory || '')
+        }));
         return {...intervention, subInterventions: subInterventionsWithDisplayCode};
     }, [intervention]);
 
-    const subtotal = processedIntervention.subInterventions?.reduce((sum, sub) => sum + sub.cost, 0) || 0;
-    const vatAmount = subtotal * 0.24;
-    const totalAmount = subtotal + vatAmount;
+    const { subtotal, vatAmount, totalAmount } = useMemo(() => {
+        const subtotal = processedIntervention.subInterventions?.reduce((sum, sub) => sum + sub.cost, 0) || 0;
+        const vatAmount = subtotal * 0.24;
+        const totalAmount = subtotal + vatAmount;
+        return { subtotal, vatAmount, totalAmount };
+    }, [processedIntervention]);
+
     const interventionName = processedIntervention.interventionSubcategory || processedIntervention.interventionCategory;
 
     return (
@@ -142,9 +141,7 @@ export function InterventionCard({ project, intervention, allProjectIntervention
                           <TableBody>
                             {(processedIntervention.subInterventions && processedIntervention.subInterventions.length > 0) ? (
                               processedIntervention.subInterventions.map((sub, index) => {
-                                const internalCost = (sub.costOfMaterials || 0) + (sub.costOfLabor || 0);
-                                const profit = sub.cost - internalCost;
-                                const profitMargin = sub.cost > 0 ? (profit / sub.cost) * 100 : 0;
+                                const { profit, margin, internalCost } = getProfitability(sub);
                                 
                                 return (
                                 <TableRow key={sub.id}>
@@ -154,7 +151,7 @@ export function InterventionCard({ project, intervention, allProjectIntervention
                                   <TableCell className="text-right">{internalCost > 0 ? internalCost.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' }) : '-'}</TableCell>
                                   <TableCell className={cn("text-right font-semibold", profit < 0 ? "text-destructive" : "text-green-600")}>
                                     {profit.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}
-                                    <span className="text-xs ml-1">({profitMargin.toFixed(1)}%)</span>
+                                    <span className="text-xs ml-1">({margin.toFixed(1)}%)</span>
                                   </TableCell>
                                   <TableCell className="text-right">
                                     <div className="flex items-center justify-end gap-0">

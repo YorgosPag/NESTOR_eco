@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/table";
 import { TrendingUp, TrendingDown, BarChart2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getProfitability } from '@/lib/intervention-helpers';
 
 interface FinancialSummaryReportProps {
     projects: Project[];
@@ -30,8 +31,13 @@ export function FinancialSummaryReport({ projects }: FinancialSummaryReportProps
     const reportData = useMemo(() => {
         return projects.map(project => {
             const financialSummary = project.interventions.reduce((acc, intervention) => {
-                const internalCost = intervention.subInterventions?.reduce((sum, sub) => sum + (sub.costOfMaterials || 0) + (sub.costOfLabor || 0), 0) || 0;
-                const programBudget = intervention.subInterventions?.reduce((sum, sub) => sum + sub.cost, 0) || 0;
+                const { internalCost, programBudget } = intervention.subInterventions?.reduce((subAcc, sub) => {
+                    const subProfitability = getProfitability(sub);
+                    subAcc.internalCost += subProfitability.internalCost;
+                    subAcc.programBudget += sub.cost;
+                    return subAcc;
+                }, { internalCost: 0, programBudget: 0 }) || { internalCost: 0, programBudget: 0 };
+                
                 acc.internalCost += internalCost;
                 acc.programBudget += programBudget;
                 return acc;
