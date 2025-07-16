@@ -34,7 +34,7 @@ export function FinancialSummaryReport({ projects }: FinancialSummaryReportProps
                 const { internalCost, programBudget } = intervention.subInterventions?.reduce((subAcc, sub) => {
                     const subProfitability = getProfitability(sub);
                     subAcc.internalCost += subProfitability.internalCost;
-                    subAcc.programBudget += sub.cost;
+                    subAcc.programBudget += (Number(sub.cost) || 0);
                     return subAcc;
                 }, { internalCost: 0, programBudget: 0 }) || { internalCost: 0, programBudget: 0 };
                 
@@ -96,12 +96,18 @@ export function FinancialSummaryReport({ projects }: FinancialSummaryReportProps
                                     <TableCell className="font-medium">{data.title}</TableCell>
                                     <TableCell className="text-right">{data.internalCost.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</TableCell>
                                     <TableCell className="text-right">{data.programBudget.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</TableCell>
-                                    <TableCell className={cn("text-right font-semibold", data.profit < 0 ? "text-destructive" : "text-green-600")}>
+                                    <TableCell className={cn("text-right font-semibold", data.profit < 0 ? "text-destructive" : data.profit > 0 ? "text-green-600" : "text-muted-foreground")}>
                                         {data.profit.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}
                                     </TableCell>
-                                    <TableCell className={cn("text-right font-semibold flex items-center justify-end gap-1", data.margin < 0 ? "text-destructive" : "text-green-600")}>
-                                        {data.margin >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                                        {data.margin.toFixed(2)}%
+                                    <TableCell className={cn("text-right font-semibold flex items-center justify-end gap-1", data.margin < 0 ? "text-destructive" : data.margin > 0 ? "text-green-600" : "text-muted-foreground")}>
+                                        {isFinite(data.margin) && data.margin !== 0 ? (
+                                            <>
+                                                {data.margin >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                                                {data.margin.toFixed(2)}%
+                                            </>
+                                        ) : (
+                                            <span>-</span>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             )) : (
@@ -116,12 +122,16 @@ export function FinancialSummaryReport({ projects }: FinancialSummaryReportProps
                                     <TableHead className="font-bold">ΓΕΝΙΚΑ ΣΥΝΟΛΑ</TableHead>
                                     <TableHead className="text-right font-bold">{totals.internalCost.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</TableHead>
                                     <TableHead className="text-right font-bold">{totals.programBudget.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</TableHead>
-                                    <TableHead className={cn("text-right font-bold", totals.profit < 0 ? "text-destructive" : "text-green-600")}>
-                                        {totals.profit.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}
-                                    </TableHead>
-                                    <TableHead className={cn("text-right font-bold flex items-center justify-end gap-1", totalMargin < 0 ? "text-destructive" : "text-green-600")}>
-                                         {totalMargin >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                                        {totalMargin.toFixed(2)}%
+                                    <TableHead className={cn("text-right font-bold", totals.profit < 0 ? "text-destructive" : totals.profit > 0 ? "text-green-600" : "text-muted-foreground")}>{totals.profit.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</TableHead>
+                                    <TableHead className={cn("text-right font-bold flex items-center justify-end gap-1", totalMargin < 0 ? "text-destructive" : totalMargin > 0 ? "text-green-600" : "text-muted-foreground")}>
+                                        {isFinite(totalMargin) && totalMargin !== 0 ? (
+                                            <>
+                                                {totalMargin >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                                                {totalMargin.toFixed(2)}%
+                                            </>
+                                        ) : (
+                                            <span>-</span>
+                                        )}
                                     </TableHead>
                                 </TableRow>
                             </TableFooter>

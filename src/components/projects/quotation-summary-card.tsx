@@ -48,7 +48,7 @@ export function QuotationSummaryCard({ interventions }: QuotationSummaryCardProp
       const { internalCost, programBudget, profit, margin } = intervention.subInterventions?.reduce((acc, sub) => {
           const subProfitability = getProfitability(sub);
           acc.internalCost += subProfitability.internalCost;
-          acc.programBudget += sub.cost;
+          acc.programBudget += (Number(sub.cost) || 0);
           acc.profit += subProfitability.profit;
           return acc;
       }, { internalCost: 0, programBudget: 0, profit: 0, margin: 0 }) || { internalCost: 0, programBudget: 0, profit: 0, margin: 0 };
@@ -68,9 +68,9 @@ export function QuotationSummaryCard({ interventions }: QuotationSummaryCardProp
   const totals = useMemo(() => {
      return summaryData.reduce(
       (acc, curr) => {
-        acc.internalCost += curr.internalCost;
-        acc.programBudget += curr.programBudget;
-        acc.profit += curr.profit;
+        acc.internalCost += (Number(curr.internalCost) || 0);
+        acc.programBudget += (Number(curr.programBudget) || 0);
+        acc.profit += (Number(curr.profit) || 0);
         return acc;
       },
       { internalCost: 0, programBudget: 0, profit: 0 }
@@ -133,12 +133,18 @@ export function QuotationSummaryCard({ interventions }: QuotationSummaryCardProp
                             <TableCell className="font-medium">{data.name}</TableCell>
                             <TableCell className="text-right">{data.internalCost.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</TableCell>
                             <TableCell className="text-right">{data.programBudget.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</TableCell>
-                            <TableCell className={cn("text-right font-semibold", data.profit < 0 ? "text-destructive" : "text-green-600")}>
+                            <TableCell className={cn("text-right font-semibold", data.profit < 0 ? "text-destructive" : data.profit > 0 ? "text-green-600" : "text-muted-foreground")}>
                                 {data.profit.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}
                             </TableCell>
-                            <TableCell className={cn("text-right font-semibold flex items-center justify-end gap-1", data.margin < 0 ? "text-destructive" : "text-green-600")}>
-                                {data.margin >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                                {data.margin.toFixed(2)}%
+                            <TableCell className={cn("text-right font-semibold flex items-center justify-end gap-1", data.margin < 0 ? "text-destructive" : data.margin > 0 ? "text-green-600" : "text-muted-foreground")}>
+                                {isFinite(data.margin) && data.margin !== 0 ? (
+                                    <>
+                                        {data.margin >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                                        {data.margin.toFixed(2)}%
+                                    </>
+                                ) : (
+                                    <span>-</span>
+                                )}
                             </TableCell>
                         </TableRow>
                     ))}
@@ -148,10 +154,16 @@ export function QuotationSummaryCard({ interventions }: QuotationSummaryCardProp
                         <TableHead className="font-bold">ΣΥΝΟΛΑ</TableHead>
                         <TableHead className="text-right font-bold">{totals.internalCost.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</TableHead>
                         <TableHead className="text-right font-bold">{totals.programBudget.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</TableHead>
-                        <TableHead className={cn("text-right font-bold", totals.profit < 0 ? "text-destructive" : "text-green-600")}>{totals.profit.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</TableHead>
-                        <TableHead className={cn("text-right font-bold flex items-center justify-end gap-1", totalMargin < 0 ? "text-destructive" : "text-green-600")}>
-                             {totalMargin >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                            {totalMargin.toFixed(2)}%
+                        <TableHead className={cn("text-right font-bold", totals.profit < 0 ? "text-destructive" : totals.profit > 0 ? "text-green-600" : "text-muted-foreground")}>{totals.profit.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</TableHead>
+                        <TableHead className={cn("text-right font-bold flex items-center justify-end gap-1", totalMargin < 0 ? "text-destructive" : totalMargin > 0 ? "text-green-600" : "text-muted-foreground")}>
+                             {isFinite(totalMargin) && totalMargin !== 0 ? (
+                                <>
+                                    {totalMargin >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                                    {totalMargin.toFixed(2)}%
+                                </>
+                            ) : (
+                                <span>-</span>
+                            )}
                         </TableHead>
                     </TableRow>
                 </TableFooter>

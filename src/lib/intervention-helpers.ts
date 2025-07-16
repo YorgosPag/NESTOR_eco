@@ -7,9 +7,10 @@ import type { SubIntervention } from "@/types";
  * @returns An object with internalCost, profit, and margin percentage.
  */
 export function getProfitability(sub: SubIntervention) {
-    const internalCost = (sub.costOfMaterials || 0) + (sub.costOfLabor || 0);
-    const profit = sub.cost - internalCost;
-    const margin = sub.cost > 0 ? (profit / sub.cost) * 100 : 0;
+    const internalCost = (Number(sub.costOfMaterials) || 0) + (Number(sub.costOfLabor) || 0);
+    const programCost = (Number(sub.cost) || 0);
+    const profit = programCost - internalCost;
+    const margin = programCost > 0 ? (profit / programCost) * 100 : 0;
     return { internalCost, profit, margin };
 }
 

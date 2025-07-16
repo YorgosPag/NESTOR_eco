@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import type { Project, ProjectIntervention, Contact, CustomList, CustomListItem } from "@/types";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -61,7 +61,7 @@ export function InterventionCard({ project, intervention, allProjectIntervention
     }, [intervention]);
 
     const { subtotal, vatAmount, totalAmount } = useMemo(() => {
-        const subtotal = processedIntervention.subInterventions?.reduce((sum, sub) => sum + sub.cost, 0) || 0;
+        const subtotal = processedIntervention.subInterventions?.reduce((sum, sub) => sum + (Number(sub.cost) || 0), 0) || 0;
         const vatAmount = subtotal * 0.24;
         const totalAmount = subtotal + vatAmount;
         return { subtotal, vatAmount, totalAmount };
@@ -147,11 +147,13 @@ export function InterventionCard({ project, intervention, allProjectIntervention
                                 <TableRow key={sub.id}>
                                   <TableCell className="text-xs">{sub.displayCode}</TableCell>
                                   <TableCell className="font-medium max-w-xs truncate" title={sub.description}>{sub.description}</TableCell>
-                                  <TableCell className="text-right">{sub.cost.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</TableCell>
+                                  <TableCell className="text-right">{(sub.cost || 0).toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}</TableCell>
                                   <TableCell className="text-right">{internalCost > 0 ? internalCost.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' }) : '-'}</TableCell>
-                                  <TableCell className={cn("text-right font-semibold", profit < 0 ? "text-destructive" : "text-green-600")}>
-                                    {profit.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}
-                                    <span className="text-xs ml-1">({margin.toFixed(1)}%)</span>
+                                  <TableCell className={cn("text-right font-semibold", profit < 0 ? "text-destructive" : profit > 0 ? "text-green-600" : "text-muted-foreground")}>
+                                      {profit.toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}
+                                      {isFinite(margin) && margin !== 0 && (
+                                          <span className="text-xs ml-1">({margin.toFixed(1)}%)</span>
+                                      )}
                                   </TableCell>
                                   <TableCell className="text-right">
                                     <div className="flex items-center justify-end gap-0">
