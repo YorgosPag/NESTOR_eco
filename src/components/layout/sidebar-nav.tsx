@@ -110,30 +110,6 @@ export function SidebarNav() {
           </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>
-           <SidebarMenuButton
-            asChild
-            isActive={isActive("/project-interventions")}
-            tooltip="Παρεμβάσεις Έργων"
-          >
-            <Link href="/project-interventions">
-              <ClipboardList />
-              <span>Παρεμβάσεις Έργων</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-         <SidebarMenuItem>
-           <SidebarMenuButton
-            asChild
-            isActive={isActive("/intervention-stages")}
-            tooltip="Στάδια Παρεμβάσεων"
-          >
-            <Link href="/intervention-stages">
-              <Network />
-              <span>Στάδια Παρεμβάσεων</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
           <SidebarMenuButton
             asChild
             isActive={isActive("/contacts")}
@@ -169,18 +145,41 @@ export function SidebarNav() {
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
-        <SidebarMenuItem>
-           <SidebarMenuButton
-            asChild
-            isActive={isActive("/accountability")}
-            tooltip="Λογοδοσία"
-          >
-            <Link href="/accountability">
-              <FileCheck />
-              <span>Λογοδοσία</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+        
+        <SidebarGroup>
+          <SidebarGroupLabel className="flex items-center gap-2">
+            <FileCheck className="h-4 w-4" />Λογοδοσία
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive("/project-interventions")}
+                  tooltip="Παρεμβάσεις Έργων"
+                >
+                  <Link href="/project-interventions">
+                    <ClipboardList />
+                    <span>Παρεμβάσεις Έργων</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive("/intervention-stages")}
+                  tooltip="Στάδια Παρεμβάσεων"
+                >
+                  <Link href="/intervention-stages">
+                    <Network />
+                    <span>Στάδια Παρεμβάσεων</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         <SidebarMenuItem>
           <InstructionsDialog>
             <SidebarMenuButton tooltip="Οδηγίες">
