@@ -11,7 +11,8 @@ import {
     getProjectsByIds as getProjectsDataByIds,
     addProject as addProjectData,
     updateProject as updateProjectData,
-    deleteProject as deleteProjectData
+    deleteProject as deleteProjectData,
+    activateProject as activateProjectData,
 } from '@/lib/projects-data';
 import type { Contact, Project } from '@/types';
 import { getAllContacts } from '@/lib/contacts-data';
@@ -119,7 +120,7 @@ export async function activateProjectAction(prevState: any, formData: FormData) 
 
     try {
         const db = getAdminDb();
-        const success = await updateProjectData(db, projectId, { status: 'On Track' }, true);
+        const success = await activateProjectData(db, projectId);
         if (!success) {
             throw new Error("Η ενεργοποίηση του έργου απέτυχε.");
         }
