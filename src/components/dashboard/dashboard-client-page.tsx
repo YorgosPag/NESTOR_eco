@@ -21,7 +21,7 @@ export function DashboardClientPage({ projects: serverProjects, contacts }: Dash
     
     const projects = useMemo(() => serverProjects.map(p => calculateClientProjectMetrics(p)), [serverProjects]);
 
-    const activeProjects = projects.filter(p => p.status !== 'Quotation' && p.status !== 'Completed');
+    const activeProjects = projects.filter(p => p.status === 'On Track' || p.status === 'Delayed');
     const quotationProjects = projects.filter(p => p.status === 'Quotation');
 
     const onTrackProjects = activeProjects.filter(p => p.status === 'On Track').length;
@@ -33,7 +33,6 @@ export function DashboardClientPage({ projects: serverProjects, contacts }: Dash
         const statusMap: { [key in Project['status']]?: string } = {
             'On Track': 'Εντός',
             'Delayed': 'Καθυστέρηση',
-            'Completed': 'Ολοκληρωμένα'
         };
         const statusName = statusMap[project.status];
         if (statusName) {
