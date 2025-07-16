@@ -10,7 +10,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -82,24 +81,12 @@ export function NotifyAssigneeDialog({
   );
   
   const handleSendEmail = async (senderEmail: string) => {
-    // 1. Collect all intended recipients
-    const recipients: (Contact | undefined)[] = [];
-    if (assignee) recipients.push(assignee);
-    recipients.push(...contacts.filter(c => ccContactIds.includes(c.id)));
-    if (includePricingInfo && invoicingContactId) {
-        const invoicingContact = contacts.find(c => c.id === invoicingContactId);
-        if (invoicingContact) {
-            recipients.push(invoicingContact);
-        }
-    }
+    const toEmail = assignee?.email || "";
+    
+    const ccContacts = contacts.filter(c => ccContactIds.includes(c.id) && c.email);
+    const uniqueCcEmails = [...new Set(ccContacts.map(c => c.email).filter(Boolean))];
 
-    // 2. Find who has a valid email and who doesn't
-    const uniqueRecipients = [...new Map(recipients.map(item => [item?.id, item])).values()];
-    const contactsWithEmail = uniqueRecipients.filter(c => c && c.email);
-    const contactsWithoutEmail = uniqueRecipients.filter(c => c && !c.email);
-
-    // 3. Handle errors and warnings
-    if (contactsWithEmail.length === 0) {
+    if (!toEmail && uniqueCcEmails.length === 0) {
         toast({
             variant: "destructive",
             title: "Αποστολή Αδύνατη",
@@ -108,27 +95,8 @@ export function NotifyAssigneeDialog({
         return;
     }
     
-    if (contactsWithoutEmail.length > 0) {
-        const names = contactsWithoutEmail.map(c => `${c?.firstName} ${c?.lastName}`).join(', ');
-        toast({
-            variant: "default",
-            className: "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-800",
-            title: "Προειδοποίηση",
-            description: `Οι εξής επαφές δεν έχουν email και δεν θα συμπεριληφθούν: ${names}. Το email θα σταλεί στους υπόλοιπους.`,
-        });
-    }
-    
     const selectedInterventions = allProjectInterventions.filter(i => selectedInterventionIds.includes(i.masterId));
     
-    // 4. Prepare and send the email
-    const toEmail = assignee?.email || (contactsWithEmail.find(c => c?.id !== assignee?.id)?.email || '');
-    const ccEmails = contactsWithEmail
-        .map(c => c?.email)
-        .filter(Boolean)
-        .filter(email => email !== toEmail);
-        
-    const uniqueCcEmails = [...new Set(ccEmails)];
-
     const subject = `Εντολή Εργασίας: ${project.title}`;
     const body = generateAssignmentEmailBody({
         project,
@@ -157,7 +125,6 @@ export function NotifyAssigneeDialog({
 
     window.open(gmailUrl.toString(), "_blank", "noopener,noreferrer");
 
-    // 5. Log the action to the audit log
     if (assignee) {
         const formData = new FormData();
         formData.append('projectId', project.id);
@@ -167,17 +134,16 @@ export function NotifyAssigneeDialog({
     }
   };
   
-  const assigneeHasEmail = assignee && assignee.email;
+  const handleTriggerClick = () => {
+    if (!assignee) return; 
 
-  const handleOpenDialog = (e: Event) => {
-    e.preventDefault();
-    if (assignee && !assigneeHasEmail) {
-        toast({
-            variant: "destructive",
-            title: "Δεν Υπάρχει Email",
-            description: `Η επαφή "${assignee.firstName} ${assignee.lastName}" δεν έχει καταχωρημένη διεύθυνση email.`,
-        });
-        return;
+    if (!assignee.email) {
+      toast({
+        variant: "destructive",
+        title: "Δεν Υπάρχει Email",
+        description: `Η επαφή "${assignee.firstName} ${assignee.lastName}" δεν έχει καταχωρημένη διεύθυνση email.`,
+      });
+      return;
     }
     setOpen(true);
   };
@@ -186,7 +152,8 @@ export function NotifyAssigneeDialog({
     <>
       <DropdownMenuItem
         disabled={!assignee}
-        onSelect={handleOpenDialog}
+        onSelect={(e) => e.preventDefault()}
+        onClick={handleTriggerClick}
       >
         <Mail className="mr-2 h-4 w-4" />
         <span>Ειδοποίηση Αναδόχου</span>

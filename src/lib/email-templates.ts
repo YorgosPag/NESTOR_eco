@@ -30,6 +30,10 @@ export function generateAssignmentEmailBody({
     includePricingInfo,
     invoicingContact,
 }: AssignmentEmailPayload): string {
+    
+    if (selectedInterventions.length === 0) {
+        return "Σφάλμα: Δεν έχουν επιλεγεί παρεμβάσεις για την αποστολή της εντολής εργασίας. Παρακαλώ επιλέξτε τουλάχιστον μία παρέμβαση και δοκιμάστε ξανά.";
+    }
 
     const bodyParts: string[] = [];
 
