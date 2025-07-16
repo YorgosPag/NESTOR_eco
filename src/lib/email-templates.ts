@@ -5,8 +5,9 @@
  */
 
 import type { Project, Stage, ProjectIntervention, Contact } from "@/types";
+import type { GenerateReminderOutput } from "@/ai/flows/ai-smart-reminders";
 
-interface EmailTemplatePayload {
+interface AssignmentEmailPayload {
     project: Project;
     stage: Stage;
     selectedInterventions: ProjectIntervention[];
@@ -28,7 +29,7 @@ export function generateAssignmentEmailBody({
     includeOwnerInfo,
     includePricingInfo,
     invoicingContact,
-}: EmailTemplatePayload): string {
+}: AssignmentEmailPayload): string {
 
     const bodyParts: string[] = [];
 
@@ -133,4 +134,102 @@ export function generateAssignmentEmailBody({
     }
 
     return bodyParts.join('\n');
+}
+
+
+interface ReminderEmailPayload {
+    stage: Stage;
+    projectName: string;
+    assignee: Contact;
+    owner?: Contact;
+    result: GenerateReminderOutput;
+    senderEmail: string;
+    urgencyConfig: any; // Simplified for this example
+}
+
+export function generateReminderEmailBody({
+    stage,
+    projectName,
+    assignee,
+    owner,
+    result,
+    senderEmail,
+    urgencyConfig
+}: ReminderEmailPayload): string {
+    let notesSection = '';
+    if (stage.notes) {
+        notesSection = `\n\n   ΠΡΟΣΘΕΤΕΣ ΣΗΜΕΙΩΣΕΙΣ\n   --------------------------------\n   ${stage.notes}`;
+    }
+
+    const bodyParts = [
+      ``,
+      `Αγαπητέ/ή ${assignee.firstName} ${assignee.lastName},`,
+      ``,
+      `Ακολουθεί μια αυτοματοποιημένη υπενθύμιση από το σύστημα NESTOR eco σχετικά με το στάδιο "${stage.title}" για το έργο "${projectName}".`,
+      ``,
+      `==================================================`,
+      ``,
+      `   ΥΠΕΝΘΥΜΙΣΗ`,
+      `   --------------------------------`,
+      `   ${result.reminder}`,
+      ``,
+      ``,
+      `   ΑΞΙΟΛΟΓΗΣΗ ΚΑΤΑΣΤΑΣΗΣ`,
+      `   --------------------------------`,
+      `   ΕΠΙΠΕΔΟ ΕΠΕΙΓΟΝΤΟΣ: ${urgencyConfig[result.urgencyLevel].text}`,
+      `   > ${result.riskAssessment}`,
+      ``,
+      ``,
+      `   ΠΡΟΤΕΙΝΟΜΕΝΑ ΕΠΟΜΕΝΑ ΒΗΜΑΤΑ`,
+      `   --------------------------------`,
+      ...(result.suggestedNextSteps || []).map(step => `   • ${step}`),
+      ``,
+      notesSection,
+      ``,
+    ];
+
+    if (owner) {
+      const fullAddress = [
+        owner.addressStreet,
+        owner.addressNumber,
+        owner.addressArea,
+        owner.addressPostalCode,
+        owner.addressCity,
+        owner.addressPrefecture,
+      ].filter(Boolean).join(", ");
+      
+      bodyParts.push(
+        `   ΣΤΟΙΧΕΙΑ ΕΠΙΚΟΙΝΩΝΙΑΣ ΙΔΙΟΚΤΗΤΗ`,
+        `   --------------------------------`,
+        `   • Όνομα: ${owner.firstName} ${owner.lastName}`,
+        `   • Τηλέφωνο: ${owner.mobilePhone || owner.landlinePhone || 'Δ/Υ'}`,
+        `   • Διεύθυνση: ${fullAddress || 'Δ/Υ'}`,
+        ``,
+        ``,
+      );
+    }
+    
+    bodyParts.push(
+      `==================================================`,
+      ``,
+      `Με εκτίμηση,`,
+      ``,
+    );
+
+    if (senderEmail === 'georgios.pagonis@gmail.com') {
+        bodyParts.push(
+            `Παγώνης Νέστ. Γεώργιος`,
+            `Αρχιτέκτων Μηχανικός`,
+            ``,
+            `Σαμοθράκης 16, 563 34`,
+            `Ελευθέριο Κορδελιό, Θεσσαλονίκη`,
+            `Τ: 2310 55 95 95`,
+            `Μ: 6974 050 023`,
+            `georgios.pagonis@gmail.com`
+        );
+    } else {
+         bodyParts.push(`Η ομάδα του NESTOR eco`);
+    }
+    
+    return bodyParts.join("\n");
 }

@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -11,6 +10,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -169,14 +169,24 @@ export function NotifyAssigneeDialog({
   
   const assigneeHasEmail = assignee && assignee.email;
 
+  const handleOpenDialog = (e: Event) => {
+    e.preventDefault();
+    if (assignee && !assigneeHasEmail) {
+        toast({
+            variant: "destructive",
+            title: "Δεν Υπάρχει Email",
+            description: `Η επαφή "${assignee.firstName} ${assignee.lastName}" δεν έχει καταχωρημένη διεύθυνση email.`,
+        });
+        return;
+    }
+    setOpen(true);
+  };
+
   return (
     <>
       <DropdownMenuItem
         disabled={!assignee}
-        onSelect={(e) => {
-          e.preventDefault();
-          setOpen(true);
-        }}
+        onSelect={handleOpenDialog}
       >
         <Mail className="mr-2 h-4 w-4" />
         <span>Ειδοποίηση Αναδόχου</span>
@@ -188,7 +198,6 @@ export function NotifyAssigneeDialog({
             <DialogDescription>
               Επιλέξτε τις παρεμβάσεις για να δημιουργήσετε ένα email για τον/την{" "}
               <b>{assignee ? `${assignee.firstName} ${assignee.lastName}` : "Ανάδοχο"}</b>.
-              {!assigneeHasEmail && assignee && <span className="text-red-600 font-semibold ml-1">(Προσοχή: Δεν υπάρχει καταχωρημένο email)</span>}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">

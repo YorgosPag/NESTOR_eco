@@ -20,6 +20,7 @@ import type { Stage, Contact } from "@/types";
 import type { GenerateReminderOutput } from "@/ai/flows/ai-smart-reminders";
 import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { generateReminderEmailBody } from "@/lib/email-templates";
 
 interface SmartReminderDialogProps {
   stage: Stage;
@@ -88,82 +89,15 @@ export function SmartReminderDialog({ stage, projectName, contacts, owner, child
 
     const subject = `Υπενθύμιση: ${stage.title} - Έργο: ${projectName}`;
     
-    let notesSection = '';
-    if (stage.notes) {
-        notesSection = `\n\n   ΠΡΟΣΘΕΤΕΣ ΣΗΜΕΙΩΣΕΙΣ\n   --------------------------------\n   ${stage.notes}`;
-    }
-
-    const bodyParts = [
-      ``,
-      `Αγαπητέ/ή ${assignee.firstName} ${assignee.lastName},`,
-      ``,
-      `Ακολουθεί μια αυτοματοποιημένη υπενθύμιση από το σύστημα NESTOR eco σχετικά με το στάδιο "${stage.title}" για το έργο "${projectName}".`,
-      ``,
-      `==================================================`,
-      ``,
-      `   ΥΠΕΝΘΥΜΙΣΗ`,
-      `   --------------------------------`,
-      `   ${result.reminder}`,
-      ``,
-      ``,
-      `   ΑΞΙΟΛΟΓΗΣΗ ΚΑΤΑΣΤΑΣΗΣ`,
-      `   --------------------------------`,
-      `   ΕΠΙΠΕΔΟ ΕΠΕΙΓΟΝΤΟΣ: ${urgencyConfig[result.urgencyLevel].text}`,
-      `   > ${result.riskAssessment}`,
-      ``,
-      ``,
-      `   ΠΡΟΤΕΙΝΟΜΕΝΑ ΕΠΟΜΕΝΑ ΒΗΜΑΤΑ`,
-      `   --------------------------------`,
-      ...result.suggestedNextSteps.map(step => `   • ${step}`),
-      ``,
-      notesSection,
-      ``,
-    ];
-
-    if (owner) {
-      const fullAddress = [
-        owner.addressStreet,
-        owner.addressNumber,
-        owner.addressArea,
-        owner.addressPostalCode,
-        owner.addressCity,
-        owner.addressPrefecture,
-      ].filter(Boolean).join(", ");
-      
-      bodyParts.push(
-        `   ΣΤΟΙΧΕΙΑ ΕΠΙΚΟΙΝΩΝΙΑΣ ΙΔΙΟΚΤΗΤΗ`,
-        `   --------------------------------`,
-        `   • Όνομα: ${owner.firstName} ${owner.lastName}`,
-        `   • Τηλέφωνο: ${owner.mobilePhone || owner.landlinePhone || 'Δ/Υ'}`,
-        `   • Διεύθυνση: ${fullAddress || 'Δ/Υ'}`,
-        ``,
-        ``,
-      );
-    }
-    
-    bodyParts.push(
-      `==================================================`,
-      ``,
-      `Με εκτίμηση,`,
-      ``,
-    );
-
-    if (senderEmail === 'georgios.pagonis@gmail.com') {
-        bodyParts.push(
-            `Παγώνης Νέστ. Γεώργιος`,
-            `Αρχιτέκτων Μηχανικός`,
-            ``,
-            `Σαμοθράκης 16, 563 34`,
-            `Ελευθέριο Κορδελιό, Θεσσαλονίκη`,
-            `Τ: 2310 55 95 95`,
-            `Μ: 6974 050 023`,
-            `georgios.pagonis@gmail.com`
-        );
-    } else {
-         bodyParts.push(`Η ομάδα του NESTOR eco`);
-    }
-    
-    const body = bodyParts.join("\n");
+    const body = generateReminderEmailBody({
+      stage,
+      projectName,
+      assignee,
+      owner,
+      result,
+      senderEmail,
+      urgencyConfig,
+    });
     
     const gmailUrl = new URL("https://mail.google.com/mail/");
     gmailUrl.searchParams.set('view', 'cm');
@@ -221,7 +155,7 @@ export function SmartReminderDialog({ stage, projectName, contacts, owner, child
                   <div>
                     <h4 className="font-semibold flex items-center text-sm mb-2"><ListTodo className="w-4 h-4 mr-2" />Προτεινόμενα Βήματα</h4>
                     <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                      {result.suggestedNextSteps.map((step, i) => <li key={i}>{step}</li>)}
+                      {(result.suggestedNextSteps || []).map((step, i) => <li key={i}>{step}</li>)}
                     </ul>
                   </div>
                 </div>
