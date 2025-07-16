@@ -7,12 +7,13 @@ import { updateMasterInterventionAction } from '@/app/actions/master-interventio
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2, PlusCircle, AlertTriangle } from 'lucide-react';
 import type { MasterIntervention, CustomList, CustomListItem } from '@/types';
 import { SearchableSelect } from '../ui/searchable-select';
 import { Input } from '../ui/input';
 import { Separator } from '../ui/separator';
 import { CreateItemDialog } from './custom-lists/create-item-dialog';
+import { parseFormErrors } from '@/lib/form-error-utils';
 
 const initialState = {
   message: null,
@@ -61,16 +62,21 @@ export function EditInterventionForm({ intervention, setOpen, customLists, custo
         if (state?.success === true) {
             toast({ title: 'Επιτυχία!', description: state.message });
             setOpen(false);
-        } else if (state?.success === false && state.message) {
-            const errorMessages = state.errors ? Object.values(state.errors).flat().join('\n') : '';
-            toast({
+        } else if (state?.success === false && state.message && !state.errors) {
+            // This handles generic server errors that aren't field-specific
+             toast({
                 variant: 'destructive',
                 title: 'Σφάλμα',
-                description: `${state.message}\n${errorMessages}`,
+                description: state.message,
             });
         }
     }, [state, toast, setOpen]);
     
+    const errorMessages = parseFormErrors({
+      state,
+      prefix: state.errors ? "Σφάλμα πεδίου" : "Σφάλμα διακομιστή"
+    });
+
     const getListAndOptions = (listKey: string, legacyName: string) => {
         const list = customLists.find(l => l.key === listKey || (legacyName && l.name?.toLowerCase() === legacyName.toLowerCase()));
         if (!list) return { list: null, options: [] };
@@ -94,6 +100,15 @@ export function EditInterventionForm({ intervention, setOpen, customLists, custo
             <input type="hidden" name="interventionCategory" value={interventionCategory} />
             <input type="hidden" name="code" value={code} />
             <input type="hidden" name="unit" value={unit} />
+
+            {errorMessages._global && (
+              <div role="alert" className="mb-4 p-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-md flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 mt-0.5"/>
+                <div>
+                    {errorMessages._global.map((msg, i) => <p key={i}>{msg}</p>)}
+                </div>
+              </div>
+            )}
             
             <div className="space-y-2">
                 <Label htmlFor="expenseCategory-select">Κατηγορία Δαπάνης</Label>
@@ -107,7 +122,7 @@ export function EditInterventionForm({ intervention, setOpen, customLists, custo
                 >
                     {expenseCategoryList && <DialogChild listId={expenseCategoryList.id} text="Προσθήκη Νέας Κατ. Δαπάνης..."/>}
                 </SearchableSelect>
-                {state.errors?.expenseCategory && <p className="text-sm font-medium text-destructive mt-1">{state.errors.expenseCategory[0]}</p>}
+                {errorMessages.expenseCategory && <p className="text-sm font-medium text-destructive mt-1">{errorMessages.expenseCategory[0]}</p>}
             </div>
 
             <div className="space-y-2">
@@ -122,7 +137,7 @@ export function EditInterventionForm({ intervention, setOpen, customLists, custo
                 >
                     {interventionCategoryList && <DialogChild listId={interventionCategoryList.id} text="Προσθήκη Νέας Κατ. Παρέμβασης..."/>}
                 </SearchableSelect>
-                {state.errors?.interventionCategory && <p className="text-sm font-medium text-destructive mt-1">{state.errors.interventionCategory[0]}</p>}
+                {errorMessages.interventionCategory && <p className="text-sm font-medium text-destructive mt-1">{errorMessages.interventionCategory[0]}</p>}
             </div>
             
             <div className="space-y-2">
@@ -137,7 +152,7 @@ export function EditInterventionForm({ intervention, setOpen, customLists, custo
                 >
                     {codeList && <DialogChild listId={codeList.id} text="Προσθήκη Νέου Κωδικού..."/>}
                 </SearchableSelect>
-                {state.errors?.code && <p className="text-sm font-medium text-destructive mt-1">{state.errors.code[0]}</p>}
+                {errorMessages.code && <p className="text-sm font-medium text-destructive mt-1">{errorMessages.code[0]}</p>}
             </div>
             
             <div className="space-y-2">
@@ -152,19 +167,19 @@ export function EditInterventionForm({ intervention, setOpen, customLists, custo
                 >
                     {unitList && <DialogChild listId={unitList.id} text="Προσθήκη Νέας Μονάδας..."/>}
                 </SearchableSelect>
-                {state.errors?.unit && <p className="text-sm font-medium text-destructive mt-1">{state.errors.unit[0]}</p>}
+                {errorMessages.unit && <p className="text-sm font-medium text-destructive mt-1">{errorMessages.unit[0]}</p>}
             </div>
 
             <div className="space-y-2">
                 <Label htmlFor="maxUnitPrice">Μέγιστο Κόστος/Μονάδα</Label>
                 <Input id="maxUnitPrice" name="maxUnitPrice" type="number" step="0.01" defaultValue={intervention.maxUnitPrice} required />
-                {state.errors?.maxUnitPrice && <p className="text-sm font-medium text-destructive mt-1">{state.errors.maxUnitPrice[0]}</p>}
+                {errorMessages.maxUnitPrice && <p className="text-sm font-medium text-destructive mt-1">{errorMessages.maxUnitPrice[0]}</p>}
             </div>
 
              <div className="space-y-2">
                 <Label htmlFor="maxAmount">Μέγιστο Ποσό Παρέμβασης</Label>
                 <Input id="maxAmount" name="maxAmount" type="number" step="0.01" defaultValue={intervention.maxAmount} required />
-                {state.errors?.maxAmount && <p className="text-sm font-medium text-destructive mt-1">{state.errors.maxAmount[0]}</p>}
+                {errorMessages.maxAmount && <p className="text-sm font-medium text-destructive mt-1">{errorMessages.maxAmount[0]}</p>}
             </div>
 
             <SubmitButton />
