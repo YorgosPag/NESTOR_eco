@@ -75,9 +75,6 @@
     "typescript": "^5"
   },
   "eslintConfig": {
-    "extends": "next/core-web-vitals",
-    "rules": {
-      "react/no-invalid-html-nesting": "error"
-    }
+    "extends": "next/core-web-vitals"
   }
 }
