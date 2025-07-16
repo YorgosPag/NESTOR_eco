@@ -2,6 +2,7 @@
 
 import type { Contact } from '@/types';
 import type { Firestore } from 'firebase-admin/firestore';
+import { normalizeForSearch } from './text-utils';
 
 // Helper function to convert Firestore Timestamps to ISO strings
 function serializeTimestamps(data: any) {
@@ -19,17 +20,55 @@ function serializeTimestamps(data: any) {
     return serializedData;
 }
 
-export const getContacts = async (db: Firestore): Promise<Contact[]> => {
+export const getAllContacts = async (db: Firestore): Promise<Contact[]> => {
     const contactsCollection = db.collection('contacts');
-    const snapshot = await contactsCollection.orderBy('lastName').get();
-    if (snapshot.empty) {
-        return [];
-    }
+    const snapshot = await contactsCollection.orderBy('lastName', 'asc').get();
     return snapshot.docs.map(doc => ({
         id: doc.id,
         ...serializeTimestamps(doc.data())
     } as Contact));
 }
+
+export const getPaginatedContacts = async (
+    db: Firestore, 
+    options: { page: number, limit: number, searchTerm?: string }
+): Promise<{ contacts: Contact[], totalCount: number }> => {
+    const { page, limit, searchTerm } = options;
+    
+    // For a robust search, a service like Algolia is recommended.
+    // Here, we'll fetch all and filter in memory, which is acceptable for moderate datasets
+    // but should be replaced for very large scale. The pagination still helps the client.
+    const allContacts = await getAllContacts(db);
+
+    let filteredContacts = allContacts;
+    if (searchTerm) {
+        const normalizedSearch = normalizeForSearch(searchTerm);
+        filteredContacts = allContacts.filter(contact => {
+            const contactHaystack = [
+                contact.firstName,
+                contact.lastName,
+                contact.company,
+                contact.email,
+                contact.role,
+                contact.specialty,
+                contact.mobilePhone,
+                contact.landlinePhone,
+                contact.vatNumber
+            ].filter(Boolean).join(' ');
+            const normalizedHaystack = normalizeForSearch(contactHaystack);
+            return normalizedHaystack.includes(normalizedSearch);
+        });
+    }
+
+    const totalCount = filteredContacts.length;
+    const startIndex = (page - 1) * limit;
+    const paginatedContacts = filteredContacts.slice(startIndex, startIndex + limit);
+    
+    return {
+        contacts: paginatedContacts,
+        totalCount: totalCount,
+    };
+};
 
 export const getContactById = async (db: Firestore, id: string): Promise<Contact | undefined> => {
     const contactsCollection = db.collection('contacts');

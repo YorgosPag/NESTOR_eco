@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Bot, Loader2 } from 'lucide-react';
 import { generateReportAction } from '@/app/actions/ai';
 import { useToast } from '@/hooks/use-toast';
-import type { ReportOutput } from '@/ai/flows/reporting-schemas';
+import type { ReportOutput } from '@/ai/flows/schemas';
 import { DynamicChart } from './dynamic-chart';
 
 export function AIReportAssistant() {
@@ -38,7 +38,7 @@ export function AIReportAssistant() {
              toast({
                 variant: 'destructive',
                 title: 'Σφάλμα Συστήματος',
-                description: 'Προέκυψε ένα μη αναμενόμενο σφάλμα.',
+                description: 'Προέκυψε ένα μη αναμενόμενο σφάλμα κατά την εξαγωγή.',
             });
         } finally {
             setIsLoading(false);

@@ -4,7 +4,7 @@ import type { Firestore } from 'firebase-admin/firestore';
 
 export const getCustomLists = async (db: Firestore): Promise<CustomList[]> => {
     // Order by name to ensure stable, alphabetical sorting which prevents hydration errors.
-    const snapshot = await db.collection('customLists').orderBy('name').get();
+    const snapshot = await db.collection('customLists').orderBy('name', 'asc').get();
     if (snapshot.empty) return [];
 
     return snapshot.docs.map(doc => ({
@@ -15,7 +15,8 @@ export const getCustomLists = async (db: Firestore): Promise<CustomList[]> => {
 
 
 export const getAllCustomListItems = async (db: Firestore): Promise<CustomListItem[]> => {
-    const snapshot = await db.collection('customListItems').orderBy('name').get();
+    // Order by name to ensure stable, alphabetical sorting which prevents hydration errors.
+    const snapshot = await db.collection('customListItems').orderBy('name', 'asc').get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CustomListItem));
 }
 

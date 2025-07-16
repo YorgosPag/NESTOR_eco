@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import type { Contact, CustomList, CustomListItem } from "@/types";
 import {
   Table,
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Pencil, Trash2, Search, BookUser } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Search, BookUser, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,65 +26,80 @@ import { EditContactDialog } from "./edit-contact-dialog";
 import { DeleteContactDialog } from "./delete-contact-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Input } from "../ui/input";
-import { normalizeForSearch } from "@/lib/text-utils";
+import { getPaginatedContacts } from "@/app/actions/contacts";
+import { CreateContactDialog } from "./create-contact-dialog";
+import { PlusCircle } from "lucide-react";
 
 interface ContactsTableProps {
-  contacts: Contact[];
   customLists: CustomList[];
   customListItems: CustomListItem[];
 }
 
-export function ContactsTable({ contacts, customLists, customListItems }: ContactsTableProps) {
+const PAGE_SIZE = 10;
+
+export function ContactsTable({ customLists, customListItems }: ContactsTableProps) {
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+    const [data, setData] = useState<{ contacts: Contact[], totalCount: number }>({ contacts: [], totalCount: 0 });
+    const [page, setPage] = useState(1);
+    const [isPending, startTransition] = useTransition();
 
-    const filteredContacts = useMemo(() => {
-        if (!searchTerm.trim()) {
-            return contacts;
-        }
-        
-        const normalizedFilter = normalizeForSearch(searchTerm);
-        
-        return contacts.filter(contact => {
-            const contactHaystack = [
-                contact.firstName,
-                contact.lastName,
-                contact.company,
-                contact.email,
-                contact.role,
-                contact.specialty
-            ].filter(Boolean).join(' '); // Combine fields
-            
-            const normalizedContactHaystack = normalizeForSearch(contactHaystack);
-            
-            return normalizedContactHaystack.includes(normalizedFilter);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+            setPage(1); // Reset to first page on new search
+        }, 300);
+
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [searchTerm]);
+
+    useEffect(() => {
+        startTransition(async () => {
+            const result = await getPaginatedContacts({ page, limit: PAGE_SIZE, searchTerm: debouncedSearchTerm });
+            setData(result);
         });
-    }, [contacts, searchTerm]);
-
-
-  if (contacts.length === 0) {
-    return <p className="text-muted-foreground text-center py-8">Δεν βρέθηκαν επαφές.</p>;
-  }
+    }, [page, debouncedSearchTerm]);
+    
+    const totalPages = Math.ceil(data.totalCount / PAGE_SIZE);
 
   return (
     <>
-    <div className="flex items-center py-4">
-        <div className="relative w-full max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-            placeholder="Αναζήτηση επαφής..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-            />
+        <div className="flex items-center justify-between">
+            <div>
+                <h1 className="text-h1 flex items-center gap-2">
+                    <BookUser className="h-6 w-6" />
+                    Λίστα Επαφών
+                </h1>
+                <p className="text-muted">Διαχειριστείτε όλες τις επαφές σας από ένα κεντρικό σημείο.</p>
+            </div>
+            <CreateContactDialog customLists={customLists} customListItems={customListItems}>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Νέα Επαφή
+                </Button>
+            </CreateContactDialog>
         </div>
-    </div>
-    {filteredContacts.length > 0 ? (
+        <div className="flex items-center py-4">
+            <div className="relative w-full max-w-sm">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                placeholder="Αναζήτηση επαφής..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+                />
+            </div>
+        </div>
+        
         <div className="rounded-lg border">
         <Table>
             <TableHeader>
             <TableRow>
                 <TableHead>Όνομα/Εταιρεία</TableHead>
                 <TableHead>Ρόλος/Ειδικότητα</TableHead>
+
                 <TableHead>Επικοινωνία</TableHead>
                 <TableHead className="hidden md:table-cell">Σημειώσεις</TableHead>
                 <TableHead>
@@ -93,81 +108,109 @@ export function ContactsTable({ contacts, customLists, customListItems }: Contac
             </TableRow>
             </TableHeader>
             <TableBody>
-            {filteredContacts.map((contact) => {
-                const fullAddress = [
-                    contact.addressStreet,
-                    contact.addressNumber,
-                    contact.addressArea,
-                    contact.addressPostalCode,
-                    contact.addressCity,
-                    contact.addressPrefecture,
-                ].filter(Boolean).join(", ");
-                
-                return (
-                    <TableRow key={contact.id}>
-                    <TableCell>
-                        <div className="flex items-center gap-3" title={fullAddress}>
-                            <Avatar className="hidden h-9 w-9 sm:flex">
-                                <AvatarImage src={contact.avatar} alt="Avatar" />
-                                <AvatarFallback>{contact.firstName ? contact.firstName.charAt(0) : 'X'}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <div className="font-medium">{`${contact.firstName} ${contact.lastName}`}</div>
-                                {contact.company && <div className="text-sm text-muted-foreground">{contact.company}</div>}
+            {isPending ? (
+                <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                        <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+                    </TableCell>
+                </TableRow>
+            ) : data.contacts.length > 0 ? (
+                data.contacts.map((contact) => {
+                    const fullAddress = [
+                        contact.addressStreet,
+                        contact.addressNumber,
+                        contact.addressArea,
+                        contact.addressPostalCode,
+                        contact.addressCity,
+                        contact.addressPrefecture,
+                    ].filter(Boolean).join(", ");
+                    
+                    return (
+                        <TableRow key={contact.id}>
+                        <TableCell>
+                            <div className="flex items-center gap-3" title={fullAddress}>
+                                <Avatar className="hidden h-9 w-9 sm:flex">
+                                    <AvatarImage src={contact.avatar} alt="Avatar" />
+                                    <AvatarFallback>{contact.firstName ? contact.firstName.charAt(0) : 'X'}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <div className="font-medium">{`${contact.firstName} ${contact.lastName}`}</div>
+                                    {contact.company && <div className="text-sm text-muted-foreground">{contact.company}</div>}
+                                </div>
                             </div>
-                        </div>
+                        </TableCell>
+                        <TableCell>
+                            <div className="flex items-center gap-2">
+                                <Badge>{contact.role}</Badge>
+                                {contact.specialty && <span className="text-xs text-muted-foreground">{contact.specialty}</span>}
+                            </div>
+                        </TableCell>
+                        <TableCell>
+                            <div className="text-sm">{contact.email}</div>
+                            {contact.mobilePhone && <div className="text-sm text-muted-foreground">Κιν: {contact.mobilePhone}</div>}
+                            {contact.landlinePhone && <div className="text-sm text-muted-foreground">Σταθ: {contact.landlinePhone}</div>}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell max-w-xs truncate">{contact.notes || '-'}</TableCell>
+                        <TableCell>
+                            <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Μενού ενεργειών</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Ενέργειες</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <EditContactDialog contact={contact} customLists={customLists} customListItems={customListItems}>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                        <Pencil className="mr-2 h-4 w-4" />
+                                        Επεξεργασία
+                                    </DropdownMenuItem>
+                                </EditContactDialog>
+                                <DeleteContactDialog contact={contact}>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Διαγραφή
+                                    </DropdownMenuItem>
+                                </DeleteContactDialog>
+                            </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
+                        </TableRow>
+                    )
+                })
+            ) : (
+                 <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">
+                       Δεν βρέθηκαν επαφές.
                     </TableCell>
-                    <TableCell>
-                        <div className="flex items-center gap-2">
-                            <Badge>{contact.role}</Badge>
-                            {contact.specialty && <span className="text-xs text-muted-foreground">{contact.specialty}</span>}
-                        </div>
-                    </TableCell>
-                    <TableCell>
-                        <div className="text-sm">{contact.email}</div>
-                        {contact.mobilePhone && <div className="text-sm text-muted-foreground">Κιν: {contact.mobilePhone}</div>}
-                        {contact.landlinePhone && <div className="text-sm text-muted-foreground">Σταθ: {contact.landlinePhone}</div>}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell max-w-xs truncate">{contact.notes || '-'}</TableCell>
-                    <TableCell>
-                        <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Μενού ενεργειών</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Ενέργειες</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <EditContactDialog contact={contact} customLists={customLists} customListItems={customListItems}>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Επεξεργασία
-                                </DropdownMenuItem>
-                            </EditContactDialog>
-                            <DeleteContactDialog contact={contact}>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Διαγραφή
-                                </DropdownMenuItem>
-                            </DeleteContactDialog>
-                        </DropdownMenuContent>
-                        </DropdownMenu>
-                    </TableCell>
-                    </TableRow>
-                )
-            })}
+                </TableRow>
+            )}
             </TableBody>
         </Table>
         </div>
-    ) : (
-        <div className="flex flex-col col-span-full items-center justify-center rounded-lg border border-dashed shadow-sm p-8 mt-4 min-h-[400px]">
-            <BookUser className="w-16 h-16 text-muted-foreground/50 mb-4" />
-            <h3 className="text-2xl font-bold tracking-tight">Δεν βρέθηκαν επαφές</h3>
-            <p className="text-sm text-muted-foreground mt-2">Δοκιμάστε έναν διαφορετικό όρο αναζήτησης.</p>
+         <div className="flex items-center justify-end space-x-2 py-4">
+            <div className="flex-1 text-sm text-muted-foreground">
+                Σελίδα {page} από {totalPages > 0 ? totalPages : 1}
+            </div>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => p - 1)}
+                disabled={page <= 1 || isPending}
+            >
+                Προηγούμενη
+            </Button>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => p + 1)}
+                disabled={page >= totalPages || isPending}
+            >
+                Επόμενη
+            </Button>
         </div>
-    )}
     </>
   );
 }

@@ -1,5 +1,5 @@
 
-import { getContacts } from "@/lib/contacts-data";
+import { getAllContacts } from "@/lib/contacts-data";
 import { getAllProjects } from "@/lib/projects-data";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { SupplierOffersClientPage } from "./supplier-offers-client-page";
@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export default async function SupplierOffersPage() {
     const db = getAdminDb();
     const [contacts, projects, customLists, customListItems, offers] = await Promise.all([
-        getContacts(db),
+        getAllContacts(db),
         getAllProjects(db),
         getCustomLists(db),
         getAllCustomListItems(db),

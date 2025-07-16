@@ -1,5 +1,5 @@
 import { getAllProjects } from "@/lib/projects-data";
-import { getContacts } from "@/lib/contacts-data";
+import { getAllContacts } from "@/lib/contacts-data";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { DashboardClientPage } from "@/components/dashboard/dashboard-client-page";
 
@@ -10,7 +10,7 @@ export default async function DashboardPage() {
 
   const [projects, contacts] = await Promise.all([
     getAllProjects(db),
-    getContacts(db),
+    getAllContacts(db),
   ]);
 
   return <DashboardClientPage projects={projects} contacts={contacts} />;

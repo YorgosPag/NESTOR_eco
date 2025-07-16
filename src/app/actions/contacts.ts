@@ -3,9 +3,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { getContacts, addContact, updateContact, deleteContact } from '@/lib/contacts-data';
+import { getAllContacts, getPaginatedContacts as getPaginatedContactsData, addContact, updateContact, deleteContact } from '@/lib/contacts-data';
 import type { Contact } from '@/types';
 import { getAdminDb } from "@/lib/firebase-admin";
+
+export async function getPaginatedContacts(options: { page: number; limit: number; searchTerm?: string }) {
+    const db = getAdminDb();
+    return getPaginatedContactsData(db, options);
+}
 
 const ContactSchema = z.object({
   firstName: z.string().min(2, "Το όνομα πρέπει να έχει τουλάχιστον 2 χαρακτήρες."),
@@ -127,7 +132,8 @@ export async function deleteContactAction(prevState: any, formData: FormData) {
 export async function exportContactsToMarkdownAction() {
   try {
     const db = getAdminDb();
-    const contacts = await getContacts(db);
+    // For a full export, we fetch all contacts.
+    const contacts = await getAllContacts(db);
     if (contacts.length === 0) {
       return { success: true, data: "Δεν βρέθηκαν επαφές στη βάση δεδομένων." };
     }

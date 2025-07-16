@@ -1,6 +1,6 @@
 
 import { getAllProjects } from "@/lib/projects-data";
-import { getContacts } from "@/lib/contacts-data";
+import { getAllContacts } from "@/lib/contacts-data";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { InterventionStagesClientPage } from "./client-page";
 
@@ -10,7 +10,7 @@ export default async function InterventionStagesPage() {
     const db = getAdminDb();
     const [projects, contacts] = await Promise.all([
         getAllProjects(db),
-        getContacts(db),
+        getAllContacts(db),
     ]);
 
     return <InterventionStagesClientPage projects={projects} contacts={contacts} />;

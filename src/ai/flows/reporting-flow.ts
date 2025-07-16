@@ -9,7 +9,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 import { getAllProjects } from '@/lib/projects-data';
-import { getContacts } from '@/lib/contacts-data';
+import { getAllContacts } from '@/lib/contacts-data';
 import { getAdminDb } from '@/lib/firebase-admin';
 import { ReportOutputSchema, type ReportOutput } from './schemas';
 
@@ -93,7 +93,7 @@ const getContactsTool = ai.defineTool(
             console.log(`[AI Tool] Getting all contacts.`);
             const db = getAdminDb();
             // The data must be serializable.
-            const contacts = await getContacts(db);
+            const contacts = await getAllContacts(db);
              return contacts.map(c => ({
                 id: c.id,
                 name: `${c.firstName} ${c.lastName}`,

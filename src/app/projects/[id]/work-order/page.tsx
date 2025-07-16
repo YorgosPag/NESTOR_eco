@@ -1,7 +1,7 @@
 
 import { getProjectById } from "@/lib/projects-data";
 import { notFound } from "next/navigation";
-import { getContacts } from "@/lib/contacts-data";
+import { getAllContacts } from "@/lib/contacts-data";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { WorkOrderView } from "@/components/projects/work-order-view";
 
@@ -11,7 +11,7 @@ export default async function WorkOrderPage({ params }: { params: { id: string }
     const db = getAdminDb();
     const [project, contacts] = await Promise.all([
         getProjectById(db, params.id),
-        getContacts(db),
+        getAllContacts(db),
     ]);
 
     if (!project) {

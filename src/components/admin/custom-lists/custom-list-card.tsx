@@ -21,6 +21,7 @@ interface CustomListCardProps {
 
 export function CustomListCard({ list, items }: CustomListCardProps) {
     // The items are now pre-sorted from the data source to prevent hydration errors.
+    // No client-side sorting is needed.
 
     return (
         <AccordionItem value={list.id} className="border-b-0">

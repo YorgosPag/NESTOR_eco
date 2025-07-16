@@ -2,7 +2,7 @@
 import { getProjectById, getAllProjects } from "@/lib/projects-data";
 import { getMasterInterventions } from "@/lib/interventions-data";
 import { notFound } from "next/navigation";
-import { getContacts } from "@/lib/contacts-data";
+import { getAllContacts } from "@/lib/contacts-data";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { ProjectDetails } from "@/components/projects/project-details";
 import type { Project } from "@/types";
@@ -13,7 +13,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
   const [project, masterInterventions, contacts, customLists, customListItems] = await Promise.all([
       getProjectById(db, params.id),
       getMasterInterventions(db),
-      getContacts(db),
+      getAllContacts(db),
       getCustomLists(db),
       getAllCustomListItems(db)
   ]);

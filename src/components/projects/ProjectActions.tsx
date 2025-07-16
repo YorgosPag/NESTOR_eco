@@ -6,16 +6,15 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Pencil, Trash2, FileText, Rocket } from "lucide-react";
 import { EditProjectDialog } from "./edit-project-dialog";
 import { DeleteProjectDialog } from "./delete-project-dialog";
-import { useFormState } from 'react-dom';
+import { useActionState, useEffect } from 'react';
 import { activateProjectAction } from '@/app/actions/projects';
 import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
 import type { Project, Contact } from '@/types';
 
 
 function ActivateProjectButton({ projectId }: { projectId: string }) {
     const { toast } = useToast();
-    const [state, formAction] = useFormState(activateProjectAction, { success: false, message: null });
+    const [state, formAction] = useActionState(activateProjectAction, { success: false, message: null });
 
     useEffect(() => {
         if (state.message) {

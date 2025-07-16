@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { deleteProjectAction } from '@/app/actions/projects';
 import {
   AlertDialog,
@@ -43,7 +43,7 @@ interface DeleteProjectDialogProps {
 
 export function DeleteProjectDialog({ project, children }: DeleteProjectDialogProps) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useFormState(deleteProjectAction, initialState);
+  const [state, formAction] = useActionState(deleteProjectAction, initialState);
   const { toast } = useToast();
 
   useEffect(() => {

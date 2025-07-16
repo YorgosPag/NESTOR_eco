@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import type { Project, Contact, Stage, StageStatus } from '@/types';
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getContacts as getContactsData } from '@/lib/contacts-data';
+import { getAllContacts as getContactsData } from '@/lib/contacts-data';
 import { 
     getAllProjects as getAllProjectsData,
     getProjectById as getProjectDataById, 

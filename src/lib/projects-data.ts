@@ -40,11 +40,13 @@ function processProject(projectDoc: firestore.DocumentSnapshot): Project {
     } as Project;
     
     // Sort interventions safely by creating a new sorted array
-    projectData.interventions = [...(projectData.interventions || [])].sort((a, b) => {
-        const nameA = a.interventionSubcategory || a.interventionCategory || '';
-        const nameB = b.interventionSubcategory || b.interventionCategory || '';
-        return nameA.localeCompare(nameB);
-    });
+    if (projectData.interventions) {
+        projectData.interventions = [...(projectData.interventions || [])].sort((a, b) => {
+            const nameA = a.interventionSubcategory || a.interventionCategory || '';
+            const nameB = b.interventionSubcategory || b.interventionCategory || '';
+            return nameA.localeCompare(nameB);
+        });
+    }
 
     // Initialize metrics that will be calculated on the client
     projectData.budget = 0;
@@ -90,7 +92,7 @@ export async function getProjectsByIds(db: firestore.Firestore, ids: string[]): 
 };
  
 export async function getAllProjects(db: firestore.Firestore): Promise<Project[]> {
-    const snapshot = await db.collection('projects').orderBy('title').get();
+    const snapshot = await db.collection('projects').orderBy('title', 'asc').get();
     if (snapshot.empty) {
         return [];
     }
@@ -123,7 +125,9 @@ export async function addProject(db: firestore.Firestore, data: { title: string;
 };
  
 export async function updateProject(db: firestore.Firestore, id: string, data: Partial<Pick<Project, 'title' | 'applicationNumber' | 'ownerContactId' | 'deadline' | 'status'>>, logActivation: boolean = false) {
+    const projectRef = db.collection('projects').doc(id);
     const updateData: { [key: string]: any } = { ...data };
+
     if (data.deadline) {
         updateData.deadline = data.deadline ? new Date(data.deadline).toISOString() : '';
     }
@@ -139,7 +143,7 @@ export async function updateProject(db: firestore.Firestore, id: string, data: P
     }
 
     try {
-        await db.collection('projects').doc(id).update(updateData);
+        await projectRef.update(updateData);
         return true;
     } catch(error) {
         console.error("Error updating project:", error);
@@ -178,146 +182,166 @@ export async function addStageToProject(db: firestore.Firestore, data: { project
         supervisorContactId: stageData.supervisorContactId && stageData.supervisorContactId !== 'none' ? stageData.supervisorContactId : undefined,
     };
     
-    const project = await getProjectById(db, projectId);
-    if (!project) throw new Error('Project not found');
+    return db.runTransaction(async (transaction) => {
+        const projectDoc = await transaction.get(projectRef);
+        if (!projectDoc.exists) throw new Error('Project not found');
+        
+        const projectData = projectDoc.data() as Project;
+        const interventions = projectData.interventions || [];
+        const interventionIndex = interventions.findIndex(i => i.masterId === interventionMasterId);
 
-    const intervention = project.interventions.find(i => i.masterId === interventionMasterId);
-    if (!intervention) throw new Error('Intervention not found');
-    
-    intervention.stages.push(newStage);
+        if (interventionIndex === -1) throw new Error('Intervention not found');
+        
+        interventions[interventionIndex].stages.push(newStage);
 
-    await projectRef.update({
-        interventions: project.interventions,
-        auditLog: FieldValue.arrayUnion({
-            id: `log-${Date.now()}`,
-            user: users[0],
-            action: 'Προσθήκη Σταδίου',
-            timestamp: new Date().toISOString(),
-            details: `Προστέθηκε το στάδιο "${newStage.title}" στην παρέμβαση "${intervention.interventionCategory}".`,
-        })
+        transaction.update(projectRef, {
+            interventions,
+            auditLog: FieldValue.arrayUnion({
+                id: `log-${Date.now()}`,
+                user: users[0],
+                action: 'Προσθήκη Σταδίου',
+                timestamp: new Date().toISOString(),
+                details: `Προστέθηκε το στάδιο "${newStage.title}" στην παρέμβαση "${interventions[interventionIndex].interventionCategory}".`,
+            })
+        });
     });
 }
 
 export async function updateStageInProject(db: firestore.Firestore, data: { projectId: string; stageId: string, title: string; deadline: string; notes?: string; assigneeContactId?: string; supervisorContactId?: string; }) {
     const { projectId, stageId, ...stageData } = data;
-    const project = await getProjectById(db, projectId);
-    if (!project) throw new Error('Project not found');
+    const projectRef = db.collection('projects').doc(projectId);
 
-    let interventionTitle = '';
-    let stageUpdated = false;
+    return db.runTransaction(async (transaction) => {
+        const projectDoc = await transaction.get(projectRef);
+        if (!projectDoc.exists) throw new Error('Project not found');
+        
+        const project = projectDoc.data() as Project;
+        let interventionTitle = '';
+        let stageUpdated = false;
 
-    project.interventions.forEach(intervention => {
-        const stage = intervention.stages.find(s => s.id === stageId);
-        if (stage) {
-            stage.title = stageData.title;
-            stage.deadline = new Date(stageData.deadline).toISOString();
-            stage.notes = stageData.notes || undefined;
-            stage.assigneeContactId = stageData.assigneeContactId && stageData.assigneeContactId !== 'none' ? stageData.assigneeContactId : undefined;
-            stage.supervisorContactId = stageData.supervisorContactId && stageData.supervisorContactId !== 'none' ? stageData.supervisorContactId : undefined;
-            stage.lastUpdated = new Date().toISOString();
-            interventionTitle = intervention.interventionCategory;
-            stageUpdated = true;
-        }
-    });
+        project.interventions.forEach(intervention => {
+            const stage = intervention.stages.find(s => s.id === stageId);
+            if (stage) {
+                stage.title = stageData.title;
+                stage.deadline = new Date(stageData.deadline).toISOString();
+                stage.notes = stageData.notes || undefined;
+                stage.assigneeContactId = stageData.assigneeContactId && stageData.assigneeContactId !== 'none' ? stageData.assigneeContactId : undefined;
+                stage.supervisorContactId = stageData.supervisorContactId && stageData.supervisorContactId !== 'none' ? stageData.supervisorContactId : undefined;
+                stage.lastUpdated = new Date().toISOString();
+                interventionTitle = intervention.interventionCategory;
+                stageUpdated = true;
+            }
+        });
 
-    if (!stageUpdated) throw new Error('Stage not found');
+        if (!stageUpdated) throw new Error('Stage not found');
 
-    await db.collection('projects').doc(projectId).update({
-        interventions: project.interventions,
-        auditLog: FieldValue.arrayUnion({
-             id: `log-${Date.now()}`,
-            user: users[0],
-            action: 'Επεξεργασία Σταδίου',
-            timestamp: new Date().toISOString(),
-            details: `Επεξεργάστηκε το στάδιο "${stageData.title}" στην παρέμβαση "${interventionTitle}".`,
-        })
+        transaction.update(projectRef, {
+            interventions: project.interventions,
+            auditLog: FieldValue.arrayUnion({
+                id: `log-${Date.now()}`,
+                user: users[0],
+                action: 'Επεξεργασία Σταδίου',
+                timestamp: new Date().toISOString(),
+                details: `Επεξεργάστηκε το στάδιο "${stageData.title}" στην παρέμβαση "${interventionTitle}".`,
+            })
+        });
     });
 }
 
 export async function deleteStageFromProject(db: firestore.Firestore, data: { projectId: string; stageId: string }) {
     const { projectId, stageId } = data;
-    const project = await getProjectById(db, projectId);
-    if (!project) throw new Error('Project not found');
-    
-    let stageTitle = '';
-    let interventionTitle = '';
-    
-    const newInterventions = project.interventions.map(intervention => {
-        const stageIndex = intervention.stages.findIndex(s => s.id === stageId);
-        if (stageIndex !== -1) {
-            stageTitle = intervention.stages[stageIndex].title;
-            interventionTitle = intervention.interventionCategory;
-            intervention.stages.splice(stageIndex, 1);
-        }
-        return intervention;
-    });
+    const projectRef = db.collection('projects').doc(projectId);
 
-    if (!stageTitle) throw new Error('Stage not found');
+    return db.runTransaction(async (transaction) => {
+        const projectDoc = await transaction.get(projectRef);
+        if (!projectDoc.exists) throw new Error('Project not found');
 
-    await db.collection('projects').doc(projectId).update({
-        interventions: newInterventions,
-        auditLog: FieldValue.arrayUnion({
-            id: `log-${Date.now()}`,
-            user: users[0],
-            action: 'Διαγραφή Σταδίου',
-            timestamp: new Date().toISOString(),
-            details: `Διαγράφηκε το στάδιο "${stageTitle}" από την παρέμβαση "${interventionTitle}".`,
-        })
+        const project = projectDoc.data() as Project;
+        let stageTitle = '';
+        let interventionTitle = '';
+
+        project.interventions.forEach(intervention => {
+            const stageIndex = intervention.stages.findIndex(s => s.id === stageId);
+            if (stageIndex !== -1) {
+                stageTitle = intervention.stages[stageIndex].title;
+                interventionTitle = intervention.interventionCategory;
+                intervention.stages.splice(stageIndex, 1);
+            }
+        });
+
+        if (!stageTitle) throw new Error('Stage not found');
+
+        transaction.update(projectRef, {
+            interventions: project.interventions,
+            auditLog: FieldValue.arrayUnion({
+                id: `log-${Date.now()}`,
+                user: users[0],
+                action: 'Διαγραφή Σταδίου',
+                timestamp: new Date().toISOString(),
+                details: `Διαγράφηκε το στάδιο "${stageTitle}" από την παρέμβαση "${interventionTitle}".`,
+            })
+        });
     });
 }
  
 export async function moveStageInProject(db: firestore.Firestore, data: { projectId: string; interventionMasterId: string; stageId: string; direction: 'up' | 'down' }) {
     const { projectId, interventionMasterId, stageId, direction } = data;
-    const project = await getProjectById(db, projectId);
-    if (!project) throw new Error('Project not found');
+    const projectRef = db.collection('projects').doc(projectId);
+    
+    return db.runTransaction(async (transaction) => {
+        const projectDoc = await transaction.get(projectRef);
+        if (!projectDoc.exists) throw new Error('Project not found');
 
-    const intervention = project.interventions.find(i => i.masterId === interventionMasterId);
-    if (!intervention) throw new Error('Intervention not found');
-    
-    const stages = intervention.stages;
-    const fromIndex = stages.findIndex(s => s.id === stageId);
-    if (fromIndex === -1) throw new Error('Stage not found');
-    
-    const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
+        const project = projectDoc.data() as Project;
+        const intervention = project.interventions.find(i => i.masterId === interventionMasterId);
+        if (!intervention) throw new Error('Intervention not found');
+        
+        const stages = intervention.stages;
+        const fromIndex = stages.findIndex(s => s.id === stageId);
+        if (fromIndex === -1) throw new Error('Stage not found');
+        
+        const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
 
-    if (toIndex >= 0 && toIndex < stages.length) {
-        [stages[fromIndex], stages[toIndex]] = [stages[toIndex], stages[fromIndex]];
-    } else {
-        return { success: false }; // Indicate that no move was possible
-    }
-    
-    await db.collection('projects').doc(projectId).update({ interventions: project.interventions });
-    return { success: true };
+        if (toIndex >= 0 && toIndex < stages.length) {
+            [stages[fromIndex], stages[toIndex]] = [stages[toIndex], stages[fromIndex]];
+            transaction.update(projectRef, { interventions: project.interventions });
+            return { success: true };
+        } else {
+            return { success: false }; // Indicate that no move was possible
+        }
+    });
 }
 
 // OTHER ACTIONS
 
 export async function updateStageStatus(db: firestore.Firestore, projectId: string, stageId: string, status: StageStatus): Promise<boolean> {
-    const project = await getProjectById(db, projectId);
-    if (!project) return false;
+    const projectRef = db.collection('projects').doc(projectId);
+    
+    return db.runTransaction(async (transaction) => {
+        const projectDoc = await transaction.get(projectRef);
+        if (!projectDoc.exists) return false;
 
-    let stageUpdated = false;
-    let stageTitle = '';
-    let interventionTitle = '';
+        const project = projectDoc.data() as Project;
+        let stageUpdated = false;
+        let stageTitle = '';
+        let interventionTitle = '';
 
-    for (const intervention of project.interventions) {
-        const stage = intervention.stages.find(s => s.id === stageId);
-        if (stage) {
-            stage.status = status;
-            stage.lastUpdated = new Date().toISOString();
-            stageUpdated = true;
-            stageTitle = stage.title;
-            interventionTitle = intervention.interventionCategory;
-            break;
+        for (const intervention of project.interventions) {
+            const stage = intervention.stages.find(s => s.id === stageId);
+            if (stage) {
+                stage.status = status;
+                stage.lastUpdated = new Date().toISOString();
+                stageUpdated = true;
+                stageTitle = stage.title;
+                interventionTitle = intervention.interventionCategory;
+                break;
+            }
         }
-    }
 
-    if (!stageUpdated) return false;
+        if (!stageUpdated) return false;
 
-    try {
-        const { progress, alerts, budget, ...projectToUpdate } = project;
-        await db.collection('projects').doc(projectId).update({
-            ...projectToUpdate,
+        transaction.update(projectRef, {
+            interventions: project.interventions,
             auditLog: FieldValue.arrayUnion({
                 id: `log-${Date.now()}`,
                 user: users[0], 
@@ -327,29 +351,34 @@ export async function updateStageStatus(db: firestore.Firestore, projectId: stri
             })
         });
         return true;
-    } catch (error) {
-        console.error("Error updating stage status:", error);
+    }).then(success => success).catch(err => {
+        console.error("Error updating stage status in transaction:", err);
         return false;
-    }
+    });
 }
 
 export async function logEmailNotificationInProject(db: firestore.Firestore, data: { projectId: string; stageId: string; assigneeName: string; }) {
     const { projectId, stageId, assigneeName } = data;
-    const project = await getProjectById(db, projectId);
-    if (!project) throw new Error('Project not found');
+    const projectRef = db.collection('projects').doc(projectId);
 
-    const lookup = project.interventions.flatMap(i => i.stages.map(s => ({ stage: s, intervention: i }))).find(l => l.stage.id === stageId);
-    if (!lookup) throw new Error('Stage not found');
+    return db.runTransaction(async (transaction) => {
+        const projectDoc = await transaction.get(projectRef);
+        if (!projectDoc.exists) throw new Error('Project not found');
 
-    const { stage, intervention } = lookup;
+        const project = projectDoc.data() as Project;
+        const lookup = project.interventions.flatMap(i => i.stages.map(s => ({ stage: s, intervention: i }))).find(l => l.stage.id === stageId);
+        if (!lookup) throw new Error('Stage not found');
 
-    await db.collection('projects').doc(projectId).update({
-        auditLog: FieldValue.arrayUnion({
-            id: `log-${Date.now()}`,
-            user: users[0],
-            action: 'Αποστολή Email',
-            timestamp: new Date().toISOString(),
-            details: `Εστάλη ειδοποίηση στον/στην ${assigneeName} για το στάδιο "${stage.title}" της παρέμβασης "${intervention.interventionCategory}".`,
-        })
+        const { stage, intervention } = lookup;
+
+        transaction.update(projectRef, {
+            auditLog: FieldValue.arrayUnion({
+                id: `log-${Date.now()}`,
+                user: users[0],
+                action: 'Αποστολή Email',
+                timestamp: new Date().toISOString(),
+                details: `Εστάλη ειδοποίηση στον/στην ${assigneeName} για το στάδιο "${stage.title}" της παρέμβασης "${intervention.interventionCategory}".`,
+            })
+        });
     });
 }

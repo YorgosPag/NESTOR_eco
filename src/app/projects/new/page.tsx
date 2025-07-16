@@ -1,13 +1,13 @@
 
 import { CreateProjectForm } from "@/components/projects/create-project-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getContacts } from "@/lib/contacts-data";
+import { getAllContacts } from "@/lib/contacts-data";
 import { getAdminDb } from "@/lib/firebase-admin";
 import { PlusCircle } from "lucide-react";
 
 export default async function NewProjectPage() {
     const db = getAdminDb();
-    const contacts = await getContacts(db);
+    const contacts = await getAllContacts(db);
     return (
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
             <div className="max-w-2xl mx-auto w-full">

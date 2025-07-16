@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import React, { useState, Suspense } from "react";
 import type { Project, Contact } from "@/types";
 import {
   Select,
@@ -11,10 +11,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FinancialSummaryReport } from "./financial-summary-report";
-import { AIReportAssistant } from "./ai-report-assistant";
-import { BarChart2, HardDriveDownload } from "lucide-react";
+import { BarChart2, HardDriveDownload, Loader2 } from "lucide-react";
 import { DynamicReportBuilder } from "./dynamic-report-builder";
 import { DataExport } from "./data-export";
+
+const AIReportAssistant = React.lazy(() => import('./ai-report-assistant').then(module => ({ default: module.AIReportAssistant })));
+
+const ReportSpinner = () => (
+    <div className="flex items-center justify-center p-8 min-h-[200px] border rounded-lg bg-muted/50">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+);
 
 
 interface ReportsClientPageProps {
@@ -55,7 +62,9 @@ export function ReportsClientPage({ projects, contacts }: ReportsClientPageProps
                     <DynamicReportBuilder projects={projects} contacts={contacts} />
                 )}
                 {selectedReport === 'ai_assistant' && (
-                    <AIReportAssistant />
+                    <Suspense fallback={<ReportSpinner />}>
+                        <AIReportAssistant />
+                    </Suspense>
                 )}
                 {selectedReport === 'financial_summary' && (
                     <FinancialSummaryReport projects={projects.filter(p => p.status !== 'Quotation')} />

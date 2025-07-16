@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -9,36 +10,40 @@ import { seedDatabaseAction } from '@/app/actions/database';
 import { Loader2, Database, AlertTriangle, Settings } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
+function SeedButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending}>
+            {pending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Αρχικοποίηση...
+              </>
+            ) : (
+              "Εκτέλεση Αρχικοποίησης (Seed)"
+            )}
+        </Button>
+    );
+}
+
 export default function SettingsPage() {
-  const [isSeeding, setIsSeeding] = useState(false);
+  const [state, formAction] = useActionState(seedDatabaseAction, { success: false, error: null, message: null });
   const { toast } = useToast();
 
-  const handleSeedDatabase = async () => {
-      setIsSeeding(true);
-      try {
-        const result = await seedDatabaseAction();
-         if (result.success) {
-            toast({
-                title: "Επιτυχία",
-                description: result.message,
-            });
-        } else {
-            toast({
-                variant: "destructive",
-                title: "Σφάλμα",
-                description: result.error,
-            });
-        }
-      } catch (error: any) {
-         toast({
-            variant: "destructive",
-            title: "Σφάλμα Συστήματος",
-            description: "Απέτυχε η αρχικοποίηση της βάσης δεδομένων."
-         });
-      } finally {
-        setIsSeeding(false);
-      }
-  }
+  useState(() => {
+    if (state.message) {
+      toast({
+        title: "Επιτυχία",
+        description: state.message,
+      });
+    } else if (state.error) {
+      toast({
+        variant: "destructive",
+        title: "Σφάλμα",
+        description: state.error,
+      });
+    }
+  });
 
   return (
     <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -67,16 +72,9 @@ export default function SettingsPage() {
             </Alert>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleSeedDatabase} disabled={isSeeding}>
-            {isSeeding ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Αρχικοποίηση...
-              </>
-            ) : (
-              "Εκτέλεση Αρχικοποίησης (Seed)"
-            )}
-          </Button>
+            <form action={formAction}>
+                <SeedButton />
+            </form>
         </CardFooter>
       </Card>
     </main>

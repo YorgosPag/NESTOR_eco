@@ -22,6 +22,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from 'next/navigation';
+import { calculateClientProjectMetrics } from "@/lib/client-utils";
+
 
 const EmptyStateFiltered = ({ title = "Δεν βρέθηκαν έργα", description = "Δεν υπάρχουν έργα που να ταιριάζουν σε αυτήν την κατηγορία." }) => (
     <div className="flex flex-col col-span-full items-center justify-center rounded-lg border border-dashed shadow-sm p-8 mt-4 min-h-[400px]">
@@ -37,11 +39,15 @@ interface ProjectsPageProps {
     contacts: Contact[];
 }
 
-export function ProjectsClientPage({ projects, contacts }: ProjectsPageProps) {
+export function ProjectsClientPage({ projects: serverProjects, contacts }: ProjectsPageProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
     const [isReportLoading, setIsReportLoading] = useState(false);
     const router = useRouter();
+
+    const projectsWithMetrics = useMemo(() => {
+        return serverProjects.map(p => calculateClientProjectMetrics(p));
+    }, [serverProjects]);
 
     const handleToggleProjectSelection = (projectId: string, isSelected: boolean) => {
         if (isSelected) {
@@ -53,12 +59,12 @@ export function ProjectsClientPage({ projects, contacts }: ProjectsPageProps) {
 
     const filteredProjects = useMemo(() => {
         if (!searchTerm.trim()) {
-            return projects;
+            return projectsWithMetrics;
         }
         
         const normalizedFilter = normalizeForSearch(searchTerm);
         
-        return projects.filter(project => {
+        return projectsWithMetrics.filter(project => {
             const owner = contacts.find(c => c.id === project.ownerContactId);
             const ownerName = owner ? `${owner.firstName} ${owner.lastName}` : '';
             
@@ -72,7 +78,7 @@ export function ProjectsClientPage({ projects, contacts }: ProjectsPageProps) {
             
             return normalizedHaystack.includes(normalizedFilter);
         });
-    }, [projects, contacts, searchTerm]);
+    }, [projectsWithMetrics, contacts, searchTerm]);
     
     const handleGenerateReport = () => {
         if (selectedProjects.length === 0) return;
@@ -87,7 +93,7 @@ export function ProjectsClientPage({ projects, contacts }: ProjectsPageProps) {
     const onTrackProjects = filteredProjects.filter(p => p.status === 'On Track');
     const delayedProjects = filteredProjects.filter(p => p.status === 'Delayed');
     const completedProjects = filteredProjects.filter(p => p.status === 'Completed');
-    const allProjects = [...quotationProjects, ...onTrackProjects, ...delayedProjects, ...completedProjects];
+    const allProjects = filteredProjects; // Use the already filtered list
 
 
     return (
@@ -151,7 +157,7 @@ export function ProjectsClientPage({ projects, contacts }: ProjectsPageProps) {
                 </TabsList>
 
                 <TabsContent value="all" className="mt-4">
-                    {projects.length === 0 ? (
+                    {serverProjects.length === 0 ? (
                         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed shadow-sm p-8 mt-4 min-h-[400px]">
                             <h3 className="text-h2">Δεν έχετε ακόμα ενεργά έργα</h3>
                             <p className="text-muted mt-2 max-w-md text-center">
