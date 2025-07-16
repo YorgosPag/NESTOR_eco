@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useMemo } from 'react';
-import type { Project, Contact, StageStatus, ChartData } from '@/types';
+import type { Project, Contact, ChartData } from '@/types';
 import {
     Card,
     CardContent,
@@ -30,6 +30,7 @@ import { Label } from '@/components/ui/label';
 import { TableIcon, Filter } from 'lucide-react';
 import { MultiSelectCombobox, type MultiSelectOption } from '../ui/multi-select-combobox';
 import { DynamicChart } from './dynamic-chart';
+import { filterStages, groupStages, generateStatusChartData, generateAssigneeChartData } from '@/lib/report-helpers';
 
 type GroupingOption = 'assignee' | 'supervisor' | 'status' | 'interventionCategory' | 'project';
 type FinancialFilterOption = 'all' | 'profitable' | 'lossmaking';
@@ -55,22 +56,6 @@ export function DynamicReportBuilder({ projects, contacts }: { projects: Project
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const [financialFilter, setFinancialFilter] = useState<FinancialFilterOption>('all');
 
-    const projectsWithFinancials = useMemo(() => {
-        return projects.map(project => {
-            const summary = project.interventions.reduce((acc, intervention) => {
-                const internalCost = intervention.subInterventions?.reduce((sum, sub) => sum + (sub.costOfMaterials || 0) + (sub.costOfLabor || 0), 0) || 0;
-                const programBudget = intervention.subInterventions?.reduce((sum, sub) => sum + sub.cost, 0) || 0;
-                acc.internalCost += internalCost;
-                acc.programBudget += programBudget;
-                return acc;
-            }, { internalCost: 0, programBudget: 0 });
-            return {
-                ...project,
-                profit: summary.programBudget - summary.internalCost,
-            };
-        });
-    }, [projects]);
-
     const contactOptions: MultiSelectOption[] = useMemo(() => 
         contacts.map(c => ({ value: c.id, label: `${c.firstName} ${c.lastName}` })).sort((a,b) => a.label.localeCompare(b.label)),
     [contacts]);
@@ -78,112 +63,32 @@ export function DynamicReportBuilder({ projects, contacts }: { projects: Project
     const assigneeOptions = contactOptions;
     const supervisorOptions = contactOptions;
 
-
     const projectOptions: MultiSelectOption[] = useMemo(() => 
         projects.map(p => ({ value: p.id, label: p.title })).sort((a,b) => a.label.localeCompare(b.label)),
     [projects]);
 
     const filteredStages = useMemo(() => {
-        const financiallyFilteredProjects = projectsWithFinancials.filter(p => {
-            if (financialFilter === 'profitable') return p.profit > 0;
-            if (financialFilter === 'lossmaking') return p.profit < 0;
-            return true;
-        }).map(p => p.id);
-
-        return projects
-            .filter(p => financiallyFilteredProjects.includes(p.id))
-            .flatMap(p =>
-                p.interventions.flatMap(i =>
-                    i.stages.map(s => ({
-                        ...s,
-                        projectId: p.id,
-                        projectTitle: p.title,
-                        projectStatus: p.status,
-                        interventionCategory: i.interventionCategory,
-                        assignee: contacts.find(c => c.id === s.assigneeContactId),
-                        supervisor: contacts.find(c => c.id === s.supervisorContactId),
-                    }))
-                )
-        ).filter(stage => {
-            const assigneeMatch = selectedAssignees.length === 0 || (stage.assignee && selectedAssignees.includes(stage.assignee.id));
-            const supervisorMatch = selectedSupervisors.length === 0 || (stage.supervisor && selectedSupervisors.includes(stage.supervisor.id));
-            const projectMatch = selectedProjects.length === 0 || selectedProjects.includes(stage.projectId);
-            const statusMatch = selectedStatuses.length === 0 || selectedStatuses.includes(stage.status);
-            return assigneeMatch && supervisorMatch && projectMatch && statusMatch;
+        return filterStages({
+            projects,
+            contacts,
+            financialFilter,
+            selectedProjects,
+            selectedStatuses,
+            selectedAssignees,
+            selectedSupervisors,
         });
-    }, [projects, contacts, selectedAssignees, selectedSupervisors, selectedProjects, selectedStatuses, financialFilter, projectsWithFinancials]);
+    }, [projects, contacts, financialFilter, selectedProjects, selectedStatuses, selectedAssignees, selectedSupervisors]);
     
     const reportData = useMemo(() => {
-        const groups = new Map<string, { title: string; stages: typeof filteredStages }>();
-
-        filteredStages.forEach(stage => {
-            let key: string | undefined;
-            let title: string | undefined;
-
-            switch (grouping) {
-                case 'assignee':
-                    key = stage.assignee?.id || 'unassigned';
-                    title = stage.assignee ? `${stage.assignee.firstName} ${stage.assignee.lastName}` : 'Χωρίς Ανάθεση';
-                    break;
-                case 'supervisor':
-                    key = stage.supervisor?.id || 'unassigned';
-                    title = stage.supervisor ? `${stage.supervisor.firstName} ${stage.supervisor.lastName}` : 'Χωρίς Επιβλέποντα';
-                    break;
-                case 'status':
-                    key = stage.status;
-                    title = statusOptions.find(opt => opt.value === stage.status)?.label || stage.status;
-                    break;
-                case 'interventionCategory':
-                    key = stage.interventionCategory;
-                    title = stage.interventionCategory;
-                    break;
-                case 'project':
-                default:
-                    key = stage.projectId;
-                    title = stage.projectTitle;
-                    break;
-            }
-
-            if (!key || !title) return;
-
-            if (!groups.has(key)) {
-                groups.set(key, { title, stages: [] });
-            }
-            const group = groups.get(key)!;
-            group.stages.push(stage);
-        });
-
-        return Array.from(groups.values()).sort((a,b) => a.title.localeCompare(b.title));
+        return groupStages(filteredStages, grouping, statusOptions);
     }, [filteredStages, grouping]);
 
     const statusChartData = useMemo((): ChartData | null => {
-        if (filteredStages.length === 0) return null;
-        const statusCounts = filteredStages.reduce((acc, stage) => {
-            const statusLabel = statusOptions.find(opt => opt.value === stage.status)?.label || stage.status;
-            acc[statusLabel] = (acc[statusLabel] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
-        
-        return {
-            type: 'pie',
-            title: 'Κατανομή Σταδίων ανά Κατάσταση',
-            data: Object.entries(statusCounts).map(([name, value]) => ({ name, value })),
-        };
+        return generateStatusChartData(filteredStages, statusOptions);
     }, [filteredStages]);
 
     const assigneeChartData = useMemo((): ChartData | null => {
-        if (filteredStages.length === 0) return null;
-        const assigneeCounts = filteredStages.reduce((acc, stage) => {
-            const assigneeName = stage.assignee ? `${stage.assignee.firstName} ${stage.assignee.lastName}` : 'Χωρίς Ανάθεση';
-            acc[assigneeName] = (acc[assigneeName] || 0) + 1;
-            return acc;
-        }, {} as Record<string, number>);
-
-        return {
-            type: 'bar',
-            title: 'Αριθμός Σταδίων ανά Ανάδοχο',
-            data: Object.entries(assigneeCounts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value),
-        };
+        return generateAssigneeChartData(filteredStages);
     }, [filteredStages]);
 
 
