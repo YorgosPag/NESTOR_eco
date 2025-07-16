@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -24,10 +25,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { Project, Contact, ProjectIntervention, Stage } from "@/types";
 import { ScrollArea } from "../ui/scroll-area";
 import { Mail } from "lucide-react";
-import { MultiSelectCombobox, type MultiSelectOption } from "../ui/multi-select-combobox";
+import { MultiSelectCombobox } from "../ui/multi-select-combobox";
 import { useToast } from "@/hooks/use-toast";
 import { SearchableSelect } from "../ui/searchable-select";
-import { logEmailNotificationAction } from "@/app/actions/projects";
+import { logEmailNotificationAction } from "@/app/actions/email";
 import { generateAssignmentEmailBody } from "@/lib/email-templates";
 
 const userEmails = [

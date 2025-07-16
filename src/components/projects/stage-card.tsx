@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -27,7 +28,7 @@ import { NotifyAssigneeDialog } from "./notify-assignee-dialog";
 import { Calendar, Clock, File as FileIcon, MoreVertical, Upload, Wand2, Pencil, Trash2, Play, CheckCircle, XCircle, Undo2, Briefcase, User, ArrowUp, ArrowDown } from "lucide-react";
 import { format, differenceInDays, isPast } from 'date-fns';
 import { cn } from "@/lib/utils";
-import { moveStageAction, updateStageStatusAction } from "@/app/actions/projects";
+import { moveStageAction, updateStageStatusAction } from "@/app/actions/stages";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface StageCardProps {
