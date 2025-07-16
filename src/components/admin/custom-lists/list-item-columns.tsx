@@ -36,13 +36,13 @@ export const columns: ColumnDef<CustomListItem>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Ενέργειες</DropdownMenuLabel>
             <EditItemDialog item={item}>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <DropdownMenuItem onSelectPreventClose>
                 <Pencil className="mr-2 h-4 w-4" />
                 Επεξεργασία
               </DropdownMenuItem>
             </EditItemDialog>
             <DeleteItemDialog item={item}>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+              <DropdownMenuItem onSelectPreventClose className="text-destructive focus:text-destructive focus:bg-destructive/10">
                 <Trash2 className="mr-2 h-4 w-4" />
                 Διαγραφή
               </DropdownMenuItem>

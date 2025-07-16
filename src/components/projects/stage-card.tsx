@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -125,14 +124,14 @@ export function StageCard({ stage, project, allProjectInterventions, contacts, o
                   contacts={contacts}
                 />
                 <SmartReminderDialog stage={stage} projectName={project.title} contacts={contacts} owner={owner}>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <DropdownMenuItem onSelectPreventClose>
                         <Wand2 className="mr-2 h-4 w-4" />
                         <span>Έξυπνη Υπενθύμιση ΑΙ</span>
                     </DropdownMenuItem>
                 </SmartReminderDialog>
               <DropdownMenuSeparator />
                <FileUploadDialog stage={stage}>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                <DropdownMenuItem onSelectPreventClose>
                     <Upload className="mr-2 h-4 w-4" />
                     <span>Μεταφόρτωση Εγγράφου</span>
                   </DropdownMenuItem>
@@ -148,13 +147,13 @@ export function StageCard({ stage, project, allProjectInterventions, contacts, o
                 </DropdownMenuItem>
               <DropdownMenuSeparator />
               <EditStageDialog stage={stage} projectId={project.id} contacts={contacts}>
-                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                 <DropdownMenuItem onSelectPreventClose>
                     <Pencil className="mr-2 h-4 w-4" />
                     <span>Επεξεργασία Σταδίου</span>
                 </DropdownMenuItem>
               </EditStageDialog>
               <DeleteStageDialog stage={stage} projectId={project.id}>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                <DropdownMenuItem onSelectPreventClose className="text-destructive focus:text-destructive focus:bg-destructive/10">
                     <Trash2 className="mr-2 h-4 w-4" />
                     <span>Διαγραφή Σταδίου</span>
                 </DropdownMenuItem>

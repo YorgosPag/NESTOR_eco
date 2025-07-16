@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -77,11 +78,18 @@ DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName
 const DropdownMenuItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
-    inset?: boolean
+    inset?: boolean;
+    onSelectPreventClose?: boolean;
   }
->(({ className, inset, ...props }, ref) => (
+>(({ className, inset, onSelect, onSelectPreventClose, ...props }, ref) => (
   <DropdownMenuPrimitive.Item
     ref={ref}
+    onSelect={(event) => {
+        if (onSelectPreventClose) {
+            event.preventDefault();
+        }
+        onSelect?.(event);
+    }}
     className={cn(
       "relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       inset && "pl-8",

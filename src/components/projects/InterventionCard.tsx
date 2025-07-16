@@ -188,7 +188,7 @@ export function InterventionCard({ project, intervention, allProjectIntervention
                                             customLists={customLists}
                                             customListItems={customListItems}
                                             >
-                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                                <DropdownMenuItem onSelectPreventClose>
                                                     <Pencil className="mr-2 h-4 w-4" />
                                                     Επεξεργασία
                                                 </DropdownMenuItem>
@@ -198,7 +198,7 @@ export function InterventionCard({ project, intervention, allProjectIntervention
                                             interventionMasterId={intervention.masterId}
                                             subIntervention={sub}
                                             >
-                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                                                <DropdownMenuItem onSelectPreventClose className="text-destructive focus:text-destructive focus:bg-destructive/10">
                                                     <Trash2 className="mr-2 h-4 w-4" />
                                                     Διαγραφή
                                                 </DropdownMenuItem>

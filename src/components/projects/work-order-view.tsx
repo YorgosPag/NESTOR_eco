@@ -16,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatDisplayCode } from '@/lib/intervention-helpers';
 
 
 const userEmails = [
@@ -46,15 +47,10 @@ export function WorkOrderView({ project, contacts, isBatch = false, showAssignee
 
     const processedInterventions = useMemo(() => {
         return project.interventions.map(intervention => {
-            const subInterventionsWithDisplayCode = (intervention.subInterventions || []).map(sub => {
-                const expenseCategory = sub.expenseCategory || intervention.expenseCategory || '';
-                const romanNumeralMatch = expenseCategory.match(/\((I|II|III|IV|V|VI|VII|VIII|IX|X)\)/);
-                const romanNumeral = romanNumeralMatch ? ` (${romanNumeralMatch[1]})` : '';
-                return {
-                    ...sub,
-                    displayCode: `${sub.subcategoryCode || ''}${romanNumeral}`
-                }
-            });
+            const subInterventionsWithDisplayCode = (intervention.subInterventions || []).map(sub => ({
+                ...sub,
+                displayCode: formatDisplayCode(sub.subcategoryCode || '', sub.expenseCategory || intervention.expenseCategory || '')
+            }));
             return {...intervention, subInterventions: subInterventionsWithDisplayCode};
         });
     }, [project.interventions]);

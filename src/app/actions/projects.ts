@@ -1,5 +1,6 @@
 
 
+
 "use server";
 
 import { revalidatePath } from 'next/cache';
@@ -7,7 +8,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import type { Project, Contact } from '@/types';
 import { getAdminDb } from "@/lib/firebase-admin";
-import { getAllContacts as getContactsData } from '@/lib/contacts-data';
+import { getAllContacts } from '@/lib/contacts-data';
 import { 
     getAllProjects as getAllProjectsData,
     getProjectById as getProjectDataById, 
@@ -31,7 +32,7 @@ export async function getBatchWorkOrderData(projectIds: string[]): Promise<{ pro
     const db = getAdminDb();
     
     const [allContacts, resolvedProjects] = await Promise.all([
-        getContactsData(db),
+        getAllContacts(db),
         getProjectsDataByIds(db, projectIds),
     ]);
 
@@ -163,7 +164,7 @@ export async function exportProjectsToMarkdownAction() {
     const db = getAdminDb();
     const [projects, contacts] = await Promise.all([
       getAllProjectsData(db),
-      getContactsData(db),
+      getAllContacts(db),
     ]);
 
     if (projects.length === 0) {

@@ -63,13 +63,13 @@ export const columns = ({ customLists, customListItems }: ColumnsProps): ColumnD
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Ενέργειες</DropdownMenuLabel>
             <EditTriggerDialog trigger={trigger} customLists={customLists} customListItems={customListItems}>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <DropdownMenuItem onSelectPreventClose>
                 <Pencil className="mr-2 h-4 w-4" />
                 Επεξεργασία
               </DropdownMenuItem>
             </EditTriggerDialog>
             <DeleteTriggerDialog trigger={trigger}>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+              <DropdownMenuItem onSelectPreventClose className="text-destructive focus:text-destructive focus:bg-destructive/10">
                 <Trash2 className="mr-2 h-4 w-4" />
                 Διαγραφή
               </DropdownMenuItem>

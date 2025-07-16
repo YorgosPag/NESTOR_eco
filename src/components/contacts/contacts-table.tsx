@@ -163,13 +163,13 @@ export function ContactsTable({ customLists, customListItems }: ContactsTablePro
                                 <DropdownMenuLabel>Ενέργειες</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <EditContactDialog contact={contact} customLists={customLists} customListItems={customListItems}>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                    <DropdownMenuItem onSelectPreventClose>
                                         <Pencil className="mr-2 h-4 w-4" />
                                         Επεξεργασία
                                     </DropdownMenuItem>
                                 </EditContactDialog>
                                 <DeleteContactDialog contact={contact}>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                                    <DropdownMenuItem onSelectPreventClose className="text-destructive focus:text-destructive focus:bg-destructive/10">
                                         <Trash2 className="mr-2 h-4 w-4" />
                                         Διαγραφή
                                     </DropdownMenuItem>
