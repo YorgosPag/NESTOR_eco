@@ -8,10 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Copy, HardDriveDownload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { exportContactsToMarkdownAction } from '@/app/actions/contacts';
-import { exportProjectsToMarkdownAction } from '@/app/actions/projects';
-import type { Project, Contact } from '@/types';
-
+import { exportContactsToMarkdownAction, exportProjectsToMarkdownAction } from '@/app/actions/admin';
 
 type ExportType = 'contacts' | 'projects';
 

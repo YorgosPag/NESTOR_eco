@@ -3,8 +3,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { getAllContacts, getPaginatedContacts as getPaginatedContactsData, addContact, updateContact, deleteContact } from '@/lib/contacts-data';
-import type { Contact } from '@/types';
+import { getPaginatedContacts as getPaginatedContactsData, addContact, updateContact, deleteContact } from '@/lib/contacts-data';
 import { getAdminDb } from "@/lib/firebase-admin";
 
 export async function getPaginatedContacts(options: { page: number; limit: number; searchTerm?: string }) {
@@ -33,7 +32,6 @@ const ContactSchema = z.object({
   avatar: z.string().optional(),
   notes: z.string().optional(),
   
-  // Personal Info
   fatherName: z.string().optional(),
   motherName: z.string().optional(),
   dateOfBirth: z.string().optional(),
@@ -41,13 +39,11 @@ const ContactSchema = z.object({
   gender: z.string().optional(),
   nationality: z.string().optional(),
 
-  // ID Info
   vatNumber: z.string().regex(/^\d{9}$/, "Το ΑΦΜ πρέπει να αποτελείται από ακριβώς 9 ψηφία.").optional().or(z.literal('')),
   idNumber: z.string().optional(),
   idIssueDate: z.string().optional(),
   idIssuingAuthority: z.string().optional(),
 
-  // Social Media
   facebookUrl: z.string().url("Παρακαλώ εισάγετε ένα έγκυρο URL.").optional().or(z.literal('')),
   instagramUrl: z.string().url("Παρακαλώ εισάγετε ένα έγκυρο URL.").optional().or(z.literal('')),
   tiktokUrl: z.string().url("Παρακαλώ εισάγετε ένα έγκυρο URL.").optional().or(z.literal('')),
@@ -123,48 +119,4 @@ export async function deleteContactAction(prevState: any, formData: FormData) {
 
     revalidatePath('/contacts');
     return { success: true, message: 'Η επαφή διαγράφηκε με επιτυχία.' };
-}
-
-export async function exportContactsToMarkdownAction() {
-  try {
-    const db = getAdminDb();
-    // For a full export, we fetch all contacts.
-    const contacts = await getAllContacts(db);
-    if (contacts.length === 0) {
-      return { success: true, data: "Δεν βρέθηκαν επαφές στη βάση δεδομένων." };
-    }
-    
-    let markdown = '# Λίστα Επαφών Βάσης Δεδομένων\n\n';
-    markdown += 'Ακολουθούν τα αναλυτικά στοιχεία για όλες τις επαφές που είναι καταχωρημένες στο σύστημα.\n\n---\n\n';
-
-    contacts.forEach((contact, index) => {
-        const fullName = `${contact.firstName || ''} ${contact.lastName || ''}`.trim();
-        const address = [
-            contact.addressStreet,
-            contact.addressNumber,
-            contact.addressArea,
-            contact.addressPostalCode,
-            contact.addressCity,
-            contact.addressPrefecture,
-        ].filter(Boolean).join(', ');
-
-        markdown += `### ${index + 1}. ${fullName || 'Επαφή χωρίς όνομα'}\n`;
-        if (contact.company) markdown += `- **Εταιρεία:** ${contact.company}\n`;
-        if (contact.email) markdown += `- **Email:** ${contact.email}\n`;
-        if (contact.mobilePhone) markdown += `- **Κινητό:** ${contact.mobilePhone}\n`;
-        if (contact.landlinePhone) markdown += `- **Σταθερό:** ${contact.landlinePhone}\n`;
-        if (contact.role) markdown += `- **Ρόλος:** ${contact.role}\n`;
-        if (contact.specialty) markdown += `- **Ειδικότητα:** ${contact.specialty}\n`;
-        if (address) markdown += `- **Διεύθυνση:** ${address}\n`;
-        if (contact.vatNumber) markdown += `- **ΑΦΜ:** ${contact.vatNumber}\n`;
-        if (contact.idNumber) markdown += `- **ΑΔΤ:** ${contact.idNumber}\n`;
-        if (contact.notes) markdown += `- **Σημειώσεις:** ${contact.notes}\n`;
-        markdown += `\n---\n\n`;
-    });
-
-    return { success: true, data: markdown };
-  } catch (error: any) {
-    console.error("🔥 ERROR in exportContactsToMarkdownAction:", error);
-    return { success: false, error: `Η εξαγωγή απέτυχε: ${error.message}` };
-  }
 }
