@@ -1,6 +1,4 @@
 
-'use server';
-
 import type { Offer } from '@/types';
 import type { Firestore, Timestamp } from 'firebase-admin/firestore';
 
