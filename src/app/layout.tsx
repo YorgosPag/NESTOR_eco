@@ -4,7 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/toaster";
 import { SidebarProvider } from "@/components/layout/sidebar-provider";
-import { Sidebar, SidebarInset } from "@/components/ui/sidebar";
+import { Sidebar, SidebarInset } from "@/components/sidebar";
 import { Header } from "@/components/layout/header";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { ThemeProvider } from "@/components/layout/theme-provider";

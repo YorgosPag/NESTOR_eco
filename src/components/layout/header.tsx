@@ -3,7 +3,7 @@
 import Link from "next/link";
 import {
   SidebarTrigger,
-} from "@/components/ui/sidebar";
+} from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

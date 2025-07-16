@@ -7,12 +7,14 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarMenuButton,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
-} from "@/components/ui/sidebar";
+} from "@/components/sidebar";
+import {
+  SidebarMenuButton
+} from "@/components/sidebar/SidebarMenu";
 import {
   LayoutGrid,
   FolderKanban,
