@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { deleteCustomListItemAction } from '@/app/actions/custom-list-items';
 import {
   AlertDialog,
@@ -43,7 +43,7 @@ interface DeleteItemDialogProps {
 
 export function DeleteItemDialog({ item, children }: DeleteItemDialogProps) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useFormState(deleteCustomListItemAction, initialState);
+  const [state, formAction] = useActionState(deleteCustomListItemAction, initialState);
   const { toast } = useToast();
 
   useEffect(() => {

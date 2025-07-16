@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { createTriggerAction } from '@/app/actions/triggers';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -49,7 +49,7 @@ const DialogChild = ({listId, text}: {listId: string, text: string}) => (
 );
 
 export function CreateTriggerForm({ setOpen, customLists, customListItems }: CreateTriggerFormProps) {
-    const [state, formAction] = useFormState(createTriggerAction, initialState);
+    const [state, formAction] = useActionState(createTriggerAction, initialState);
     const { toast } = useToast();
     const [code, setCode] = useState('');
     const [interventionCategory, setInterventionCategory] = useState('');

@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { updateCustomListItemAction } from '@/app/actions/custom-list-items';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,7 @@ interface EditItemFormProps {
 }
 
 export function EditItemForm({ item, setOpen }: EditItemFormProps) {
-    const [state, formAction] = useFormState(updateCustomListItemAction, initialState);
+    const [state, formAction] = useActionState(updateCustomListItemAction, initialState);
     const { toast } = useToast();
 
     useEffect(() => {

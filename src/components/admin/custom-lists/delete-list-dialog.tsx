@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import * as React from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { deleteCustomListAction } from '@/app/actions/custom-lists';
 import {
   AlertDialog,
@@ -51,7 +51,7 @@ interface DeleteListDialogProps {
 
 export function DeleteListDialog({ list, children }: DeleteListDialogProps) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useFormState(deleteCustomListAction, initialState);
+  const [state, formAction] = useActionState(deleteCustomListAction, initialState);
   const { toast } = useToast();
 
   useEffect(() => {

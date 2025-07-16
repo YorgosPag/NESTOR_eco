@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { createCustomListAction } from '@/app/actions/custom-lists';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,7 @@ function SubmitButton() {
 }
 
 export function CreateListForm({ setOpen }: { setOpen: (open: boolean) => void }) {
-    const [state, formAction] = useFormState(createCustomListAction, initialState);
+    const [state, formAction] = useActionState(createCustomListAction, initialState);
     const { toast } = useToast();
 
     useEffect(() => {

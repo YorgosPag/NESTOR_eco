@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { updateInterventionAction } from '@/app/actions/interventions';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -37,7 +37,7 @@ interface EditInterventionFormProps {
 }
 
 export function EditInterventionForm({ project, intervention, setOpen, customLists, customListItems }: EditInterventionFormProps) {
-  const [state, formAction] = useFormState(updateInterventionAction, initialState);
+  const [state, formAction] = useActionState(updateInterventionAction, initialState);
   const { toast } = useToast();
   const [interventionName, setInterventionName] = useState(intervention.interventionSubcategory || intervention.interventionCategory);
 

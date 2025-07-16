@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 import { deleteTriggerAction } from '@/app/actions/triggers';
 import {
   AlertDialog,
@@ -43,7 +43,7 @@ interface DeleteTriggerDialogProps {
 
 export function DeleteTriggerDialog({ trigger, children }: DeleteTriggerDialogProps) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useFormState(deleteTriggerAction, initialState);
+  const [state, formAction] = useActionState(deleteTriggerAction, initialState);
   const { toast } = useToast();
 
   useEffect(() => {

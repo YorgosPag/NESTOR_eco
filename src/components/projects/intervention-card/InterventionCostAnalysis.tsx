@@ -4,7 +4,8 @@
 import { useMemo } from 'react';
 import type { Project, ProjectIntervention, SubIntervention, CustomList, CustomListItem } from "@/types";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu-item";
 import { Button } from "@/components/ui/button";
 import { AddSubInterventionDialog } from "../add-sub-intervention-dialog";
 import { EditSubInterventionDialog } from "../edit-sub-intervention-dialog";
