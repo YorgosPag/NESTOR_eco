@@ -29,6 +29,7 @@ import { format, differenceInDays, isPast } from 'date-fns';
 import { cn } from "@/lib/utils";
 import { moveStageAction, updateStageStatusAction } from "@/app/actions/stages";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+import { useIsClient } from "@/hooks/use-is-client";
 
 interface StageCardProps {
   stage: Stage;
@@ -42,7 +43,7 @@ interface StageCardProps {
 }
 
 export function StageCard({ stage, project, allProjectInterventions, contacts, owner, interventionMasterId, canMoveUp, canMoveDown }: StageCardProps) {
-  const [isClient, setIsClient] = useState(false);
+  const isClient = useIsClient();
   const statusFormRef = useRef<HTMLFormElement>(null);
   const moveFormRef = useRef<HTMLFormElement>(null);
   
@@ -50,9 +51,6 @@ export function StageCard({ stage, project, allProjectInterventions, contacts, o
   const statusInputRef = useRef<HTMLInputElement>(null);
   const directionInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const handleStatusUpdate = (newStatus: StageStatus) => {
     if (statusFormRef.current && statusInputRef.current) {
@@ -175,13 +173,17 @@ export function StageCard({ stage, project, allProjectInterventions, contacts, o
         </div>
       </CardHeader>
       <CardContent className="p-4 pt-0 space-y-3 text-sm text-muted-foreground">
-        {supervisor && (
+        {stage.supervisorContactId && (
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <div className="flex items-center gap-2 text-foreground cursor-help">
                             <Briefcase className="w-4 h-4"/>
-                            <span>Επιβλέπων: {supervisor.firstName} {supervisor.lastName}</span>
+                            {supervisor ? (
+                                <span>Επιβλέπων: {supervisor.firstName} {supervisor.lastName}</span>
+                            ) : (
+                                <span className="italic text-muted-foreground">Επιβλέπων δεν βρέθηκε</span>
+                            )}
                         </div>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -190,13 +192,17 @@ export function StageCard({ stage, project, allProjectInterventions, contacts, o
                 </Tooltip>
             </TooltipProvider>
         )}
-        {assignee && (
+        {stage.assigneeContactId && (
             <TooltipProvider>
                  <Tooltip>
                     <TooltipTrigger asChild>
                         <div className="flex items-center gap-2 text-foreground cursor-help">
                             <User className="h-4 w-4"/>
-                            <span>Ανάδοχος: {assignee.firstName} {assignee.lastName}</span>
+                             {assignee ? (
+                                <span>Ανάδοχος: {assignee.firstName} {assignee.lastName}</span>
+                             ) : (
+                                <span className="italic text-muted-foreground">Ανάδοχος δεν βρέθηκε</span>
+                             )}
                         </div>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -222,7 +228,7 @@ export function StageCard({ stage, project, allProjectInterventions, contacts, o
                 {stage.files.map(file => (
                      <div key={file.url} className="flex items-center gap-2">
                         <FileIcon className="h-4 w-4"/>
-                        <a href={file.url} className="hover:underline" target="_blank" rel="noopener noreferrer">{file.name}</a>
+                        <a href={file.url} className="hover:underline" target="_blank" rel="noopener noreferrer">{file.name || "Αρχείο χωρίς όνομα"}</a>
                      </div>
                 ))}
             </div>
