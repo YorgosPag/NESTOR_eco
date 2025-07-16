@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -25,10 +24,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import type { Project, Contact, ProjectIntervention, Stage } from "@/types";
 import { ScrollArea } from "../ui/scroll-area";
 import { Mail } from "lucide-react";
-import { MultiSelectCombobox } from "../ui/multi-select-combobox";
+import { MultiSelectCombobox, type MultiSelectOption } from "../ui/multi-select-combobox";
 import { useToast } from "@/hooks/use-toast";
 import { SearchableSelect } from "../ui/searchable-select";
 import { logEmailNotificationAction } from "@/app/actions/projects";
+import { generateAssignmentEmailBody } from "@/lib/email-templates";
 
 const userEmails = [
     'georgios.pagonis@gmail.com',
@@ -80,117 +80,6 @@ export function NotifyAssigneeDialog({
     [contacts]
   );
   
-  const generateEmailBody = (senderEmail: string) => {
-    const bodyParts: string[] = [];
-
-    const selectedInterventions = allProjectInterventions.filter(i => selectedInterventionIds.includes(i.masterId));
-    
-    const interventionsText = selectedInterventions.map((intervention) => {
-        let interventionBlock = `• ΠΑΡΕΜΒΑΣΗ: ${intervention.interventionSubcategory || intervention.interventionCategory}`;
-        
-        if (intervention.subInterventions && intervention.subInterventions.length > 0) {
-            const subInterventionsText = intervention.subInterventions.map((sub, subIndex, arr) => {
-                const isLast = subIndex === arr.length - 1;
-                const prefix = isLast ? '└─' : '├─';
-                const quantityText = sub.quantity ? ` - Ποσότητα: ${sub.quantity} ${sub.quantityUnit || ''}` : '';
-                
-                const expenseCategory = sub.expenseCategory || '';
-                const romanNumeralMatch = expenseCategory.match(/\((I|II|III|IV|V|VI|VII|VIII|IX|X)\)/);
-                const romanNumeral = romanNumeralMatch ? ` (${romanNumeralMatch[1]})` : '';
-
-                return `  ${prefix} ${sub.subcategoryCode}${romanNumeral}: ${sub.description}${quantityText}`;
-            }).join('\n');
-            interventionBlock += `\n${subInterventionsText}`;
-        }
-        
-        return interventionBlock;
-    }).join('\n\n');
-
-    let assigneeGreeting = `Αγαπητέ/ή ${assignee ? `${assignee.firstName} ${assignee.lastName}` : "Ανάδοχε"},`;
-    
-    bodyParts.push(assigneeGreeting);
-    bodyParts.push(``);
-    bodyParts.push(`Σας ανατίθενται οι παρακάτω εργασίες για το έργο "${project.title}":`);
-    bodyParts.push(``);
-    bodyParts.push(interventionsText);
-
-
-    if (stage.notes) {
-        bodyParts.push(``);
-        bodyParts.push(`ΣΗΜΕΙΩΣΕΙΣ ΓΙΑ ΤΟ ΣΤΑΔΙΟ "${stage.title}":`);
-        bodyParts.push(stage.notes);
-    }
-    
-    if (includeOwnerInfo && owner) {
-        const ownerFullAddress = [
-            owner.addressStreet,
-            owner.addressNumber,
-            owner.addressArea,
-            owner.addressPostalCode,
-            owner.addressCity,
-            owner.addressPrefecture,
-        ].filter(Boolean).join(', ');
-
-        bodyParts.push(``);
-        bodyParts.push(`ΣΤΟΙΧΕΙΑ ΙΔΙΟΚΤΗΤΗ ΓΙΑ ΣΥΝΤΟΝΙΣΜΟ:`);
-        bodyParts.push(`• Όνομα: ${owner.firstName} ${owner.lastName}`);
-        bodyParts.push(`• Τηλέφωνο: ${owner.mobilePhone || owner.landlinePhone || 'Δ/Υ'}`);
-        bodyParts.push(`• Διεύθυνση Έργου: ${ownerFullAddress || 'Δ/Υ'}`);
-    }
-
-    if (includePricingInfo && invoicingContactId) {
-      const invoicingContact = contacts.find(c => c.id === invoicingContactId);
-      if (invoicingContact) {
-        const invoicingAddress = [
-            invoicingContact.addressStreet,
-            invoicingContact.addressNumber,
-            invoicingContact.addressPostalCode,
-            invoicingContact.addressCity
-        ].filter(Boolean).join(' ');
-
-        bodyParts.push(``);
-        bodyParts.push(`ΣΤΟΙΧΕΙΑ ΓΙΑ ΕΚΔΟΣΗ ΤΙΜΟΛΟΓΙΟΥ:`);
-        bodyParts.push(`${invoicingContact.company || `${invoicingContact.firstName} ${invoicingContact.lastName}`}`);
-        if(invoicingAddress) bodyParts.push(invoicingAddress);
-        if(invoicingContact.landlinePhone) bodyParts.push(`Τηλ: ${invoicingContact.landlinePhone}`);
-        if(invoicingContact.email) bodyParts.push(`Email: ${invoicingContact.email}`);
-        if(invoicingContact.vatNumber) bodyParts.push(`ΑΦΜ: ${invoicingContact.vatNumber}`);
-        
-        const invoiceNoteParts = [];
-        if (project.applicationNumber) invoiceNoteParts.push(project.applicationNumber);
-        if (owner) invoiceNoteParts.push(`${owner.firstName} ${owner.lastName}`);
-        invoiceNoteParts.push('Εξοικονομώ');
-        const invoiceNote = invoiceNoteParts.join(', ');
-        
-        bodyParts.push(``);
-        bodyParts.push(`ΠΡΟΣΟΧΗ: Είναι απαραίτητο στις παρατηρήσεις του τιμολογίου να γράψετε:`);
-        bodyParts.push(invoiceNote);
-      }
-    }
-
-    bodyParts.push(``);
-    bodyParts.push(`================================`);
-    bodyParts.push(`Με εκτίμηση,`);
-    bodyParts.push(``);
-
-    if (senderEmail === 'georgios.pagonis@gmail.com') {
-        bodyParts.push(
-            `Παγώνης Νέστ. Γεώργιος`,
-            `Αρχιτέκτων Μηχανικός`,
-            ``,
-            `Σαμοθράκης 16, 563 34`,
-            `Ελευθέριο Κορδελιό, Θεσσαλονίκη`,
-            `Τ: 2310 55 95 95`,
-            `Μ: 6974 050 023`,
-            `georgios.pagonis@gmail.com`
-        );
-    } else {
-         bodyParts.push(`Η ομάδα του NESTOR eco`);
-    }
-
-    return bodyParts.join('\n');
-  }
-
   const handleSendEmail = async (senderEmail: string) => {
     // 1. Collect all intended recipients
     const recipients: (Contact | undefined)[] = [];
@@ -228,6 +117,8 @@ export function NotifyAssigneeDialog({
         });
     }
     
+    const selectedInterventions = allProjectInterventions.filter(i => selectedInterventionIds.includes(i.masterId));
+    
     // 4. Prepare and send the email
     const toEmail = assignee?.email || (contactsWithEmail.find(c => c?.id !== assignee?.id)?.email || '');
     const ccEmails = contactsWithEmail
@@ -238,7 +129,17 @@ export function NotifyAssigneeDialog({
     const uniqueCcEmails = [...new Set(ccEmails)];
 
     const subject = `Εντολή Εργασίας: ${project.title}`;
-    const body = generateEmailBody(senderEmail);
+    const body = generateAssignmentEmailBody({
+        project,
+        stage,
+        selectedInterventions,
+        assignee,
+        owner,
+        senderEmail,
+        includeOwnerInfo,
+        includePricingInfo,
+        invoicingContact: contacts.find(c => c.id === invoicingContactId)
+    });
 
     const gmailUrl = new URL("https://mail.google.com/mail/");
     gmailUrl.searchParams.set("view", "cm");
