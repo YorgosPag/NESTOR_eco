@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -91,7 +92,13 @@ const SelectContent = React.forwardRef<
             "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
         )}
       >
-        {children}
+        {React.Children.count(children) > 0 ? (
+          children
+        ) : (
+          <div className="py-1.5 pl-8 pr-2 text-sm text-muted-foreground">
+            Δεν υπάρχουν επιλογές.
+          </div>
+        )}
       </SelectPrimitive.Viewport>
       <SelectScrollDownButton />
     </SelectPrimitive.Content>
