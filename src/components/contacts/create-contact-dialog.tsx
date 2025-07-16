@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import type { CustomList, CustomListItem } from '@/types';
 import { ScrollArea } from '../ui/scroll-area';
-import { CreateContactForm } from './create-contact-form';
+import { CreateContactForm } from '@/components/forms/create-contact/CreateContactForm';
 
 interface CreateContactDialogProps {
     children: React.ReactNode;
