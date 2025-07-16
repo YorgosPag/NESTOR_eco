@@ -8,7 +8,7 @@ export async function addStageToProject(db: Firestore, data: { projectId: string
     const projectRef = db.collection('projects').doc(projectId);
 
     const newStage: Stage = {
-        id: `stage-${Date.now()}`,
+        id: `stage-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         title: stageData.title,
         status: 'pending',
         deadline: new Date(stageData.deadline).toISOString(),

@@ -49,7 +49,7 @@ export async function addSubInterventionAction(prevState: any, formData: FormDat
 
     const { subcategoryCode, description, cost, quantity, quantityUnit, costOfMaterials, costOfLabor, unitCost, implementedQuantity } = validatedFields.data;
     const newSubIntervention: SubIntervention = {
-        id: `sub-${Date.now()}`,
+        id: `sub-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         subcategoryCode,
         description,
         cost,
@@ -78,7 +78,7 @@ export async function addSubInterventionAction(prevState: any, formData: FormDat
 
   } catch (error: any) {
     console.error("🔥 ERROR in addSubInterventionAction:", error);
-    return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
+    return { success: false, message: "Παρουσιάστηκε ένα τεχνικό σφάλμα. Παρακαλώ δοκιμάστε ξανά." };
   }
 
   revalidatePath(`/projects/${projectId}`);
@@ -161,7 +161,7 @@ export async function updateSubInterventionAction(prevState: any, formData: Form
 
   } catch (error: any) {
     console.error("🔥 ERROR in updateSubInterventionAction:", error);
-    return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
+    return { success: false, message: "Παρουσιάστηκε ένα τεχνικό σφάλμα. Παρακαλώ δοκιμάστε ξανά." };
   }
 
   revalidatePath(`/projects/${projectId}`);
@@ -214,7 +214,7 @@ export async function deleteSubInterventionAction(prevState: any, formData: Form
 
   } catch (error: any) {
     console.error("🔥 ERROR in deleteSubInterventionAction:", error);
-    return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
+    return { success: false, message: "Παρουσιάστηκε ένα τεχνικό σφάλμα. Παρακαλώ δοκιμάστε ξανά." };
   }
 
   revalidatePath(`/projects/${projectId}`);
@@ -259,7 +259,7 @@ export async function moveSubInterventionAction(prevState: any, formData: FormDa
 
   } catch (error: any) {
     console.error("🔥 ERROR in moveSubInterventionAction:", error);
-    return { success: false, message: `Σφάλμα Βάσης Δεδομένων: ${error.message}` };
+    return { success: false, message: "Παρουσιάστηκε ένα τεχνικό σφάλμα. Παρακαλώ δοκιμάστε ξανά." };
   }
 
   revalidatePath(`/projects/${projectId}`);
