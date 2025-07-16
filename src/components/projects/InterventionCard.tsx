@@ -19,7 +19,7 @@ import { DeleteSubInterventionDialog } from "./delete-sub-intervention-dialog";
 import { PlusCircle, Pencil, Trash2, ChevronDown, MoreHorizontal, ArrowUp, ArrowDown, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { moveSubInterventionAction } from '@/app/actions/interventions';
+import { moveSubInterventionAction } from '@/app/actions/sub-interventions';
 
 
 const TooltipHeader = ({ title, tooltipText, className }: { title: string, tooltipText: React.ReactNode, className?: string }) => (

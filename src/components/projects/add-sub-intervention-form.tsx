@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { addSubInterventionAction } from '@/app/actions/interventions';
+import { addSubInterventionAction } from '@/app/actions/sub-interventions';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
