@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { EditSubInterventionForm } from './edit-sub-intervention-form';
+import { EditSubInterventionForm } from '@/components/forms/edit-sub-intervention/EditSubInterventionForm';
 import type { SubIntervention, CustomList, CustomListItem } from '@/types';
 import { ScrollArea } from '../ui/scroll-area';
 
