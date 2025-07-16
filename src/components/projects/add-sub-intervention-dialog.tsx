@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { AddSubInterventionForm } from './add-sub-intervention-form';
+import { AddSubInterventionForm } from '@/components/forms/add-sub-intervention/AddSubInterventionForm';
 import type { CustomList, CustomListItem } from '@/types';
 import { ScrollArea } from '../ui/scroll-area';
 
