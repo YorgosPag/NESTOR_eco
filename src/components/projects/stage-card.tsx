@@ -92,9 +92,9 @@ export function StageCard({ stage, project, allProjectInterventions, contacts, o
                   <CardTitle className="text-h4">
                       {stage.title}
                   </CardTitle>
-                  <CardDescription>
-                      <Badge variant={statusVariant} className="capitalize">{statusText}</Badge>
-                  </CardDescription>
+                  <div className="text-sm text-muted-foreground">
+                    <Badge variant={statusVariant} className="capitalize">{statusText}</Badge>
+                  </div>
               </div>
             </div>
           <DropdownMenu>

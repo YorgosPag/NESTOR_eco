@@ -23,13 +23,21 @@ export default function WorkOrderDetailedPage({ params, searchParams }: { params
         );
     }
 
-    if (error || !project || !contacts) {
+    if (error) {
         return (
           <div className="flex h-screen w-full items-center justify-center p-4">
             <p className="text-destructive text-center">
               Απέτυχε η φόρτωση της αναφοράς: {error?.message}
             </p>
           </div>
+        )
+    }
+
+    if (!project || !contacts) {
+        return (
+             <div className="flex h-screen w-full items-center justify-center p-4">
+                <p className="text-destructive text-center">Δεν βρέθηκαν δεδομένα για το έργο ή τις επαφές.</p>
+             </div>
         )
     }
 

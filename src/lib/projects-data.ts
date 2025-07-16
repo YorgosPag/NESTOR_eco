@@ -38,14 +38,15 @@ function processProject(projectDoc: firestore.DocumentSnapshot): Project {
         id: projectDoc.id,
         ...serializeData(data),
     } as Project;
-
-    const interventionsToSort = projectData.interventions || [];
-    projectData.interventions = [...interventionsToSort].sort((a, b) => {
+    
+    // Sort interventions safely by creating a new sorted array
+    projectData.interventions = [...(projectData.interventions || [])].sort((a, b) => {
         const nameA = a.interventionSubcategory || a.interventionCategory || '';
         const nameB = b.interventionSubcategory || b.interventionCategory || '';
         return nameA.localeCompare(nameB);
     });
 
+    // Initialize metrics that will be calculated on the client
     projectData.budget = 0;
     projectData.progress = 0;
     projectData.alerts = 0;

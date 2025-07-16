@@ -2,15 +2,10 @@ import { useEffect, useState } from "react"
 import { z } from "zod"
 import { ProjectSchema, ContactSchema } from "@/lib/schemas"
 import { getBatchWorkOrderData } from "@/app/actions/projects"
-import type { Contact } from "@/types";
-
-const WorkOrderResultSchema = z.object({
-  projects: z.array(ProjectSchema),
-  contacts: z.array(ContactSchema),
-})
+import type { Contact, Project } from "@/types";
 
 export function useWorkOrderData(id: string | undefined) {
-  const [data, setData] = useState<z.infer<typeof ProjectSchema> | null>(null)
+  const [data, setData] = useState<Project | null>(null)
   const [contacts, setContacts] = useState<Contact[] | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null)
