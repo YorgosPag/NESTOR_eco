@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -18,9 +19,9 @@ import { normalizeForSearch } from "@/lib/text-utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu-item";
 import { useRouter } from 'next/navigation';
 import { calculateClientProjectMetrics } from "@/lib/client-utils";
 import { useIsClient } from "@/hooks/use-is-client";
