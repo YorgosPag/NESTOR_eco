@@ -165,7 +165,7 @@ export function DashboardClientPage({ projects: serverProjects, contacts }: Dash
                                 <ProjectCard key={project.id} project={project} contacts={contacts} />
                             ))
                         ) : (
-                            <p className="text-sm text-muted-foreground col-span-full">Δεν υπάρχουν ενεργά έργα.</p>
+                            <p className="text-sm text-muted-foreground col-span-full italic">Δεν υπάρχουν ενεργά έργα. Ξεκίνα το επόμενο σου αριστούργημα σήμερα!</p>
                         )}
                     </div>
                 </div>
@@ -184,7 +184,7 @@ export function DashboardClientPage({ projects: serverProjects, contacts }: Dash
                                 <ProjectCard key={project.id} project={project} contacts={contacts} />
                             ))
                         ) : (
-                            <p className="text-sm text-muted-foreground col-span-full">Δεν υπάρχουν προσφορές σε εκκρεμότητα.</p>
+                            <p className="text-sm text-muted-foreground col-span-full italic">Ούτε μία προσφορά σε εκκρεμότητα. Η ηρεμία πριν την καταιγίδα των deals;</p>
                         )}
                     </div>
                 </div>
@@ -192,3 +192,5 @@ export function DashboardClientPage({ projects: serverProjects, contacts }: Dash
         </main>
     );
 }
+
+    
