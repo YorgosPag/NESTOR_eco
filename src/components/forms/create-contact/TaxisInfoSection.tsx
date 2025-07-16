@@ -7,14 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import type { FormState } from "./types";
+import type { Contact } from "@/types";
+
 
 interface TaxisInfoSectionProps {
     state: FormState;
     showPassword: boolean;
     setShowPassword: (value: boolean) => void;
+    contact?: Partial<Contact>;
 }
 
-export function TaxisInfoSection({ state, showPassword, setShowPassword }: TaxisInfoSectionProps) {
+export function TaxisInfoSection({ state, showPassword, setShowPassword, contact = {} }: TaxisInfoSectionProps) {
     return (
         <AccordionItem value="taxis-info">
             <AccordionTrigger className="text-md font-semibold bg-muted/50 hover:bg-muted px-4 rounded-md">Στοιχεία Σύνδεσης Taxis</AccordionTrigger>
@@ -22,12 +25,12 @@ export function TaxisInfoSection({ state, showPassword, setShowPassword }: Taxis
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="usernameTaxis">Username Taxis</Label>
-                        <Input id="usernameTaxis" name="usernameTaxis" />
+                        <Input id="usernameTaxis" name="usernameTaxis" defaultValue={contact.usernameTaxis} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="passwordTaxis">Password Taxis</Label>
                         <div className="relative">
-                            <Input id="passwordTaxis" name="passwordTaxis" type={showPassword ? 'text' : 'password'} />
+                            <Input id="passwordTaxis" name="passwordTaxis" type={showPassword ? 'text' : 'password'} defaultValue={contact.passwordTaxis} />
                             <Button
                                 type="button"
                                 variant="ghost"

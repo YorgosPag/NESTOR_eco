@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import type { FormState } from "./types";
+import type { Contact } from "@/types";
+
 
 interface PersonalInfoSectionProps {
     state: FormState;
@@ -15,9 +17,10 @@ interface PersonalInfoSectionProps {
     setGender: (value: string) => void;
     avatar: string;
     setAvatar: (value: string) => void;
+    contact?: Partial<Contact>; // Make contact optional for creation form
 }
 
-export function PersonalInfoSection({ state, gender, setGender, avatar, setAvatar }: PersonalInfoSectionProps) {
+export function PersonalInfoSection({ state, gender, setGender, avatar, setAvatar, contact = {} }: PersonalInfoSectionProps) {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -54,6 +57,16 @@ export function PersonalInfoSection({ state, gender, setGender, avatar, setAvata
         setAvatar('');
     };
 
+    const formatDate = (dateString?: string) => {
+        if (!dateString) return '';
+        try {
+            // Handles both ISO strings and potentially other date formats
+            return new Date(dateString).toISOString().substring(0, 10);
+        } catch (e) {
+            return '';
+        }
+    };
+
     return (
         <AccordionItem value="personal-info">
             <AccordionTrigger className="text-md font-semibold bg-muted/50 hover:bg-muted px-4 rounded-md">Προσωπικά Στοιχεία</AccordionTrigger>
@@ -63,33 +76,33 @@ export function PersonalInfoSection({ state, gender, setGender, avatar, setAvata
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                               <Label htmlFor="firstName">Όνομα</Label>
-                              <Input id="firstName" name="firstName" placeholder="π.χ., Γιάννης" required />
+                              <Input id="firstName" name="firstName" defaultValue={contact.firstName} placeholder="π.χ., Γιάννης" required />
                               {state.errors?.firstName && <p className="text-sm font-medium text-destructive mt-1">{state.errors.firstName[0]}</p>}
                           </div>
                           <div className="space-y-2">
                               <Label htmlFor="lastName">Επώνυμο</Label>
-                              <Input id="lastName" name="lastName" placeholder="π.χ., Παπαδάκης" required />
+                              <Input id="lastName" name="lastName" defaultValue={contact.lastName} placeholder="π.χ., Παπαδάκης" required />
                               {state.errors?.lastName && <p className="text-sm font-medium text-destructive mt-1">{state.errors.lastName[0]}</p>}
                           </div>
                         </div>
                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-2">
                               <Label htmlFor="fatherName">Όνομα Πατέρα</Label>
-                              <Input id="fatherName" name="fatherName" />
+                              <Input id="fatherName" name="fatherName" defaultValue={contact.fatherName} />
                           </div>
                           <div className="space-y-2">
                               <Label htmlFor="motherName">Όνομα Μητέρας</Label>
-                              <Input id="motherName" name="motherName" />
+                              <Input id="motherName" name="motherName" defaultValue={contact.motherName} />
                           </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="dateOfBirth">Ημ/νία Γέννησης</Label>
-                                <Input id="dateOfBirth" name="dateOfBirth" type="date" />
+                                <Input id="dateOfBirth" name="dateOfBirth" type="date" defaultValue={formatDate(contact.dateOfBirth)} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="placeOfBirth">Τόπος Γέννησης</Label>
-                                <Input id="placeOfBirth" name="placeOfBirth" />
+                                <Input id="placeOfBirth" name="placeOfBirth" defaultValue={contact.placeOfBirth} />
                             </div>
                         </div>
                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -108,7 +121,7 @@ export function PersonalInfoSection({ state, gender, setGender, avatar, setAvata
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="nationality">Υπηκοότητα</Label>
-                                <Input id="nationality" name="nationality" />
+                                <Input id="nationality" name="nationality" defaultValue={contact.nationality} />
                             </div>
                         </div>
                     </div>

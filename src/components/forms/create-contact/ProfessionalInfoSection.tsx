@@ -8,6 +8,8 @@ import { SearchableSelect } from "@/components/ui/searchable-select";
 import { DialogChild } from "./DialogChild";
 import type { CustomList, CustomListItem } from "@/types";
 import type { FormState } from "./types";
+import type { Contact } from "@/types";
+
 
 interface ProfessionalInfoSectionProps {
     state: FormState;
@@ -15,9 +17,10 @@ interface ProfessionalInfoSectionProps {
     setRole: (value: string) => void;
     customLists: CustomList[];
     customListItems: CustomListItem[];
+    contact?: Partial<Contact>;
 }
 
-export function ProfessionalInfoSection({ state, role, setRole, customLists, customListItems }: ProfessionalInfoSectionProps) {
+export function ProfessionalInfoSection({ state, role, setRole, customLists, customListItems, contact = {} }: ProfessionalInfoSectionProps) {
     const contactRolesList = customLists.find(l => l.key === 'CONTACT_ROLES' || l.name === 'Ρόλοι Επαφών');
     const contactRoleOptions = contactRolesList
         ? customListItems
@@ -46,11 +49,11 @@ export function ProfessionalInfoSection({ state, role, setRole, customLists, cus
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="specialty">Επάγγελμα/Ειδικότητα (Προαιρετικό)</Label>
-                    <Input id="specialty" name="specialty" placeholder="π.χ., Υδραυλικός" />
+                    <Input id="specialty" name="specialty" defaultValue={contact.specialty} placeholder="π.χ., Υδραυλικός" />
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="company">Επιχείρηση/Οργανισμός (Προαιρετικό)</Label>
-                    <Input id="company" name="company" placeholder="π.χ., Υδραυλικές Εγκαταστάσεις Α.Ε." />
+                    <Input id="company" name="company" defaultValue={contact.company} placeholder="π.χ., Υδραυλικές Εγκαταστάσεις Α.Ε." />
                 </div>
             </AccordionContent>
         </AccordionItem>
