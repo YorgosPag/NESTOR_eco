@@ -28,7 +28,8 @@ import {
   ShoppingBag,
   BellRing,
   ClipboardList,
-  Network
+  Network,
+  FileCheck
 } from "lucide-react";
 import { InstructionsDialog } from "./instructions-dialog";
 
@@ -165,6 +166,18 @@ export function SidebarNav() {
             <Link href="/supplier-offers">
               <ShoppingBag />
               <span>Προσφορές Προμηθευτών</span>
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+           <SidebarMenuButton
+            asChild
+            isActive={isActive("/accountability")}
+            tooltip="Λογοδοσία"
+          >
+            <Link href="/accountability">
+              <FileCheck />
+              <span>Λογοδοσία</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>
