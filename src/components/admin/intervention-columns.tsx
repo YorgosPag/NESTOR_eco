@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu-item"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { EditInterventionDialog } from "./edit-intervention-dialog"
 import { DeleteInterventionDialog } from "./delete-intervention-dialog"
