@@ -4,22 +4,8 @@
 import { format } from 'date-fns';
 import type { Project } from '@/types';
 import { formatDisplayCode } from '@/lib/intervention-helpers';
+import { getSignature } from '@/lib/email/signatures';
 
-function getSignature(senderEmail: string): string[] {
-    const SIGNATURES: Record<string, string[]> = {
-        'georgios.pagonis@gmail.com': [
-            `Παγώνης Νέστ. Γεώργιος`,
-            `Αρχιτέκτων Μηχανικός`,
-            ``,
-            `Σαμοθράκης 16, 563 34`,
-            `Ελευθέριο Κορδελιό, Θεσσαλονίκη`,
-            `Τ: 2310 55 95 95`,
-            `Μ: 6974 050 023`,
-            `georgios.pagonis@gmail.com`
-        ],
-    };
-    return SIGNATURES[senderEmail] || [`Η ομάδα του NESTOR eco`];
-}
 
 export function generateWorkOrderEmailBody(project: Project, senderEmail: string): string {
     const bodyParts = [
