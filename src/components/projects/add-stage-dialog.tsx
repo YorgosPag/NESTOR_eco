@@ -27,7 +27,7 @@ export function AddStageDialog({ interventionMasterId, projectId, contacts, chil
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" autoFocusSelector="#title">
         <DialogHeader>
           <DialogTitle>Προσθήκη Νέου Σταδίου</DialogTitle>
           <DialogDescription>
