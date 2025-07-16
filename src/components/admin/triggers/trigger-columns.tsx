@@ -1,4 +1,3 @@
-
 "use client"
 
 import type { Trigger, CustomList, CustomListItem } from "@/types"
@@ -7,10 +6,10 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu-item"
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { EditTriggerDialog } from "./edit-trigger-dialog"
