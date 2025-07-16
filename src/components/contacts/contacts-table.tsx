@@ -17,11 +17,11 @@ import { MoreHorizontal, Pencil, Trash2, Search, BookUser, Loader2 } from "lucid
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu-item";
 import { EditContactDialog } from "./edit-contact-dialog";
 import { DeleteContactDialog } from "./delete-contact-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
