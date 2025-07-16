@@ -18,11 +18,11 @@ import { ArrowUpRight, MoreVertical, Pencil, Trash2, Calendar } from "lucide-rea
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu-item";
 import { EditProjectDialog } from "../projects/edit-project-dialog";
 import { DeleteProjectDialog } from "../projects/delete-project-dialog";
 import { format } from "date-fns";
@@ -60,14 +60,14 @@ export function ProjectCard({ project: serverProject, contacts, onSelectToggle, 
     'Delayed': 'destructive',
     'Completed': 'secondary',
     'Quotation': 'outline',
-  }[project.status] as "default" | "destructive" | "secondary" | "outline";
+  }[project.status || 'Quotation'] as "default" | "destructive" | "secondary" | "outline";
 
   const statusText = {
     'On Track': 'Εντός Χρονοδιαγράμματος',
     'Delayed': 'Σε Καθυστέρηση',
     'Completed': 'Ολοκληρωμένο',
     'Quotation': 'Σε Προσφορά',
-  }[project.status];
+  }[project.status || 'Quotation'];
 
   return (
     <Card className={cn("flex flex-col relative", isSelected && "ring-2 ring-primary")}>

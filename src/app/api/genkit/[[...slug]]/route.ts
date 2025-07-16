@@ -2,7 +2,7 @@
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import { firebase } from '@genkit-ai/firebase';
-import { devLogger, startFlowsServer } from '@genkit-ai/flow';
+import { devLogger, startFlowsServer } from '@genkit-ai/next';
 
 // Dynamically import flows to register them with Genkit
 import '@/ai/flows/ai-smart-reminders';
