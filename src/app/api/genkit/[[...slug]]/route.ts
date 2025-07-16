@@ -4,7 +4,7 @@ import { googleAI } from '@genkit-ai/googleai';
 import { firebase } from '@genkit-ai/firebase';
 import { devLogger, startFlowsServer } from '@genkit-ai/flow';
 
-// Dynamically import flows
+// Dynamically import flows to register them with Genkit
 import '@/ai/flows/ai-smart-reminders';
 import '@/ai/flows/message-processor';
 import '@/ai/flows/reporting-flow';
@@ -25,10 +25,12 @@ if (geminiApiKey) {
   }
 }
 
+// This is the correct place to configure Genkit with plugins for the API server.
 genkit({
   plugins,
   enableTracing: true,
   traceStore: 'firebase',
 });
 
+// Start the flows server to handle API requests.
 export const { GET, POST } = startFlowsServer();
