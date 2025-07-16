@@ -5,16 +5,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
 } from "@/components/sidebar";
 import {
-  SidebarMenuButton
-} from "@/components/sidebar/SidebarMenu";
+    SidebarMenu,
+    SidebarMenuItem,
+    SidebarMenuButton
+} from "@/components/ui/sidebar";
 import {
   LayoutGrid,
   FolderKanban,

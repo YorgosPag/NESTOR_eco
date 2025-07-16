@@ -2,7 +2,6 @@ export * from './Sidebar';
 export * from './SidebarHeader';
 export * from './SidebarContent';
 export * from './SidebarFooter';
-export * from './SidebarMenu';
 export * from './SidebarGroup';
 export * from './SidebarTrigger';
 export * from './SidebarInset';
