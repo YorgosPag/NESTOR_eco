@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatDisplayCode } from '@/lib/intervention-helpers';
+import { formatAddress } from '@/lib/text-utils';
 
 
 const userEmails = [
@@ -36,14 +37,14 @@ export function WorkOrderView({ project, contacts, isBatch = false, showAssignee
     const [isClient, setIsClient] = useState(false);
     const owner = contacts.find(c => c.id === project.ownerContactId);
 
-    const ownerFullAddress = owner ? [
+    const ownerFullAddress = owner ? formatAddress(
         owner.addressStreet,
         owner.addressNumber,
         owner.addressArea,
         owner.addressPostalCode,
         owner.addressCity,
-        owner.addressPrefecture,
-    ].filter(Boolean).join(', ') : '';
+        owner.addressPrefecture
+    ) : '';
 
     const processedInterventions = useMemo(() => {
         return project.interventions.map(intervention => {
@@ -308,7 +309,7 @@ export function WorkOrderView({ project, contacts, isBatch = false, showAssignee
                                                     <div className="space-y-1 mt-2 text-p">
                                                         <p className="flex items-center gap-2 font-semibold">
                                                             <User className="w-4 h-4"/>
-                                                            <span>{assignee.firstName} {assignee.lastName}</span>
+                                                            <span>{assignee.firstName} ${assignee.lastName}</span>
                                                         </p>
                                                         <p className="flex items-center gap-2">
                                                             <Phone className="w-4 h-4 text-muted-foreground"/>
@@ -334,6 +335,11 @@ export function WorkOrderView({ project, contacts, isBatch = false, showAssignee
                     </div>
                 </section>
             </div>
+             <div className="text-center mt-8 text-xs text-muted-foreground print:hidden">
+                * Για καλύτερη ανάλυση, προτείνεται εκτύπωση σε A4, portrait, χωρίς περιθώρια και χωρίς headers/footers.
+            </div>
         </main>
     );
 }
+
+    

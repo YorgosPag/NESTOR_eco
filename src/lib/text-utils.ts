@@ -1,5 +1,6 @@
+
 /**
- * @fileOverview Text utility functions for search normalization.
+ * @fileOverview Text utility functions for search normalization and formatting.
  */
 
 const singleCharMap: {[key: string]: string} = {
@@ -80,3 +81,14 @@ export function normalizeForSearch(str: string): string {
   const greeklishAttempt = greeklishToGreek(str);
   return normalizeGreek(greeklishAttempt);
 }
+
+/**
+ * Formats an address by joining its parts with commas, gracefully handling missing parts.
+ * @param parts - An array of address components (e.g., street, number, city).
+ * @returns A clean, formatted address string.
+ */
+export function formatAddress(...parts: (string | undefined | null)[]): string {
+    return parts.filter(Boolean).join(', ');
+}
+
+    
