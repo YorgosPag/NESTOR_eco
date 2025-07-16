@@ -12,7 +12,7 @@ import { ProjectCard } from "@/components/dashboard/project-card";
 import type { Project, Contact } from "@/types";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { PlusCircle, Database, FolderSearch, FolderKanban, Search, ChevronDown, FileText } from "lucide-react";
+import { PlusCircle, FolderSearch, FolderKanban, Search, ChevronDown, FileText, CheckSquare, XSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { normalizeForSearch } from "@/lib/text-utils";
 import {
@@ -41,6 +41,7 @@ interface ProjectsPageProps {
 
 export function ProjectsClientPage({ projects: serverProjects, contacts }: ProjectsPageProps) {
     const [searchTerm, setSearchTerm] = useState('');
+    const [activeTab, setActiveTab] = useState("all");
     const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
     const [isReportLoading, setIsReportLoading] = useState(false);
     const router = useRouter();
@@ -95,6 +96,35 @@ export function ProjectsClientPage({ projects: serverProjects, contacts }: Proje
     const completedProjects = filteredProjects.filter(p => p.status === 'Completed');
     const allProjects = filteredProjects; // Use the already filtered list
 
+    const visibleProjects = useMemo(() => {
+        switch (activeTab) {
+            case 'quotation': return quotationProjects;
+            case 'on_track': return onTrackProjects;
+            case 'delayed': return delayedProjects;
+            case 'completed': return completedProjects;
+            case 'all':
+            default:
+                return allProjects;
+        }
+    }, [activeTab, quotationProjects, onTrackProjects, delayedProjects, completedProjects, allProjects]);
+
+    const areAllVisibleSelected = useMemo(() => {
+        if (visibleProjects.length === 0) return false;
+        return visibleProjects.every(p => selectedProjects.includes(p.id));
+    }, [visibleProjects, selectedProjects]);
+
+    const handleSelectAllToggle = () => {
+        if (areAllVisibleSelected) {
+            // Deselect all visible
+            const visibleIds = new Set(visibleProjects.map(p => p.id));
+            setSelectedProjects(prev => prev.filter(id => !visibleIds.has(id)));
+        } else {
+            // Select all visible
+            const visibleIds = visibleProjects.map(p => p.id);
+            setSelectedProjects(prev => [...new Set([...prev, ...visibleIds])]);
+        }
+    };
+
 
     return (
         <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -127,6 +157,12 @@ export function ProjectsClientPage({ projects: serverProjects, contacts }: Proje
                     />
                 </div>
                 <div className="flex items-center gap-2">
+                    {visibleProjects.length > 0 && (
+                        <Button variant="outline" size="sm" onClick={handleSelectAllToggle}>
+                             {areAllVisibleSelected ? <XSquare className="mr-2 h-4 w-4" /> : <CheckSquare className="mr-2 h-4 w-4" />}
+                            {areAllVisibleSelected ? 'Αποεπιλογή Όλων' : 'Επιλογή Όλων'}
+                        </Button>
+                    )}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" disabled={selectedProjects.length === 0 || isReportLoading}>
@@ -147,7 +183,7 @@ export function ProjectsClientPage({ projects: serverProjects, contacts }: Proje
                 </div>
             </div>
 
-            <Tabs defaultValue="all">
+            <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
                     <TabsTrigger value="all">Όλα ({allProjects.length})</TabsTrigger>
                     <TabsTrigger value="quotation">Σε Προσφορά ({quotationProjects.length})</TabsTrigger>
@@ -221,4 +257,3 @@ export function ProjectsClientPage({ projects: serverProjects, contacts }: Proje
             </Tabs>
         </main>
     )
-}
