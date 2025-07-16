@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import type { MasterIntervention } from '@/types';
-import { deleteMasterInterventionAction } from '@/app/actions/admin';
+import { deleteMasterInterventionAction } from '@/app/actions/master-interventions';
 
 const initialState = {
   message: null,

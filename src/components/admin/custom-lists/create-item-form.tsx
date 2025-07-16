@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { createCustomListItemAction } from '@/app/actions/admin';
+import { createCustomListItemAction } from '@/app/actions/custom-list-items';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';

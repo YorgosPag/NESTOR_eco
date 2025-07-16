@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { deleteTriggerAction } from '@/app/actions/admin';
+import { deleteTriggerAction } from '@/app/actions/triggers';
 import {
   AlertDialog,
   AlertDialogAction,

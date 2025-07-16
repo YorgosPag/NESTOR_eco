@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { deleteInterventionCategoryAction } from '@/app/actions/admin';
+import { deleteInterventionCategoryAction } from '@/app/actions/intervention-categories';
 import {
   AlertDialog,
   AlertDialogAction,

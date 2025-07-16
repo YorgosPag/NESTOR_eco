@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { createMasterInterventionAction } from '@/app/actions/admin';
+import { createMasterInterventionAction } from '@/app/actions/master-interventions';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';

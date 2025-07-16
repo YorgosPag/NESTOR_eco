@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { deleteCustomListItemAction } from '@/app/actions/admin';
+import { deleteCustomListItemAction } from '@/app/actions/custom-list-items';
 import {
   AlertDialog,
   AlertDialogAction,

@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import * as React from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { deleteCustomListAction } from '@/app/actions/admin';
+import { deleteCustomListAction } from '@/app/actions/custom-lists';
 import {
   AlertDialog,
   AlertDialogAction,
