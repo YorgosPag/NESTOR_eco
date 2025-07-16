@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview This file contains helper functions for generating email body content.
  * It helps keep business logic out of UI components.
@@ -6,6 +5,55 @@
 
 import type { Project, Stage, ProjectIntervention, Contact } from "@/types";
 import type { GenerateReminderOutput } from "@/ai/flows/ai-smart-reminders";
+
+// --- SIGNATURES ---
+
+const SIGNATURES = new Map<string, string[]>([
+    [
+        'georgios.pagonis@gmail.com',
+        [
+            `Παγώνης Νέστ. Γεώργιος`,
+            `Αρχιτέκτων Μηχανικός`,
+            ``,
+            `Σαμοθράκης 16, 563 34`,
+            `Ελευθέριο Κορδελιό, Θεσσαλονίκη`,
+            `Τ: 2310 55 95 95`,
+            `Μ: 6974 050 023`,
+            `georgios.pagonis@gmail.com`
+        ]
+    ],
+    [
+        'grigoris.pagonis@gmail.com',
+        [
+            `Παγώνης Γρηγόριος`,
+            `Ειδικός Συνεργάτης`,
+            `grigoris.pagonis@gmail.com`
+        ]
+    ]
+]);
+
+const DEFAULT_SIGNATURE = ["Η ομάδα του NESTOR eco"];
+
+function getSignature(senderEmail: string): string[] {
+    return SIGNATURES.get(senderEmail) || DEFAULT_SIGNATURE;
+}
+
+
+// --- HELPERS ---
+
+function createSection(title: string, lines: (string | null | undefined)[]): string[] {
+    const filteredLines = lines.filter(Boolean);
+    if (filteredLines.length === 0) return [];
+    return [
+        ``,
+        title.toUpperCase(),
+        '--------------------------------',
+        ...filteredLines
+    ];
+}
+
+
+// --- EMAIL BODY GENERATORS ---
 
 interface AssignmentEmailPayload {
     project: Project;
@@ -36,7 +84,8 @@ export function generateAssignmentEmailBody({
     }
 
     const bodyParts: string[] = [];
-
+    const assigneeGreeting = `Αγαπητέ/ή ${assignee ? `${assignee.firstName} ${assignee.lastName}` : "Ανάδοχε"},`;
+    
     const interventionsText = selectedInterventions.map((intervention) => {
         let interventionBlock = `• ΠΑΡΕΜΒΑΣΗ: ${intervention.interventionSubcategory || intervention.interventionCategory}`;
         
@@ -58,21 +107,10 @@ export function generateAssignmentEmailBody({
         return interventionBlock;
     }).join('\n\n');
 
-    let assigneeGreeting = `Αγαπητέ/ή ${assignee ? `${assignee.firstName} ${assignee.lastName}` : "Ανάδοχε"},`;
-    
-    bodyParts.push(assigneeGreeting);
-    bodyParts.push(``);
-    bodyParts.push(`Σας ανατίθενται οι παρακάτω εργασίες για το έργο "${project.title}":`);
-    bodyParts.push(``);
-    bodyParts.push(interventionsText);
+    bodyParts.push(assigneeGreeting, ``, `Σας ανατίθενται οι παρακάτω εργασίες για το έργο "${project.title}":`, ``, interventionsText);
 
+    bodyParts.push(...createSection(`ΣΗΜΕΙΩΣΕΙΣ ΓΙΑ ΤΟ ΣΤΑΔΙΟ "${stage.title}"`, [stage.notes]));
 
-    if (stage.notes) {
-        bodyParts.push(``);
-        bodyParts.push(`ΣΗΜΕΙΩΣΕΙΣ ΓΙΑ ΤΟ ΣΤΑΔΙΟ "${stage.title}":`);
-        bodyParts.push(stage.notes);
-    }
-    
     if (includeOwnerInfo && owner) {
         const ownerFullAddress = [
             owner.addressStreet,
@@ -83,59 +121,36 @@ export function generateAssignmentEmailBody({
             owner.addressPrefecture,
         ].filter(Boolean).join(', ');
 
-        bodyParts.push(``);
-        bodyParts.push(`ΣΤΟΙΧΕΙΑ ΙΔΙΟΚΤΗΤΗ ΓΙΑ ΣΥΝΤΟΝΙΣΜΟ:`);
-        bodyParts.push(`• Όνομα: ${owner.firstName} ${owner.lastName}`);
-        bodyParts.push(`• Τηλέφωνο: ${owner.mobilePhone || owner.landlinePhone || 'Δ/Υ'}`);
-        bodyParts.push(`• Διεύθυνση Έργου: ${ownerFullAddress || 'Δ/Υ'}`);
+        bodyParts.push(...createSection('ΣΤΟΙΧΕΙΑ ΙΔΙΟΚΤΗΤΗ ΓΙΑ ΣΥΝΤΟΝΙΣΜΟ', [
+            `• Όνομα: ${owner.firstName} ${owner.lastName}`,
+            `• Τηλέφωνο: ${owner.mobilePhone || owner.landlinePhone || 'Δ/Υ'}`,
+            `• Διεύθυνση Έργου: ${ownerFullAddress || 'Δ/Υ'}`,
+        ]));
     }
 
     if (includePricingInfo && invoicingContact) {
-      const invoicingAddress = [
-          invoicingContact.addressStreet,
-          invoicingContact.addressNumber,
-          invoicingContact.addressPostalCode,
-          invoicingContact.addressCity
-      ].filter(Boolean).join(' ');
+        const invoicingAddress = [
+            invoicingContact.addressStreet,
+            invoicingContact.addressNumber,
+            invoicingContact.addressPostalCode,
+            invoicingContact.addressCity
+        ].filter(Boolean).join(' ');
 
-      bodyParts.push(``);
-      bodyParts.push(`ΣΤΟΙΧΕΙΑ ΓΙΑ ΕΚΔΟΣΗ ΤΙΜΟΛΟΓΙΟΥ:`);
-      bodyParts.push(`${invoicingContact.company || `${invoicingContact.firstName} ${invoicingContact.lastName}`}`);
-      if(invoicingAddress) bodyParts.push(invoicingAddress);
-      if(invoicingContact.landlinePhone) bodyParts.push(`Τηλ: ${invoicingContact.landlinePhone}`);
-      if(invoicingContact.email) bodyParts.push(`Email: ${invoicingContact.email}`);
-      if(invoicingContact.vatNumber) bodyParts.push(`ΑΦΜ: ${invoicingContact.vatNumber}`);
+        const invoiceNoteParts = [project.applicationNumber, owner && `${owner.firstName} ${owner.lastName}`, 'Εξοικονομώ'].filter(Boolean);
       
-      const invoiceNoteParts = [];
-      if (project.applicationNumber) invoiceNoteParts.push(project.applicationNumber);
-      if (owner) invoiceNoteParts.push(`${owner.firstName} ${owner.lastName}`);
-      invoiceNoteParts.push('Εξοικονομώ');
-      const invoiceNote = invoiceNoteParts.join(', ');
-      
-      bodyParts.push(``);
-      bodyParts.push(`ΠΡΟΣΟΧΗ: Είναι απαραίτητο στις παρατηρήσεις του τιμολογίου να γράψετε:`);
-      bodyParts.push(invoiceNote);
-    }
-
-    bodyParts.push(``);
-    bodyParts.push(`================================`);
-    bodyParts.push(`Με εκτίμηση,`);
-    bodyParts.push(``);
-
-    if (senderEmail === 'georgios.pagonis@gmail.com') {
-        bodyParts.push(
-            `Παγώνης Νέστ. Γεώργιος`,
-            `Αρχιτέκτων Μηχανικός`,
+        bodyParts.push(...createSection('ΣΤΟΙΧΕΙΑ ΓΙΑ ΕΚΔΟΣΗ ΤΙΜΟΛΟΓΙΟΥ', [
+            `${invoicingContact.company || `${invoicingContact.firstName} ${invoicingContact.lastName}`}`,
+            invoicingAddress,
+            invoicingContact.landlinePhone && `Τηλ: ${invoicingContact.landlinePhone}`,
+            invoicingContact.email && `Email: ${invoicingContact.email}`,
+            invoicingContact.vatNumber && `ΑΦΜ: ${invoicingContact.vatNumber}`,
             ``,
-            `Σαμοθράκης 16, 563 34`,
-            `Ελευθέριο Κορδελιό, Θεσσαλονίκη`,
-            `Τ: 2310 55 95 95`,
-            `Μ: 6974 050 023`,
-            `georgios.pagonis@gmail.com`
-        );
-    } else {
-         bodyParts.push(`Η ομάδα του NESTOR eco`);
+            `ΠΡΟΣΟΧΗ: Είναι απαραίτητο στις παρατηρήσεις του τιμολογίου να γράψετε:`,
+            invoiceNoteParts.join(', '),
+        ]));
     }
+
+    bodyParts.push(`\n\nΜε εκτίμηση,`, ``, ...getSignature(senderEmail));
 
     return bodyParts.join('\n');
 }
@@ -148,7 +163,7 @@ interface ReminderEmailPayload {
     owner?: Contact;
     result: GenerateReminderOutput;
     senderEmail: string;
-    urgencyConfig: any; // Simplified for this example
+    urgencyConfig: any;
 }
 
 export function generateReminderEmailBody({
@@ -160,37 +175,26 @@ export function generateReminderEmailBody({
     senderEmail,
     urgencyConfig
 }: ReminderEmailPayload): string {
-    let notesSection = '';
-    if (stage.notes) {
-        notesSection = `\n\n   ΠΡΟΣΘΕΤΕΣ ΣΗΜΕΙΩΣΕΙΣ\n   --------------------------------\n   ${stage.notes}`;
-    }
+    const bodyParts: string[] = [];
 
-    const bodyParts = [
-      ``,
+    const reminderSection = createSection('ΥΠΕΝΘΥΜΙΣΗ', [result.reminder]);
+    const assessmentSection = createSection('ΑΞΙΟΛΟΓΗΣΗ ΚΑΤΑΣΤΑΣΗΣ', [
+        `ΕΠΙΠΕΔΟ ΕΠΕΙΓΟΝΤΟΣ: ${urgencyConfig[result.urgencyLevel].text}`,
+        `> ${result.riskAssessment}`,
+    ]);
+    const stepsSection = createSection('ΠΡΟΤΕΙΝΟΜΕΝΑ ΕΠΟΜΕΝΑ ΒΗΜΑΤΑ', (result.suggestedNextSteps || []).map(step => `• ${step}`));
+    const notesSection = createSection('ΠΡΟΣΘΕΤΕΣ ΣΗΜΕΙΩΣΕΙΣ', [stage.notes]);
+
+    bodyParts.push(
       `Αγαπητέ/ή ${assignee.firstName} ${assignee.lastName},`,
       ``,
       `Ακολουθεί μια αυτοματοποιημένη υπενθύμιση από το σύστημα NESTOR eco σχετικά με το στάδιο "${stage.title}" για το έργο "${projectName}".`,
-      ``,
-      `==================================================`,
-      ``,
-      `   ΥΠΕΝΘΥΜΙΣΗ`,
-      `   --------------------------------`,
-      `   ${result.reminder}`,
-      ``,
-      ``,
-      `   ΑΞΙΟΛΟΓΗΣΗ ΚΑΤΑΣΤΑΣΗΣ`,
-      `   --------------------------------`,
-      `   ΕΠΙΠΕΔΟ ΕΠΕΙΓΟΝΤΟΣ: ${urgencyConfig[result.urgencyLevel].text}`,
-      `   > ${result.riskAssessment}`,
-      ``,
-      ``,
-      `   ΠΡΟΤΕΙΝΟΜΕΝΑ ΕΠΟΜΕΝΑ ΒΗΜΑΤΑ`,
-      `   --------------------------------`,
-      ...(result.suggestedNextSteps || []).map(step => `   • ${step}`),
-      ``,
-      notesSection,
-      ``,
-    ];
+      `\n==================================================`,
+      ...reminderSection,
+      ...assessmentSection,
+      ...stepsSection,
+      ...notesSection,
+    );
 
     if (owner) {
       const fullAddress = [
@@ -202,38 +206,19 @@ export function generateReminderEmailBody({
         owner.addressPrefecture,
       ].filter(Boolean).join(", ");
       
-      bodyParts.push(
-        `   ΣΤΟΙΧΕΙΑ ΕΠΙΚΟΙΝΩΝΙΑΣ ΙΔΙΟΚΤΗΤΗ`,
-        `   --------------------------------`,
-        `   • Όνομα: ${owner.firstName} ${owner.lastName}`,
-        `   • Τηλέφωνο: ${owner.mobilePhone || owner.landlinePhone || 'Δ/Υ'}`,
-        `   • Διεύθυνση: ${fullAddress || 'Δ/Υ'}`,
-        ``,
-        ``,
-      );
+      bodyParts.push(...createSection('ΣΤΟΙΧΕIA ΕΠΙΚΟΙΝΩΝΙΑΣ ΙΔΙΟΚΤΗΤΗ', [
+          `• Όνομα: ${owner.firstName} ${owner.lastName}`,
+          `• Τηλέφωνο: ${owner.mobilePhone || owner.landlinePhone || 'Δ/Υ'}`,
+          `• Διεύθυνση: ${fullAddress || 'Δ/Υ'}`,
+      ]));
     }
     
     bodyParts.push(
-      `==================================================`,
+      `\n==================================================`,
+      `\nΜε εκτίμηση,`,
       ``,
-      `Με εκτίμηση,`,
-      ``,
+      ...getSignature(senderEmail)
     );
-
-    if (senderEmail === 'georgios.pagonis@gmail.com') {
-        bodyParts.push(
-            `Παγώνης Νέστ. Γεώργιος`,
-            `Αρχιτέκτων Μηχανικός`,
-            ``,
-            `Σαμοθράκης 16, 563 34`,
-            `Ελευθέριο Κορδελιό, Θεσσαλονίκη`,
-            `Τ: 2310 55 95 95`,
-            `Μ: 6974 050 023`,
-            `georgios.pagonis@gmail.com`
-        );
-    } else {
-         bodyParts.push(`Η ομάδα του NESTOR eco`);
-    }
     
     return bodyParts.join("\n");
 }
