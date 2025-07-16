@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -30,7 +31,7 @@ import {
   Network,
   FileCheck
 } from "lucide-react";
-import { InstructionsDialog } from "./instructions-dialog";
+import { InstructionsDialog } from "@/components/layout/instructions-dialog";
 
 const EcoFlowLogo = () => (
   <div className="flex items-center gap-2">
