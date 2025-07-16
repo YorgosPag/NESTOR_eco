@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getAdminDb } from '@/lib/firebase-admin';
 import { addOffer } from '@/lib/offers-data';
-import type { Offer, OfferItem } from '@/types';
+import type { Offer } from '@/types';
 
 // Zod schema for validating a single offer item
 const OfferItemSchema = z.object({
@@ -22,7 +22,7 @@ const CreateOfferSchema = z.object({
   type: z.enum(['general', 'perProject']),
   projectId: z.string().optional(),
   description: z.string().min(3, "Η περιγραφή πρέπει να έχει τουλάχιστον 3 χαρακτήρες."),
-  fileUrl: z.string().url().optional(),
+  fileUrl: z.string().url("Παρακαλώ εισάγετε ένα έγκυρο URL.").optional().or(z.literal('')),
   items: z.preprocess((val) => {
     // Preprocess to handle the stringified items array from the form
     if (typeof val === 'string') {
@@ -40,9 +40,8 @@ export async function createOfferAction(prevState: any, formData: FormData) {
   const validatedFields = CreateOfferSchema.safeParse(
     Object.fromEntries(formData.entries())
   );
-
+  
   if (!validatedFields.success) {
-    console.error('Validation Errors:', validatedFields.error.flatten().fieldErrors);
     return {
       success: false,
       errors: validatedFields.error.flatten().fieldErrors,

@@ -16,6 +16,30 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { CreateItemDialog } from '@/components/admin/custom-lists/create-item-dialog';
 import { createOfferAction } from '@/app/actions/offers';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+
+
+const OfferItemSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, "Η περιγραφή του αντικειμένου είναι υποχρεωτική."),
+  unit: z.string().min(1, "Η μονάδα μέτρησης είναι υποχρεωτική."),
+  quantity: z.coerce.number().min(0, "Η ποσότητα πρέπει να είναι μη αρνητικός αριθμός.").optional(),
+  unitPrice: z.coerce.number().positive("Η τιμή μονάδας πρέπει να είναι θετικός αριθμός."),
+});
+
+// Zod schema for validating the entire offer form
+const CreateOfferFormSchema = z.object({
+  supplierId: z.string().min(1, "Πρέπει να επιλέξετε προμηθευτή."),
+  type: z.enum(['general', 'perProject']),
+  projectId: z.string().optional(),
+  description: z.string().min(3, "Η περιγραφή πρέπει να έχει τουλάχιστον 3 χαρακτήρες."),
+  fileUrl: z.string().url().optional().or(z.literal('')),
+  items: z.array(OfferItemSchema).min(1, "Πρέπει να υπάρχει τουλάχιστον μία γραμμή προσφοράς."),
+});
+
 
 interface CreateOfferFormProps {
     setOpen: (open: boolean) => void;
@@ -57,8 +81,17 @@ export function CreateOfferForm({ setOpen, contacts, projects, customLists, cust
     const [state, formAction] = useActionState(createOfferAction, initialState);
     const { toast } = useToast();
 
-    const [items, setItems] = useState<OfferItem[]>([{ id: `item-${Date.now()}`, name: '', unit: '', unitPrice: 0, quantity: 1 }]);
-    
+    const form = useForm<z.infer<typeof CreateOfferFormSchema>>({
+        resolver: zodResolver(CreateOfferFormSchema),
+        defaultValues: {
+            type: 'general',
+            items: [{ id: `item-${Date.now()}`, name: '', unit: '', unitPrice: 0, quantity: 1 }],
+            fileUrl: '',
+        }
+    });
+
+    const items = form.watch('items');
+
     useEffect(() => {
         if (state?.success) {
             toast({ title: 'Επιτυχία!', description: state.message });
@@ -85,15 +118,15 @@ export function CreateOfferForm({ setOpen, contacts, projects, customLists, cust
         }
         
         newItems[index] = itemToUpdate;
-        setItems(newItems);
+        form.setValue('items', newItems, { shouldValidate: true });
     };
 
     const addItem = () => {
-        setItems([...items, { id: `item-${Date.now()}`, name: '', unit: '', unitPrice: 0, quantity: 1 }]);
+        form.setValue('items', [...items, { id: `item-${Date.now()}`, name: '', unit: '', unitPrice: 0, quantity: 1 }]);
     };
 
     const removeItem = (index: number) => {
-        setItems(items.filter((_, i) => i !== index));
+        form.setValue('items', items.filter((_, i) => i !== index));
     };
 
     const contactOptions = contacts.map(contact => ({
@@ -113,154 +146,212 @@ export function CreateOfferForm({ setOpen, contacts, projects, customLists, cust
             .map(item => ({ value: item.name, label: item.name }))
         : [];
 
+    const onSubmit = (values: z.infer<typeof CreateOfferFormSchema>) => {
+        const formData = new FormData();
+        Object.entries(values).forEach(([key, value]) => {
+            if (key === 'items') {
+                formData.append(key, JSON.stringify(value));
+            } else if (value !== undefined && value !== null) {
+                formData.append(key, String(value));
+            }
+        });
+        formAction(formData);
+    }
+
     return (
-        <form action={formAction} className="space-y-4 pt-4">
-             {/* Use a hidden input to pass the stringified items array */}
-            <input type="hidden" name="items" value={JSON.stringify(items)} />
-
-            <div className="space-y-2">
-                <Label htmlFor="supplierId">Προμηθευτής / Συνεργείο</Label>
-                <SearchableSelect
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+                <FormField
+                    control={form.control}
                     name="supplierId"
-                    onValueChange={(value) => {}} // The name attribute handles this in forms
-                    options={contactOptions}
-                    placeholder="Επιλέξτε επαφή..."
-                    searchPlaceholder="Αναζήτηση επαφής..."
-                    emptyMessage="Δεν βρέθηκε επαφή."
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Προμηθευτής / Συνεργείο</FormLabel>
+                            <FormControl>
+                                <SearchableSelect
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    options={contactOptions}
+                                    placeholder="Επιλέξτε επαφή..."
+                                    searchPlaceholder="Αναζήτηση επαφής..."
+                                    emptyMessage="Δεν βρέθηκε επαφή."
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
                 />
-                 {state.errors?.supplierId && <p className="text-sm font-medium text-destructive mt-1">{state.errors.supplierId[0]}</p>}
-            </div>
-
-            <div className="space-y-2">
-                <Label>Τύπος Προσφοράς</Label>
-                <RadioGroup name="type" defaultValue="general">
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="general" id="r-general" />
-                        <Label htmlFor="r-general">Γενική</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="perProject" id="r-perProject" />
-                        <Label htmlFor="r-perProject">Ανά Έργο</Label>
-                    </div>
-                </RadioGroup>
-            </div>
+                
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Τύπος Προσφοράς</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex flex-col space-y-1"
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="general" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Γενική</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="perProject" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Ανά Έργο</FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
             
-            {/* The form needs to react to the radio button state for this to work perfectly, which is complex with server actions.
-                For now, we just include the projectId field and rely on server validation to ignore it if type is 'general'. */}
-            <div className="space-y-2">
-                <Label htmlFor="projectId">Έργο (αν αφορά)</Label>
-                <SearchableSelect
+                <FormField
+                    control={form.control}
                     name="projectId"
-                    onValueChange={(value) => {}}
-                    options={projectOptions}
-                    placeholder="Επιλέξτε έργο..."
-                    searchPlaceholder="Αναζήτηση έργου..."
-                    emptyMessage="Δεν βρέθηκε έργο."
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Έργο (αν αφορά)</FormLabel>
+                             <FormControl>
+                                <SearchableSelect
+                                    onValueChange={field.onChange}
+                                    defaultValue={field.value}
+                                    options={projectOptions}
+                                    placeholder="Επιλέξτε έργο..."
+                                    searchPlaceholder="Αναζήτηση έργου..."
+                                    emptyMessage="Δεν βρέθηκε έργο."
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
                 />
-            </div>
 
-            <div className="space-y-2">
-                <Label htmlFor="description">Περιγραφή Προσφοράς</Label>
-                <Textarea 
-                    id="description" 
+                <FormField
+                    control={form.control}
                     name="description"
-                    placeholder="π.χ. Τιμοκατάλογος Υλικών Ιουνίου 2024"
-                    required 
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Περιγραφή Προσφοράς</FormLabel>
+                            <FormControl>
+                                <Textarea 
+                                    placeholder="π.χ. Τιμοκατάλογος Υλικών Ιουνίου 2024"
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
                 />
-                 {state.errors?.description && <p className="text-sm font-medium text-destructive mt-1">{state.errors.description[0]}</p>}
-            </div>
-            
-            <Separator />
-            
-            <div className="space-y-4">
-                <Label>Γραμμές Προσφοράς</Label>
-                {state.errors?.items && <p className="text-sm font-medium text-destructive mt-1">{Array.isArray(state.errors.items) ? state.errors.items[0] : state.errors.items}</p>}
+                
+                <Separator />
+                
                 <div className="space-y-4">
-                    {items.map((item, index) => (
-                        <div key={item.id} className="flex flex-col gap-2 p-3 border rounded-md bg-muted/50">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                <div className="space-y-1 col-span-2">
-                                    <Label htmlFor={`item-name-${index}`} className="text-xs">Περιγραφή</Label>
-                                    <Input
-                                        id={`item-name-${index}`}
-                                        value={item.name}
-                                        onChange={(e) => handleItemChange(index, 'name', e.target.value)}
-                                        placeholder="π.χ. Πάνελ οροφής"
-                                    />
+                    <Label>Γραμμές Προσφοράς</Label>
+                    <div className="space-y-4">
+                        {items.map((item, index) => (
+                            <div key={item.id} className="flex flex-col gap-2 p-3 border rounded-md bg-muted/50">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    <div className="space-y-1 col-span-2">
+                                        <Label htmlFor={`item-name-${index}`} className="text-xs">Περιγραφή</Label>
+                                        <Input
+                                            id={`item-name-${index}`}
+                                            value={item.name}
+                                            onChange={(e) => handleItemChange(index, 'name', e.target.value)}
+                                            placeholder="π.χ. Πάνελ οροφής"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label htmlFor={`item-unit-${index}`} className="text-xs">Μον. Μέτρησης</Label>
+                                        <Select
+                                            value={item.unit}
+                                            onValueChange={(value) => handleItemChange(index, 'unit', value)}
+                                        >
+                                            <SelectTrigger id={`item-unit-${index}`}>
+                                                <SelectValue placeholder="Επιλογή..." />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {unitOptions.map(option => (
+                                                    <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </SelectItem>
+                                                ))}
+                                                {unitList && <DialogChild listId={unitList.id} text="Προσθήκη Νέας Μονάδας..." />}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label htmlFor={`item-quantity-${index}`} className="text-xs">Ποσότητα</Label>
+                                        <Input
+                                            id={`item-quantity-${index}`}
+                                            type="number"
+                                            value={item.quantity}
+                                            onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                                            placeholder="1"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label htmlFor={`item-unitPrice-${index}`} className="text-xs">Τιμή Μονάδας (€)</Label>
+                                        <Input
+                                            id={`item-unitPrice-${index}`}
+                                            type="number"
+                                            value={item.unitPrice}
+                                            onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)}
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                    <div className="space-y-1 flex flex-col justify-end">
+                                        <p className="text-sm font-semibold p-2 border rounded-md bg-background text-right">
+                                        Σύνολο: {((item.quantity || 0) * item.unitPrice).toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}
+                                        </p>
+                                    </div>
                                 </div>
-                                 <div className="space-y-1">
-                                    <Label htmlFor={`item-unit-${index}`} className="text-xs">Μον. Μέτρησης</Label>
-                                     <Select
-                                        value={item.unit}
-                                        onValueChange={(value) => handleItemChange(index, 'unit', value)}
+                                <div className="flex justify-end">
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        onClick={() => removeItem(index)}
+                                        className="h-7 w-7"
                                     >
-                                        <SelectTrigger id={`item-unit-${index}`}>
-                                            <SelectValue placeholder="Επιλογή..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {unitOptions.map(option => (
-                                                <SelectItem key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </SelectItem>
-                                            ))}
-                                            {unitList && <DialogChild listId={unitList.id} text="Προσθήκη Νέας Μονάδας..." />}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-1">
-                                    <Label htmlFor={`item-quantity-${index}`} className="text-xs">Ποσότητα</Label>
-                                    <Input
-                                        id={`item-quantity-${index}`}
-                                        type="number"
-                                        value={item.quantity}
-                                        onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                                        placeholder="1"
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <Label htmlFor={`item-unitPrice-${index}`} className="text-xs">Τιμή Μονάδας (€)</Label>
-                                    <Input
-                                        id={`item-unitPrice-${index}`}
-                                        type="number"
-                                        value={item.unitPrice}
-                                        onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)}
-                                        placeholder="0.00"
-                                    />
-                                </div>
-                                <div className="space-y-1 flex flex-col justify-end">
-                                    <p className="text-sm font-semibold p-2 border rounded-md bg-background text-right">
-                                       Σύνολο: {((item.quantity || 0) * item.unitPrice).toLocaleString('el-GR', { style: 'currency', currency: 'EUR' })}
-                                    </p>
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
                                 </div>
                             </div>
-                            <div className="flex justify-end">
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="icon"
-                                    onClick={() => removeItem(index)}
-                                    className="h-7 w-7"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
+                     <FormMessage>{form.formState.errors.items?.message}</FormMessage>
+                    <Button type="button" variant="outline" onClick={addItem} className="w-full">
+                        <PlusCircle className="mr-2 h-4 w-4" /> Προσθήκη Γραμμής
+                    </Button>
                 </div>
-                <Button type="button" variant="outline" onClick={addItem} className="w-full">
-                    <PlusCircle className="mr-2 h-4 w-4" /> Προσθήκη Γραμμής
-                </Button>
-            </div>
-            
-            <Separator />
-            
-            <div className="space-y-2">
-                <Label htmlFor="file">Επισύναψη (URL)</Label>
-                <Input name="fileUrl" id="file" type="url" placeholder="https://example.com/offer.pdf" />
-                 {state.errors?.fileUrl && <p className="text-sm font-medium text-destructive mt-1">{state.errors.fileUrl[0]}</p>}
-            </div>
+                
+                <Separator />
+                
+                <FormField
+                    control={form.control}
+                    name="fileUrl"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Επισύναψη (URL)</FormLabel>
+                            <FormControl>
+                                <Input type="url" placeholder="https://example.com/offer.pdf" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
-            <SubmitButton />
-        </form>
+                <SubmitButton />
+            </form>
+        </Form>
     );
 }
+
