@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, type ReactNode } from "react";
@@ -19,7 +18,8 @@ import { Loader2, Bot, Wand2, Mail, AlertTriangle, ListTodo, ShieldCheck } from 
 import type { Stage, Contact } from "@/types";
 import type { GenerateReminderOutput } from "@/ai/flows/ai-smart-reminders";
 import { cn } from "@/lib/utils";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { DropdownMenuItem } from "../ui/dropdown-menu-item";
 import { generateReminderEmailBody } from "@/lib/email-templates";
 
 interface SmartReminderDialogProps {
