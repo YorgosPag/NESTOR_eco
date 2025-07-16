@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +9,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { el } from 'date-fns/locale';
 import { ArrowRight, CalendarClock } from "lucide-react";
 import type { Contact } from "@/types";
+import { useIsClient } from "@/hooks/use-is-client";
 
 interface Deadline {
     projectId: string;
@@ -26,11 +26,7 @@ interface UpcomingDeadlinesProps {
 }
 
 export function UpcomingDeadlines({ deadlines, contacts }: UpcomingDeadlinesProps) {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  const isClient = useIsClient();
 
   return (
     <Card className="col-span-1 lg:col-span-3">

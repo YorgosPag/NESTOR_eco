@@ -1,8 +1,7 @@
-
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
-import { useState, useEffect, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -31,6 +30,7 @@ import { Skeleton } from "../ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Checkbox } from "../ui/checkbox";
 import { cn } from "@/lib/utils";
+import { useIsClient } from "@/hooks/use-is-client";
 
 interface ProjectCardProps {
   project: Project;
@@ -40,23 +40,19 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project: serverProject, contacts, onSelectToggle, isSelected = false }: ProjectCardProps) {
-  const [isMounted, setIsMounted] = useState(false);
+  const isClient = useIsClient();
   
   const project = useMemo(() => {
       // On the server, we use the serverProject directly.
       // On the client, after mounting, we calculate the dynamic metrics.
-      if (!isMounted) return serverProject;
+      if (!isClient) return serverProject;
       return calculateClientProjectMetrics(serverProject);
-  }, [serverProject, isMounted]);
+  }, [serverProject, isClient]);
 
 
   const owner = contacts.find(c => c.id === project.ownerContactId);
   const ownerAddress = owner ? [owner.addressStreet, owner.addressNumber, owner.addressCity].filter(Boolean).join(' ') : '';
 
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const statusVariant = {
     'On Track': 'default',
@@ -126,7 +122,7 @@ export function ProjectCard({ project: serverProject, contacts, onSelectToggle, 
       </CardHeader>
       <CardContent className="flex flex-col gap-4 p-4 flex-grow">
         <div className="flex justify-between items-center text-xs h-5">
-            {isMounted ? (
+            {isClient ? (
                 <>
                     <Badge variant={statusVariant}>{statusText}</Badge>
                     {project.alerts > 0 && <Badge variant="outline" className="text-destructive border-destructive">{project.alerts} Ειδοποιήσεις</Badge>}
@@ -147,7 +143,7 @@ export function ProjectCard({ project: serverProject, contacts, onSelectToggle, 
             <div className="border-t pt-3 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                     <Calendar className="h-3.5 w-3.5 shrink-0" />
-                    <span>Προθεσμία: {isMounted ? format(new Date(project.deadline), 'dd/MM/yyyy') : '...'}</span>
+                    <span>Προθεσμία: {isClient ? format(new Date(project.deadline), 'dd/MM/yyyy') : '...'}</span>
                 </div>
             </div>
         )}

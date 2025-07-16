@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useMemo, useEffect } from "react";
 import { useSearchParams } from 'next/navigation';
 import type { Project, MasterIntervention, Contact, CustomList, CustomListItem } from "@/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,20 +17,25 @@ import { ProjectAlerts } from "./ProjectAlerts";
 import { InterventionCard } from "./InterventionCard";
 import { calculateClientProjectMetrics } from "@/lib/client-utils";
 import { useIsClient } from "@/hooks/use-is-client";
+import { useImmer } from "use-immer";
 
 export function ProjectDetails({ project: serverProject, masterInterventions, contacts, customLists, customListItems }: { project: Project, masterInterventions: MasterIntervention[], contacts: Contact[], customLists: CustomList[], customListItems: CustomListItem[] }) {
   const isClient = useIsClient();
   const searchParams = useSearchParams();
   const highlightedInterventionId = searchParams.get('intervention');
   
-  const [openAccordionItems, setOpenAccordionItems] = useState<string[]>([]);
+  const [openAccordionItems, setOpenAccordionItems] = useImmer<string[]>([]);
   
   useEffect(() => {
     // Expand the highlighted intervention from the URL on initial load
     if (highlightedInterventionId) {
-        setOpenAccordionItems(prev => [...new Set([...prev, highlightedInterventionId])]);
+        setOpenAccordionItems(draft => {
+            if (!draft.includes(highlightedInterventionId)) {
+                draft.push(highlightedInterventionId);
+            }
+        });
     }
-  }, [highlightedInterventionId]);
+  }, [highlightedInterventionId, setOpenAccordionItems]);
 
   const project = useMemo(() => {
       if (!isClient) return serverProject;
@@ -104,7 +109,6 @@ export function ProjectDetails({ project: serverProject, masterInterventions, co
                 key={intervention.masterId}
                 project={project}
                 intervention={intervention}
-                allProjectInterventions={project.interventions}
                 contacts={contacts}
                 customLists={customLists}
                 customListItems={customListItems}

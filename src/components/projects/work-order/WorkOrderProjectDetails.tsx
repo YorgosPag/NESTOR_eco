@@ -1,12 +1,12 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
 import type { Project, Contact } from '@/types';
 import { format } from 'date-fns';
 import { el } from 'date-fns/locale';
 import { Calendar, Phone, MapPin, Mail } from 'lucide-react';
 import { formatAddress } from '@/lib/text-utils';
+import { useIsClient } from '@/hooks/use-is-client';
 
 interface WorkOrderProjectDetailsProps {
     project: Project;
@@ -14,8 +14,7 @@ interface WorkOrderProjectDetailsProps {
 }
 
 export function WorkOrderProjectDetails({ project, owner }: WorkOrderProjectDetailsProps) {
-    const [isClient, setIsClient] = useState(false);
-    useEffect(() => { setIsClient(true) }, []);
+    const isClient = useIsClient();
     
     const ownerFullAddress = owner ? formatAddress(
         owner.addressStreet,

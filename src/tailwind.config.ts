@@ -1,3 +1,4 @@
+
 import type { Config } from 'tailwindcss';
 import plugin from 'tailwindcss/plugin';
 
@@ -109,7 +110,20 @@ const config: Config = {
     },
   },
   plugins: [
-    require('tailwindcss-animate')
+    require('tailwindcss-animate'),
+    plugin(function ({ addBase, theme }) {
+      addBase({
+        '.text-h1': { fontSize: theme('fontSize.h1') },
+        '.text-h2': { fontSize: theme('fontSize.h2') },
+        '.text-h3': { fontSize: theme('fontSize.h3') },
+        '.text-h4': { fontSize: theme('fontSize.h4') },
+        '.text-p': { fontSize: theme('fontSize.p') },
+        '.text-muted': {
+            color: theme('colors.muted.foreground'),
+            fontSize: theme('fontSize.sm'),
+        },
+      });
+    }),
   ],
 };
 

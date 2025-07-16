@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -11,6 +12,7 @@ import type { DayProps } from "react-day-picker";
 import type { StageStatus } from "@/types";
 import { Badge } from "../ui/badge";
 import { Skeleton } from "../ui/skeleton";
+import { useIsClient } from "@/hooks/use-is-client";
 
 interface CalendarEvent {
     date: Date;
@@ -26,11 +28,7 @@ interface CalendarViewProps {
 
 function CustomDay(props: DayProps & { events: CalendarEvent[] }) {
     const { date, displayMonth, events } = props;
-    const [isClient, setIsClient] = React.useState(false);
-
-    React.useEffect(() => {
-        setIsClient(true);
-    }, []);
+    const isClient = useIsClient();
 
     const eventsForDay = events.filter(event => 
         date && isSameDay(event.date, date)
@@ -103,12 +101,13 @@ function CustomDay(props: DayProps & { events: CalendarEvent[] }) {
 
 export function CalendarView({ events }: CalendarViewProps) {
     const [date, setDate] = React.useState<Date | undefined>();
-    const [isClient, setIsClient] = React.useState(false);
+    const isClient = useIsClient();
     
     React.useEffect(() => {
-        setIsClient(true);
-        setDate(new Date());
-    }, []);
+        if (isClient) {
+            setDate(new Date());
+        }
+    }, [isClient]);
 
     if (!isClient) {
         return (

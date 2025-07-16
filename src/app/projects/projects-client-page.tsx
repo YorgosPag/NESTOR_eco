@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from 'next/navigation';
 import { calculateClientProjectMetrics } from "@/lib/client-utils";
+import { useIsClient } from "@/hooks/use-is-client";
 
 
 const EmptyStateFiltered = ({ title = "Δεν βρέθηκαν έργα", description = "Δεν υπάρχουν έργα που να ταιριάζουν σε αυτήν την κατηγορία." }) => (
@@ -45,10 +46,12 @@ export function ProjectsClientPage({ projects: serverProjects, contacts }: Proje
     const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
     const [isReportLoading, setIsReportLoading] = useState(false);
     const router = useRouter();
+    const isClient = useIsClient();
 
     const projectsWithMetrics = useMemo(() => {
+        if (!isClient) return serverProjects;
         return serverProjects.map(p => calculateClientProjectMetrics(p));
-    }, [serverProjects]);
+    }, [serverProjects, isClient]);
 
     const handleToggleProjectSelection = (projectId: string, isSelected: boolean) => {
         if (isSelected) {
@@ -257,3 +260,4 @@ export function ProjectsClientPage({ projects: serverProjects, contacts }: Proje
             </Tabs>
         </main>
     )
+}

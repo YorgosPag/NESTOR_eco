@@ -1,12 +1,11 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useRef } from "react";
 import type { Stage, Contact, StageStatus, ProjectIntervention, Project } from "@/types";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";

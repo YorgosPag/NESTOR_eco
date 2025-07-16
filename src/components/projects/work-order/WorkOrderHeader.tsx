@@ -1,7 +1,6 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   DropdownMenu,
@@ -15,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Printer, Mail, FileText } from 'lucide-react';
 import type { Project } from '@/types';
 import { generateWorkOrderEmailBody } from './email-generator';
+import { useIsClient } from '@/hooks/use-is-client';
 
 const userEmails = [
     'georgios.pagonis@gmail.com',
@@ -27,8 +27,7 @@ interface WorkOrderHeaderProps {
 }
 
 export function WorkOrderHeader({ project }: WorkOrderHeaderProps) {
-    const [isClient, setIsClient] = useState(false);
-    useEffect(() => { setIsClient(true) }, []);
+    const isClient = useIsClient();
 
     const handleEmail = (senderEmail: string) => {
         if (!isClient) return;
