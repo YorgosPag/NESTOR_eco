@@ -1,4 +1,3 @@
-
 "use client"
 
 import {
@@ -24,7 +23,7 @@ import {
   ChartLegendContent,
   type ChartConfig
 } from "@/components/ui/chart"
-import type { ChartData } from "@/ai/flows/reporting-schemas";
+import type { ChartData } from "@/ai/flows/schemas";
 import { useTheme } from "next-themes";
 
 interface DynamicChartProps {
