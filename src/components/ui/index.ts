@@ -18,6 +18,7 @@ export * from './form';
 export * from './input';
 export * from './label';
 export * from './menubar';
+export * from './menubar-item';
 export * from './multi-select-combobox';
 export * from './popover';
 export * from './progress';
