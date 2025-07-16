@@ -43,16 +43,30 @@ interface StageCardProps {
 
 export function StageCard({ stage, project, allProjectInterventions, contacts, owner, interventionMasterId, canMoveUp, canMoveDown }: StageCardProps) {
   const [isClient, setIsClient] = useState(false);
-  const formRefUp = useRef<HTMLFormElement>(null);
-  const formRefDown = useRef<HTMLFormElement>(null);
-  const formRefStart = useRef<HTMLFormElement>(null);
-  const formRefComplete = useRef<HTMLFormElement>(null);
-  const formRefFail = useRef<HTMLFormElement>(null);
-  const formRefRestart = useRef<HTMLFormElement>(null);
+  const statusFormRef = useRef<HTMLFormElement>(null);
+  const moveFormRef = useRef<HTMLFormElement>(null);
+  
+  // Refs for hidden inputs to dynamically set their values before form submission
+  const statusInputRef = useRef<HTMLInputElement>(null);
+  const directionInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const handleStatusUpdate = (newStatus: StageStatus) => {
+    if (statusFormRef.current && statusInputRef.current) {
+        statusInputRef.current.value = newStatus;
+        statusFormRef.current.requestSubmit();
+    }
+  };
+
+  const handleMove = (direction: 'up' | 'down') => {
+      if (moveFormRef.current && directionInputRef.current) {
+          directionInputRef.current.value = direction;
+          moveFormRef.current.requestSubmit();
+      }
+  }
 
   const statusVariant = {
     pending: "outline",
@@ -75,16 +89,21 @@ export function StageCard({ stage, project, allProjectInterventions, contacts, o
   const assignee = contacts.find(c => c.id === stage.assigneeContactId);
   const supervisor = contacts.find(c => c.id === stage.supervisorContactId);
   
-  const createFormForAction = (action: (prevState: any, formData: FormData) => Promise<any>, ref: React.RefObject<HTMLFormElement>, inputs: { [key: string]: string }) => (
-    <form action={action} ref={ref}>
-        {Object.entries(inputs).map(([name, value]) => (
-            <input key={name} type="hidden" name={name} value={value} />
-        ))}
-    </form>
-  );
-
   return (
     <Card className={cn("shadow-md hover:shadow-lg transition-shadow")}>
+        {/* Hidden forms for server actions */}
+        <form ref={statusFormRef} action={updateStageStatusAction} className="hidden">
+            <input type="hidden" name="projectId" value={project.id} />
+            <input type="hidden" name="stageId" value={stage.id} />
+            <input type="hidden" name="status" ref={statusInputRef} value="" />
+        </form>
+         <form ref={moveFormRef} action={moveStageAction} className="hidden">
+            <input type="hidden" name="projectId" value={project.id} />
+            <input type="hidden" name="interventionMasterId" value={interventionMasterId} />
+            <input type="hidden" name="stageId" value={stage.id} />
+            <input type="hidden" name="direction" ref={directionInputRef} value="" />
+        </form>
+
       <CardHeader className="p-4">
         <div className="flex justify-between items-start gap-2">
             <div className="flex items-center gap-2 flex-1">
@@ -104,16 +123,9 @@ export function StageCard({ stage, project, allProjectInterventions, contacts, o
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                {createFormForAction(updateStageStatusAction, formRefStart, { projectId: project.id, stageId: stage.id, status: 'in progress' })}
-                {createFormForAction(updateStageStatusAction, formRefComplete, { projectId: project.id, stageId: stage.id, status: 'completed' })}
-                {createFormForAction(updateStageStatusAction, formRefFail, { projectId: project.id, stageId: stage.id, status: 'failed' })}
-                {createFormForAction(updateStageStatusAction, formRefRestart, { projectId: project.id, stageId: stage.id, status: 'in progress' })}
-                {createFormForAction(moveStageAction, formRefUp, { projectId: project.id, interventionMasterId, stageId: stage.id, direction: 'up' })}
-                {createFormForAction(moveStageAction, formRefDown, { projectId: project.id, interventionMasterId, stageId: stage.id, direction: 'down' })}
-
-                {stage.status === 'pending' && <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefStart.current?.requestSubmit(); }}><Play className="mr-2 h-4 w-4" /><span>Έναρξη Εργασιών</span></DropdownMenuItem>}
-                {stage.status === 'in progress' && <><DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefComplete.current?.requestSubmit(); }}><CheckCircle className="mr-2 h-4 w-4" /><span>Ολοκλήρωση Σταδίου</span></DropdownMenuItem><DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefFail.current?.requestSubmit(); }} className="text-destructive focus:text-destructive focus:bg-destructive/10"><XCircle className="mr-2 h-4 w-4" /><span>Σήμανση ως Αποτυχημένο</span></DropdownMenuItem></>}
-                {(stage.status === 'completed' || stage.status === 'failed') && <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefRestart.current?.requestSubmit(); }}><Undo2 className="mr-2 h-4 w-4" /><span>Επανέναρξη Εργασιών</span></DropdownMenuItem>}
+                {stage.status === 'pending' && <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleStatusUpdate('in progress'); }}><Play className="mr-2 h-4 w-4" /><span>Έναρξη Εργασιών</span></DropdownMenuItem>}
+                {stage.status === 'in progress' && <><DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleStatusUpdate('completed'); }}><CheckCircle className="mr-2 h-4 w-4" /><span>Ολοκλήρωση Σταδίου</span></DropdownMenuItem><DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleStatusUpdate('failed'); }} className="text-destructive focus:text-destructive focus:bg-destructive/10"><XCircle className="mr-2 h-4 w-4" /><span>Σήμανση ως Αποτυχημένο</span></DropdownMenuItem></>}
+                {(stage.status === 'completed' || stage.status === 'failed') && <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleStatusUpdate('in progress'); }}><Undo2 className="mr-2 h-4 w-4" /><span>Επανέναρξη Εργασιών</span></DropdownMenuItem>}
                 
                 <DropdownMenuSeparator />
                 <NotifyAssigneeDialog 
@@ -137,11 +149,11 @@ export function StageCard({ stage, project, allProjectInterventions, contacts, o
                   </DropdownMenuItem>
                </FileUploadDialog>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefUp.current?.requestSubmit(); }} disabled={!canMoveUp}>
+              <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleMove('up'); }} disabled={!canMoveUp}>
                     <ArrowUp className="mr-2 h-4 w-4" />
                     <span>Μετακίνηση Πάνω</span>
                 </DropdownMenuItem>
-              <DropdownMenuItem onSelect={(e) => { e.preventDefault(); formRefDown.current?.requestSubmit(); }} disabled={!canMoveDown}>
+              <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleMove('down'); }} disabled={!canMoveDown}>
                   <ArrowDown className="mr-2 h-4 w-4" />
                   <span>Μετακίνηση Κάτω</span>
                 </DropdownMenuItem>
