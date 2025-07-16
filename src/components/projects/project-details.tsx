@@ -17,7 +17,7 @@ import { ProjectAlerts } from "./ProjectAlerts";
 import { InterventionCard } from "./InterventionCard";
 import { calculateClientProjectMetrics } from "@/lib/client-utils";
 import { useIsClient } from "@/hooks/use-is-client";
-//import { useImmer } from "use-immer";
+import { useImmer } from "use-immer";
 
 export function ProjectDetails({ project: serverProject, masterInterventions, contacts, customLists, customListItems }: { project: Project, masterInterventions: MasterIntervention[], contacts: Contact[], customLists: CustomList[], customListItems: CustomListItem[] }) {
   const isClient = useIsClient();
