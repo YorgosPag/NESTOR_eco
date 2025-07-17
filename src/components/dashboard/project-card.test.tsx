@@ -12,11 +12,6 @@ jest.mock('next/link', () => {
     };
 });
 
-// Mock the useIsClient hook to ensure client-side logic runs during the test
-jest.mock('@/hooks/use-is-client', () => ({
-    useIsClient: () => true,
-}));
-
 describe('ProjectCard Component', () => {
     const mockProject: Project = {
         id: 'proj-1',
