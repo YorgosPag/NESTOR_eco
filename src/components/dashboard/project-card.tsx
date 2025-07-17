@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useMemo } from "react";
@@ -59,14 +60,14 @@ export function ProjectCard({ project: serverProject, contacts, onSelectToggle, 
     'Delayed': 'destructive',
     'Completed': 'secondary',
     'Quotation': 'outline',
-  }[project.status] as "default" | "destructive" | "secondary" | "outline";
+  }[project.status || 'Quotation'] as "default" | "destructive" | "secondary" | "outline";
 
   const statusText = {
     'On Track': 'Εντός Χρονοδιαγράμματος',
     'Delayed': 'Σε Καθυστέρηση',
     'Completed': 'Ολοκληρωμένο',
     'Quotation': 'Σε Προσφορά',
-  }[project.status];
+  }[project.status || 'Quotation'];
 
   return (
     <Card className={cn("flex flex-col relative", isSelected && "ring-2 ring-primary")}>
@@ -105,13 +106,13 @@ export function ProjectCard({ project: serverProject, contacts, onSelectToggle, 
                     <DropdownMenuLabel>Ενέργειες Έργου</DropdownMenuLabel>
                     <DropdownMenuSeparator/>
                     <EditProjectDialog project={project} contacts={contacts}>
-                         <DropdownMenuItem onSelectPreventClose>
+                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                             <Pencil className="mr-2 h-4 w-4" />
                             Επεξεργασία
                         </DropdownMenuItem>
                     </EditProjectDialog>
                      <DeleteProjectDialog project={project}>
-                         <DropdownMenuItem onSelectPreventClose className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
                             <Trash2 className="mr-2 h-4 w-4" />
                             Διαγραφή
                         </DropdownMenuItem>
