@@ -10,7 +10,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "gcp-build": "next build"
   },
   "dependencies": {
     "@genkit-ai/firebase": "^1.14.1",
