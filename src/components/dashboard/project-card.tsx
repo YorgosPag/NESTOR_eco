@@ -18,11 +18,11 @@ import { ArrowUpRight, MoreVertical, Pencil, Trash2, Calendar } from "lucide-rea
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu-item";
 import { EditProjectDialog } from "../projects/edit-project-dialog";
 import { DeleteProjectDialog } from "../projects/delete-project-dialog";
 import { format } from "date-fns";
