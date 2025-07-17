@@ -5,11 +5,11 @@ import Link from 'next/link';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu-item";
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Printer, Mail, FileText } from 'lucide-react';
 import type { Project } from '@/types';

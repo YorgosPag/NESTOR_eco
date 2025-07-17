@@ -1,8 +1,8 @@
-// src/app/api/genkit/[[...slug]]/route.ts
-import { genkit } from 'genkit';
+{// src/app/api/genkit/[[...slug]]/route.ts
+import { genkit, type Plugin } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
-import { firebase } from '@genkit-ai/firebase';
-import { devLogger, startFlowsServer } from '@genkit-ai/next';
+import { firebase } from '@genkit-ai/firebase/plugin';
+import { logger, startFlowsServer } from '@genkit-ai/next/plugin';
 
 // Dynamically import flows to register them with Genkit
 import '@/ai/flows/ai-smart-reminders';
@@ -12,7 +12,7 @@ import '@/ai/flows/reporting-flow';
 
 const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
-const plugins = [firebase(), devLogger()];
+const plugins: Plugin<any>[] = [firebase(), logger()];
 
 if (geminiApiKey) {
   plugins.push(googleAI({ apiKey: geminiApiKey }));
